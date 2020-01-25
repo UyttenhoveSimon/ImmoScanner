@@ -1,0 +1,23 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29613.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "ImmoScanner", "ImmoScanner\ImmoScanner.pyproj", "{6264263A-D243-4DFF-B70D-D6C1044E7804}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6264263A-D243-4DFF-B70D-D6C1044E7804}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6264263A-D243-4DFF-B70D-D6C1044E7804}.Release|Any CPU.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D266E004-1E49-42E6-B8C8-E9552DEF39E2}
+	EndGlobalSection
+EndGlobal
