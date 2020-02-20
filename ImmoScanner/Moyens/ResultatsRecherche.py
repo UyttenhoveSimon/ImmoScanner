@@ -6,3 +6,4 @@ class ResultatsRecherche:
         self.description = ""
         self.prix = 0
         self.id = ""
+        self.monnaie = ""
