@@ -13,6 +13,7 @@ class Travailleur:
             options.headless = True
 
         self.driver = webdriver.Firefox(options=options)
+        self.driver.set_page_load_timeout(60)
         self.ResultatsRecherche = [ResultatsRecherche()]
 
     def obtiens_resultats(self, recherche):
