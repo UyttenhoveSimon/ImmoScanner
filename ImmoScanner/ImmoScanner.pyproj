@@ -22,6 +22,9 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Intellectuels\SavantesStatistiques.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="MaConsole.py" />
     <Compile Include="Moyens\Recherche.py" />
     <Compile Include="Moyens\RechercheImmo.py" />
@@ -34,6 +37,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Moyens\" />
+    <Folder Include="Intellectuels\" />
     <Folder Include="Travailleurs\" />
   </ItemGroup>
   <ItemGroup>
