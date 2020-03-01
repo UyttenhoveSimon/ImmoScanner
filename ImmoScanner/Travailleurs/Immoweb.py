@@ -23,7 +23,7 @@ class Immoweb(TravailleurImmo):
             recherche_immo.pays = "Belgique"
 
     def a_la_soupe(self, url):
-        self.driver.get(url) # TODO : parfois echoue, retenter
+        self.driver.get(url) # TODO : parfois echoue avec dns error, à gerer
         html = self.driver.page_source
         soup = BeautifulSoup(html, 'html.parser')
         return soup
@@ -40,7 +40,7 @@ class Immoweb(TravailleurImmo):
             soup = self.a_la_soupe(url)
             nombre_pages = self.combien_pages(soup)
 
-            for page in range(1, nombre_pages):
+            for page in range(1, nombre_pages + 1):
                 url = self.creation_url(recherche_immo, page)
                 soup = self.a_la_soupe(url)
                 resultats_valeurs = soup.find_all("article", {"card card--result card--xl"} )
@@ -99,7 +99,7 @@ class Immoweb(TravailleurImmo):
 
     def combien_pages(self, soup):
         pagination = soup.find_all("a", {"pagination__link button button--text"}) 
-        if not pagination :
+        if not len(pagination) == 0:
             premiere_moitie = self.super_mouette_mouette(pagination) # pagination presente deux fois sur la page
             return int(premiere_moitie[-1].text.split('Page', 1)[1].strip())
         else:
