@@ -8,6 +8,7 @@ from pprint import pprint
 import logging
 from Intellectuels.SavantesStatistiques import SavantesStatistiques
 
+
 class MaConsole(Cmd):
     intro = "Bienvenue dans la recherche"
     logging.basicConfig(level=logging.DEBUG)
