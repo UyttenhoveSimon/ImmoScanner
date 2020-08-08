@@ -1,8 +1,8 @@
 import re
 
-from Moyens.ResultatsRechercheImmo import ResultatsRechercheImmo
-from Travailleurs.TravailleurImmo import TravailleurImmo
-from Moyens.RechercheImmo import RechercheImmo
+from Means.ResultatsRechercheImmo import ResultatsRechercheImmo
+from Workers.TravailleurImmo import TravailleurImmo
+from Means.RechercheImmo import RechercheImmo
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
@@ -28,7 +28,7 @@ class Immoweb(TravailleurImmo):
         soup = BeautifulSoup(html, 'html.parser')
         return soup
 
-    def obtiens_resultats(self, recherche_immo: RechercheImmo):
+    def get_results(self, recherche_immo: RechercheImmo):
         resultats_recherche_immo = []
 
         self.remplir_champs_manquants(recherche_immo)

@@ -1,4 +1,4 @@
-from Moyens.ResultatsRecherche import ResultatsRecherche
+from Means.ResultatsRecherche import ResultatsRecherche
 
 
 class ResultatsRechercheImmo(ResultatsRecherche):

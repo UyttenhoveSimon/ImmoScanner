@@ -1,4 +1,4 @@
-from Moyens.Recherche import Recherche
+from Means.Recherche import Recherche
 
 
 class RechercheImmo(Recherche):

@@ -1,7 +1,7 @@
 from selenium import webdriver
 import selenium.webdriver.common.by
 from selenium.webdriver.firefox.options import Options
-from Moyens.ResultatsRecherche import ResultatsRecherche
+from Means.ResultatsRecherche import ResultatsRecherche
 import logging
 
 
