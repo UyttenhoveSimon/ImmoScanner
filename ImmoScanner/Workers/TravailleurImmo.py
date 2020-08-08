@@ -1,5 +1,5 @@
-from Moyens.ResultatsRechercheImmo import ResultatsRechercheImmo
-from Travailleurs.Travailleur import Travailleur
+from Means.ResultatsRechercheImmo import ResultatsRechercheImmo
+from Workers.Travailleur import Travailleur
 
 
 class TravailleurImmo(Travailleur):
