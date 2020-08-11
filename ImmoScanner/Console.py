@@ -6,29 +6,26 @@ from Means.RechercheImmo import RechercheImmo
 from Workers.Immoweb import Immoweb
 from pprint import pprint
 import logging
-from Intellectuals.SavantesStatistiques import StatisticalInsights
+from Intellectuals.StatisticalInsights import StatisticalInsights
 
 
 class Console(Cmd):
-    intro = "Bienvenue dans la recherche"
+    intro = "Welcome in ImmoScanner"
     logging.basicConfig(level=logging.DEBUG)
 
     def do_research_immo(self, params):
-        """Entrer arguments dans l'ordre 1)Pays 2)Type (immobilier...) 3)Code postal 4)Achat/location   """
-        # parametres = params.split()
-        # if len(parametres) != 3:
-        #     print("Il faut trois arguments")
-        #     return
+        """Enter arguments in that order 1)Country 2)Type (real estate...) 3)Postal code 4) Buy/Rent   """
+      
         postal_code, city = params.split()
-        searches_immo_to_sell = RechercheImmo(postal_code, city) # valider les entrees + faire recherche code postal ou nom ville
+        searches_immo_to_sell = RechercheImmo(postal_code, city) # TODO: validate entries + research postal code or city name
         results_immoweb_to_sell = Immoweb().get_results(searches_immo_to_sell)
 
         good_stats_to_sell = StatisticalInsights(results_immoweb_to_sell)
         price_mean_to_sell = good_stats_to_sell.calculate_mean_price()
         price_median_to_sell = good_stats_to_sell.calculate_median_price()
 
-        searches_immo_to_rent = RechercheImmo(postal_code, city) # valider les entrees + faire recherche code postal ou nom ville
-        searches_immo_to_rent.louer_acheter = "a-louer" # TODO : penser comment orchestrer avec un autre site web qui recherche avec louer dans url 
+        searches_immo_to_rent = RechercheImmo(postal_code, city) # TODO: validate entries + research postal code or city name
+        searches_immo_to_rent.louer_acheter = "a-louer" # TODO : think how to orchestrate with another web site (deal with collisions) 
         results_immoweb_to_rent = Immoweb().get_results(searches_immo_to_rent)
 
         good_stats_to_rent = StatisticalInsights(results_immoweb_to_rent)
