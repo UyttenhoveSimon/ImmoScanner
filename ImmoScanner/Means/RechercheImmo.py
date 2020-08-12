@@ -1,7 +1,7 @@
-from Means.Recherche import Recherche
+from Means.Research import Research
 
 
-class RechercheImmo(Recherche):
+class RechercheImmo(Research):
     
     def __init__(self, code_postal: str, ville: str ): #type_bien, louer_acheter, pays --> arguments optionels ou bien a remplir ?
         super().__init__()
