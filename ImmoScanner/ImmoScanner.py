@@ -13,10 +13,11 @@ class ImmoScanner(**kwargs):
     def __init__(self):
         pass
 
-    def research_immo(self, params):
+    def research_immo(self, country, postal_code = "", city = ""):
         """Enter arguments in that order 1)Country 2)Type (real estate...) 3)Postal code 4)Buy/Rent   """
-      
-        postal_code, city = params.split()
+
+        
+
         searches_immo_to_sell = RechercheImmo(postal_code, city) # TODO: validate entries + research postal code or city name
         results_immoweb_to_sell = Immoweb().get_results(searches_immo_to_sell)
 
