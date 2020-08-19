@@ -1,0 +1,3 @@
+
+class Switzerland(Countrw):
+    
