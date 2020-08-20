@@ -28,8 +28,8 @@
     <Compile Include="MaConsole.py" />
     <Compile Include="Moyens\Recherche.py" />
     <Compile Include="Moyens\RechercheImmo.py" />
-    <Compile Include="Moyens\ResultatsRecherche.py" />
-    <Compile Include="Moyens\ResultatsRechercheImmo.py" />
+    <Compile Include="Moyens\ResearchResult.py" />
+    <Compile Include="Moyens\RealEstateResearchResult.py" />
     <Compile Include="Travailleurs\AutoScout24.py" />
     <Compile Include="Travailleurs\Immoweb.py" />
     <Compile Include="Travailleurs\Travailleur.py" />

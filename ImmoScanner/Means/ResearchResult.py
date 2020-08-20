@@ -1,4 +1,4 @@
-class ResultatsRecherche:
+class ResearchResult:
     
     def __init__(self):
         self.url = ""
