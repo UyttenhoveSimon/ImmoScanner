@@ -1,4 +1,5 @@
 import pycountry
+import wikipedia
 
 class Country():
 
@@ -10,6 +11,7 @@ class Country():
         self.official_name=""
         self.currency=""
         self.languages=[]
+        self.websites=[]
 
     def generate_country_givent_name(self, name):
         country = pycountry.countries.get(name=name)
@@ -23,8 +25,18 @@ class Country():
         return country
 
 
-    def fetch_city_given_postal_code(self):
-        
+    def fetch_city_given_postal_code(self, country):
+        searches = wikipedia.search(country)
+        for search in searches:
+            if "City" in search.summary:
+                return search
+        return None
 
-    def fetch_postal_code_given_city(self):
+
+    def fetch_postal_code_given_city(self, postal_code):
+        searches = wikipedia.search(postal_code)
+        for search in searches:
+            if "Postal Code" in search.summary:
+                return search
+        return None
 

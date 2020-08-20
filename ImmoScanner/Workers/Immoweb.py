@@ -1,8 +1,8 @@
 import re
 
 from Means.RealEstateResearchResult import RealEstateResearchResult
-from Workers.WorkerImmo import WorkerImmo
-from Means.RechercheImmo import RechercheImmo
+from Workers.RealEstateWorker import RealEstateWorker
+from Means.RealEstateResearch import RealEstateResearch
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
@@ -10,9 +10,9 @@ from price_parser import Price
 import logging
 
 
-class Immoweb(WorkerImmo):
+class Immoweb(RealEstateWorker):
 
-    def fill_empty_fields(self, recherche_immo: RechercheImmo):
+    def fill_empty_fields(self, recherche_immo: RealEstateResearch):
         if recherche_immo.louer_acheter is None:
             recherche_immo.louer_acheter = "a-vendre"
 
@@ -28,7 +28,7 @@ class Immoweb(WorkerImmo):
         soup = BeautifulSoup(html, 'html.parser')
         return soup
 
-    def get_results(self, recherche_immo: RechercheImmo):
+    def get_results(self, recherche_immo: RealEstateResearch):
         resultats_recherche_immo = []
 
         self.fill_empty_fields(recherche_immo)
@@ -88,7 +88,7 @@ class Immoweb(WorkerImmo):
 
         return real_estate_item
 
-    def creation_url(self, recherche_immo: RechercheImmo, page = 1):
+    def creation_url(self, recherche_immo: RealEstateResearch, page = 1):
         if page != 1:
             return f"https://www.immoweb.be/fr/recherche/{recherche_immo.type_bien}/{recherche_immo.louer_acheter}/{recherche_immo.ville}/{recherche_immo.code_postal}?countries=BE&page={page}"
 

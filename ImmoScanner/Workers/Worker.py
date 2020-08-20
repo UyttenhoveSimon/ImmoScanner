@@ -16,6 +16,6 @@ class Worker:
         self.driver.set_page_load_timeout(60)
         self.ResearchResult = [ResearchResult()]
 
-    def get_results(self, recherche):
-        self.recherche = recherche
+    def get_results(self, research):
+        self.research = research
         return [self.ResearchResult]

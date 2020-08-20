@@ -2,7 +2,7 @@ import sys
 from cmd import Cmd
 
 from Means.Recherche import Recherche
-from Means.RechercheImmo import RechercheImmo
+from Means.RealEstateResearch import RealEstateResearch
 from Workers.Immoweb import Immoweb
 from pprint import pprint
 import logging
