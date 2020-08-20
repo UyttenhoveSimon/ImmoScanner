@@ -1,7 +1,7 @@
 import re
 
 from Means.RealEstateResearchResult import RealEstateResearchResult
-from Workers.TravailleurImmo import TravailleurImmo
+from Workers.WorkerImmo import WorkerImmo
 from Means.RechercheImmo import RechercheImmo
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.by import By
@@ -10,9 +10,9 @@ from price_parser import Price
 import logging
 
 
-class Immoweb(TravailleurImmo):
+class Immoweb(WorkerImmo):
 
-    def remplir_champs_manquants(self, recherche_immo: RechercheImmo):
+    def fill_empty_fields(self, recherche_immo: RechercheImmo):
         if recherche_immo.louer_acheter is None:
             recherche_immo.louer_acheter = "a-vendre"
 
@@ -31,14 +31,14 @@ class Immoweb(TravailleurImmo):
     def get_results(self, recherche_immo: RechercheImmo):
         resultats_recherche_immo = []
 
-        self.remplir_champs_manquants(recherche_immo)
+        self.fill_empty_fields(recherche_immo)
 
         url = self.creation_url(recherche_immo)
         logging.info(url)
         
         try:
             soup = self.get_soupe(url)
-            nombre_pages = self.combien_pages(soup)
+            nombre_pages = self.get_page_number(soup)
 
             for page in range(1, nombre_pages + 1):
                 url = self.creation_url(recherche_immo, page)
@@ -68,8 +68,8 @@ class Immoweb(TravailleurImmo):
         return resultat.contents[0].contents[2].contents[0]['href']
 
     def get_result_price(self, resultat):
-        prix = Price.fromstring(resultat.contents[0].contents[4].contents[0].contents[2].text.strip())
-        return prix.amount, prix.currency
+        price = Price.fromstring(resultat.contents[0].contents[4].contents[0].contents[2].text.strip())
+        return price.amount, price.currency
     
     def extraction_resultats(self, resultat):
         real_estate_item = RealEstateResearchResult()
@@ -83,8 +83,8 @@ class Immoweb(TravailleurImmo):
         real_estate_item.url = self.get_result_link(resultat)
         logging.debug('lien: ' + real_estate_item.url)
 
-        real_estate_item.prix, real_estate_item.monnaie = self.get_result_price(resultat)
-        logging.debug('prix: ' + str(real_estate_item.prix), 'monnaie: ' + real_estate_item.monnaie)
+        real_estate_item.price, real_estate_item.currency = self.get_result_price(resultat)
+        logging.debug('price: ' + str(real_estate_item.price), 'currency: ' + real_estate_item.currency)
 
         return real_estate_item
 
@@ -97,7 +97,7 @@ class Immoweb(TravailleurImmo):
 
         return f"https://www.immoweb.be/fr/recherche/{recherche_immo.type_bien}/{recherche_immo.louer_acheter}/{recherche_immo.ville}/{recherche_immo.code_postal}?countries=BE&page={page}"
 
-    def combien_pages(self, soup):
+    def get_page_number(self, soup):
         pagination = soup.find_all("a", {"pagination__link button button--text"}) 
         if not len(pagination) == 0:
             first_half = self.get_first_half(pagination) # pagination presente deux fois sur la page
