@@ -1,6 +1,6 @@
 import re
 
-from Means.ResultatsRechercheImmo import ResultatsRechercheImmo
+from Means.RealEstateResearchResult import RealEstateResearchResult
 from Workers.TravailleurImmo import TravailleurImmo
 from Means.RechercheImmo import RechercheImmo
 from selenium.webdriver.firefox.options import Options
@@ -22,7 +22,7 @@ class Immoweb(TravailleurImmo):
         if recherche_immo.pays is None:
             recherche_immo.pays = "Belgique"
 
-    def a_la_soupe(self, url):
+    def get_soupe(self, url):
         self.driver.get(url) # TODO : parfois echoue avec dns error, à gerer
         html = self.driver.page_source
         soup = BeautifulSoup(html, 'html.parser')
@@ -37,12 +37,12 @@ class Immoweb(TravailleurImmo):
         logging.info(url)
         
         try:
-            soup = self.a_la_soupe(url)
+            soup = self.get_soupe(url)
             nombre_pages = self.combien_pages(soup)
 
             for page in range(1, nombre_pages + 1):
                 url = self.creation_url(recherche_immo, page)
-                soup = self.a_la_soupe(url)
+                soup = self.get_soupe(url)
                 resultats_valeurs = soup.find_all("article", {"card card--result card--xl"} )
 
                 if not resultats_valeurs:
@@ -55,38 +55,38 @@ class Immoweb(TravailleurImmo):
             self.driver.close()
             return resultats_recherche_immo
 
-    def chopper_resultat_id(self, resultat):
+    def get_result_id(self, resultat):
         return resultat['id'].split('_')[1]
 
-    def chopper_resultat_description(self, resultat):
+    def get_result_description(self, resultat):
         if hasattr(resultat.contents[0].contents[8], 'text'):
             return resultat.contents[0].contents[8].text
         else:
             return ""
 
-    def chopper_resultat_lien(self, resultat):
+    def get_result_link(self, resultat):
         return resultat.contents[0].contents[2].contents[0]['href']
 
-    def chopper_resultats_prix(self, resultat):
+    def get_result_price(self, resultat):
         prix = Price.fromstring(resultat.contents[0].contents[4].contents[0].contents[2].text.strip())
         return prix.amount, prix.currency
     
     def extraction_resultats(self, resultat):
-        resultat_recherche_immo = ResultatsRechercheImmo()
+        real_estate_item = RealEstateResearchResult()
 
-        resultat_recherche_immo.id = self.chopper_resultat_id(resultat)
-        logging.debug('id: ' + resultat_recherche_immo.id)
+        real_estate_item.id = self.get_result_id(resultat)
+        logging.debug('id: ' + real_estate_item.id)
       
-        resultat_recherche_immo.description = self.chopper_resultat_description(resultat)
-        logging.debug('texte: ' + resultat_recherche_immo.description)
+        real_estate_item.description = self.get_result_description(resultat)
+        logging.debug('texte: ' + real_estate_item.description)
 
-        resultat_recherche_immo.url = self.chopper_resultat_lien(resultat)
-        logging.debug('lien: ' + resultat_recherche_immo.url)
+        real_estate_item.url = self.get_result_link(resultat)
+        logging.debug('lien: ' + real_estate_item.url)
 
-        resultat_recherche_immo.prix, resultat_recherche_immo.monnaie = self.chopper_resultats_prix(resultat)
-        logging.debug('prix: ' + str(resultat_recherche_immo.prix), 'monnaie: ' + resultat_recherche_immo.monnaie)
+        real_estate_item.prix, real_estate_item.monnaie = self.get_result_price(resultat)
+        logging.debug('prix: ' + str(real_estate_item.prix), 'monnaie: ' + real_estate_item.monnaie)
 
-        return resultat_recherche_immo
+        return real_estate_item
 
     def creation_url(self, recherche_immo: RechercheImmo, page = 1):
         if page != 1:
@@ -100,11 +100,11 @@ class Immoweb(TravailleurImmo):
     def combien_pages(self, soup):
         pagination = soup.find_all("a", {"pagination__link button button--text"}) 
         if not len(pagination) == 0:
-            premiere_moitie = self.super_mouette_mouette(pagination) # pagination presente deux fois sur la page
-            return int(premiere_moitie[-1].text.split('Page', 1)[1].strip())
+            first_half = self.get_first_half(pagination) # pagination presente deux fois sur la page
+            return int(first_half[-1].text.split('Page', 1)[1].strip())
         else:
             return 1
 
-    def super_mouette_mouette(self, la_liste):
-        moitie = len(la_liste) // 2
-        return la_liste[:moitie]
+    def get_first_half(self, la_liste):
+        half = len(la_liste) // 2
+        return la_liste[:half]

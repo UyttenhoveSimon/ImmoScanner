@@ -1,7 +1,7 @@
-from Means.ResultatsRecherche import ResultatsRecherche
+from Means.ResearchResult import ResearchResult
 
 
-class ResultatsRechercheImmo(ResultatsRecherche):
+class RealEstateResearchResult(ResearchResult):
     
     def __init__(self):
         super().__init__()

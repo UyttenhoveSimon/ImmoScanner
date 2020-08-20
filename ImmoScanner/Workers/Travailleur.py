@@ -1,7 +1,7 @@
 from selenium import webdriver
 import selenium.webdriver.common.by
 from selenium.webdriver.firefox.options import Options
-from Means.ResultatsRecherche import ResultatsRecherche
+from Means.ResearchResult import ResearchResult
 import logging
 
 
@@ -14,8 +14,8 @@ class Travailleur:
 
         self.driver = webdriver.Firefox(options=options)
         self.driver.set_page_load_timeout(60)
-        self.ResultatsRecherche = [ResultatsRecherche()]
+        self.ResearchResult = [ResearchResult()]
 
     def obtiens_resultats(self, recherche):
         self.recherche = recherche
-        return [self.ResultatsRecherche]
+        return [self.ResearchResult]
