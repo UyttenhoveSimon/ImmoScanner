@@ -30,15 +30,15 @@
     <Compile Include="Moyens\RechercheImmo.py" />
     <Compile Include="Moyens\ResearchResult.py" />
     <Compile Include="Moyens\RealEstateResearchResult.py" />
-    <Compile Include="Travailleurs\AutoScout24.py" />
-    <Compile Include="Travailleurs\Immoweb.py" />
-    <Compile Include="Travailleurs\Travailleur.py" />
-    <Compile Include="Travailleurs\TravailleurImmo.py" />
+    <Compile Include="Workers\AutoScout24.py" />
+    <Compile Include="Workers\Immoweb.py" />
+    <Compile Include="Workers\Worker.py" />
+    <Compile Include="Workers\WorkerImmo.py" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Moyens\" />
     <Folder Include="Intellectuels\" />
-    <Folder Include="Travailleurs\" />
+    <Folder Include="Workers\" />
   </ItemGroup>
   <ItemGroup>
     <Interpreter Include="env\">
