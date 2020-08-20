@@ -27,13 +27,13 @@
     </Compile>
     <Compile Include="MaConsole.py" />
     <Compile Include="Moyens\Recherche.py" />
-    <Compile Include="Moyens\RechercheImmo.py" />
+    <Compile Include="Moyens\RealEstateResearch.py" />
     <Compile Include="Moyens\ResearchResult.py" />
     <Compile Include="Moyens\RealEstateResearchResult.py" />
     <Compile Include="Workers\AutoScout24.py" />
     <Compile Include="Workers\Immoweb.py" />
     <Compile Include="Workers\Worker.py" />
-    <Compile Include="Workers\WorkerImmo.py" />
+    <Compile Include="Workers\RealEstateWorker.py" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Moyens\" />

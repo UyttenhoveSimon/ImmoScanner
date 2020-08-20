@@ -2,7 +2,7 @@ import sys
 from cmd import Cmd
 
 from Means.Research import Research
-from Means.RechercheImmo import RechercheImmo
+from Means.RealEstateResearch import RealEstateResearch
 from Workers.Immoweb import Immoweb
 from pprint import pprint
 import logging
@@ -13,19 +13,17 @@ class ImmoScanner(**kwargs):
     def __init__(self):
         pass
 
-    def research_immo(self, country, postal_code = "", city = ""):
+    def research_real_estate(self, country, postal_code = "", city = ""):
         """Enter arguments in that order 1)Country 2)Type (real estate...) 3)Postal code 4)Buy/Rent   """
 
-        
-
-        searches_immo_to_sell = RechercheImmo(postal_code, city) # TODO: validate entries + research postal code or city name
+        searches_immo_to_sell = RealEstateResearch(postal_code, city) # TODO: validate entries + research postal code or city name
         results_immoweb_to_sell = Immoweb().get_results(searches_immo_to_sell)
 
         good_stats_to_sell = StatisticalInsights(results_immoweb_to_sell)
         price_mean_to_sell = good_stats_to_sell.calculate_mean_price()
         price_median_to_sell = good_stats_to_sell.calculate_median_price()
 
-        searches_immo_to_rent = RechercheImmo(postal_code, city) # TODO: validate entries + research postal code or city name
+        searches_immo_to_rent = RealEstateResearch(postal_code, city) # TODO: validate entries + research postal code or city name
         searches_immo_to_rent.louer_acheter = "a-louer" # TODO : think how to orchestrate with another web site (deal with collisions) 
         results_immoweb_to_rent = Immoweb().get_results(searches_immo_to_rent)
 
@@ -36,7 +34,7 @@ class ImmoScanner(**kwargs):
         yield_rent_gross_median = ((price_median_to_rent * 12) / price_median_to_sell) * 100
         logging.info(f'Rent yield gross median {yield_rent_gross_median}')
                      
-    def research_immo_url(self, params):
+    def research_real_estate_url(self, params):
         recherche = Research()
         recherche.url = params
         results_immoweb = Immoweb().get_results(recherche)
