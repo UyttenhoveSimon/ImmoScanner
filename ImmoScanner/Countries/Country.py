@@ -28,7 +28,7 @@ class Country():
     def fetch_city_given_postal_code(self, country):
         searches = wikipedia.search(country)
         for search in searches:
-            if "City" in search.summary:
+            if "City" in wikipedia.summary(search):
                 return search
         return None
 
@@ -36,7 +36,7 @@ class Country():
     def fetch_postal_code_given_city(self, postal_code):
         searches = wikipedia.search(postal_code)
         for search in searches:
-            if "Postal Code" in search.summary:
+            if "Postal Code" in wikipedia.summary(search):
                 return search
         return None
 
