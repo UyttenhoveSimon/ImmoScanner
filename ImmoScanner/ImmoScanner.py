@@ -24,7 +24,7 @@ class ImmoScanner(**kwargs):
         price_median_to_sell = good_stats_to_sell.calculate_median_price()
 
         searches_immo_to_rent = RealEstateResearch(postal_code, city) # TODO: validate entries + research postal code or city name
-        searches_immo_to_rent.louer_acheter = "a-louer" # TODO : think how to orchestrate with another web site (deal with collisions) 
+        searches_immo_to_rent.rent_or_buy = "a-louer" # TODO : think how to orchestrate with another web site (deal with collisions) 
         results_immoweb_to_rent = Immoweb().get_results(searches_immo_to_rent)
 
         good_stats_to_rent = StatisticalInsights(results_immoweb_to_rent)
@@ -35,6 +35,6 @@ class ImmoScanner(**kwargs):
         logging.info(f'Rent yield gross median {yield_rent_gross_median}')
                      
     def research_real_estate_url(self, params):
-        recherche = Research()
-        recherche.url = params
-        results_immoweb = Immoweb().get_results(recherche)
+        research = Research()
+        research.url = params
+        results_immoweb = Immoweb().get_results(research)

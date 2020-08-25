@@ -3,7 +3,7 @@ import wikipedia
 
 class Country():
 
-    def __init__():
+    def __init__(self):
         self.alpha_2=""
         self.alpha_3=""
         self.numeric=""
