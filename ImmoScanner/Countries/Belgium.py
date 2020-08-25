@@ -1,4 +1,5 @@
-import Countries.Country from Country
+from Countries.Country import Country
+from Workers.Immoweb import Immoweb
 
 class Belgium(Country):
 
