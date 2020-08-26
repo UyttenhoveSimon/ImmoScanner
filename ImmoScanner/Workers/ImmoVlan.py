@@ -10,9 +10,9 @@ from price_parser import Price
 import logging
 
 
-class Immoweb(RealEstateWorker):
+class ImmoVlan(RealEstateWorker):
 
-    def fill_empty_fields(self, real_estate_research: RealEstateResearch):
+     def fill_empty_fields(self, real_estate_research: RealEstateResearch):
         if real_estate_research.rent_or_buy is None:
             real_estate_research.rent_or_buy = "a-vendre"
 
@@ -90,12 +90,12 @@ class Immoweb(RealEstateWorker):
 
     def url_builder(self, real_estate_research: RealEstateResearch, page = 1):
         if page != 1:
-            return f"https://www.immoweb.be/fr/recherche/{real_estate_research.type_bien}/{real_estate_research.louer_acheter}/{real_estate_research.ville}/{real_estate_research.code_postal}?countries=BE&page={page}"
+            return f"https://www.immovlan.be/fr/recherche/{real_estate_research.type_bien}/{real_estate_research.louer_acheter}/{real_estate_research.ville}/{real_estate_research.code_postal}?countries=BE&page={page}"
 
         if real_estate_research.url is not "":
             return real_estate_research.url # TODO Ajouter fonction pour chopper les parametres de l'url
 
-        return f"https://www.immoweb.be/fr/recherche/{real_estate_research.type_bien}/{real_estate_research.louer_acheter}/{real_estate_research.ville}/{real_estate_research.code_postal}?countries=BE&page={page}"
+        return f"https://www.immovlan.be/fr/recherche/{real_estate_research.type_bien}/{real_estate_research.louer_acheter}/{real_estate_research.ville}/{real_estate_research.code_postal}?countries=BE&page={page}"
 
     def get_page_number(self, soup):
         pagination = soup.find_all("a", {"pagination__link button button--text"}) 
