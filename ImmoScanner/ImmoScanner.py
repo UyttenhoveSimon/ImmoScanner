@@ -9,9 +9,9 @@ import logging
 from Intellectuals.StatisticalInsights import StatisticalInsights
 
 
-class ImmoScanner(**kwargs):
+class ImmoScanner():
     def __init__(self):
-        pass
+        logging.basicConfig(level=logging.DEBUG)
 
     def research_real_estate(self, params):
         """Enter arguments in that order 1)Country 2)Type (real estate...) 3)Postal code 4)Buy/Rent   """
