@@ -7,14 +7,19 @@ from Workers.Immoweb import Immoweb
 from pprint import pprint
 import logging
 from Intellectuals.StatisticalInsights import StatisticalInsights
+from Countries.Country import Country
 
 
 class ImmoScanner():
+
+
     def __init__(self):
         logging.basicConfig(level=logging.DEBUG)
 
     def research_real_estate(self, **params):
         """Enter arguments in that order 1)Country 2)Type (real estate...) 3)Postal code 4)Buy/Rent   """
+
+
 
         searches_immo_to_sell = RealEstateResearch(postal_code, city) # TODO: validate entries + research postal code or city name
         results_immoweb_to_sell = Immoweb().get_results(searches_immo_to_sell)
@@ -38,3 +43,7 @@ class ImmoScanner():
         research = Research()
         research.url = params
         results_immoweb = Immoweb().get_results(research)
+    
+
+    def get_country(self, country):
+        return Country().generate_country_given_name(country)

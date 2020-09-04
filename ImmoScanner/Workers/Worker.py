@@ -6,7 +6,6 @@ import logging
 
 
 class Worker:
-
     def __init__(self):
         options = Options()
         if logging.root.level > logging.DEBUG:
