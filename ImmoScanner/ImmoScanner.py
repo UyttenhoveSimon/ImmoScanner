@@ -13,7 +13,7 @@ class ImmoScanner():
     def __init__(self):
         logging.basicConfig(level=logging.DEBUG)
 
-    def research_real_estate(self, params):
+    def research_real_estate(self, **params):
         """Enter arguments in that order 1)Country 2)Type (real estate...) 3)Postal code 4)Buy/Rent   """
 
         searches_immo_to_sell = RealEstateResearch(postal_code, city) # TODO: validate entries + research postal code or city name
