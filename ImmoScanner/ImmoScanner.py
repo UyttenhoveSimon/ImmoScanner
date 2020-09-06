@@ -16,9 +16,16 @@ class ImmoScanner():
     def __init__(self):
         logging.basicConfig(level=logging.DEBUG)
 
-    def research_real_estate(self, **params):
+    def research_real_estate(self, country, postal_code="", city=""):
         """Enter arguments in that order 1)Country 2)Type (real estate...) 3)Postal code 4)Buy/Rent   """
 
+        country = self.get_country(country)
+
+        if not postal_code:
+            postal_code = self.get_postal_code(city)
+
+        if not city:
+            city = self.get_city(postal_code)
 
 
         searches_immo_to_sell = RealEstateResearch(postal_code, city) # TODO: validate entries + research postal code or city name
@@ -39,11 +46,18 @@ class ImmoScanner():
         yield_rent_gross_median = ((price_median_to_rent * 12) / price_median_to_sell) * 100
         logging.info(f'Rent yield gross median {yield_rent_gross_median}')
                      
-    def research_real_estate_url(self, params):
+    def research_real_estate_url(self, country, url):
         research = Research()
-        research.url = params
+        research.url = url
         results_immoweb = Immoweb().get_results(research)
     
 
     def get_country(self, country):
         return Country().generate_country_given_name(country)
+    
+    def get_postal_code(self, city):
+        return Country().fetch_postal_code_given_city(city)
+
+    def get_city(self, postal_code):
+        return Country().fetch_city_given_postal_code(postal_code)
+    
