@@ -18,7 +18,7 @@ def main(country, postal_code="", city="", url="", debug=False):
     """
 
     if url is not None:
-        ImmoScanner().research_real_estate_url(url)
+        ImmoScanner().research_real_estate_url(country=country, url=url)
     elif (city is not None) or (postal_code is not None):
         ImmoScanner().research_real_estate(
             country=country, city=city, postal_code=postal_code

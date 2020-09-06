@@ -1,6 +1,6 @@
 import pycountry
-import wikipedia
-
+import requests
+from bs4 import BeautifulSoup
 
 class Country:
     def __init__(self):
@@ -24,16 +24,22 @@ class Country:
         self.languages = country.languages
         return country
 
-    def fetch_city_given_postal_code(self, country):
-        searches = wikipedia.search(country)
-        for search in searches:
-            if "City" in wikipedia.summary(search):
-                return search
-        return None
+    def fetch_city_given_postal_code(self, postal_code):
+        search = requests.get("https://www.geonames.org/postalcode-search.html?q=1315&country=CH")
+        soup = BeautifulSoup(search.text, "html.parser")
+        print(soup)
+        table = soup.find("table", {"class":"restable"})
 
-    def fetch_postal_code_given_city(self, postal_code):
-        searches = wikipedia.search(postal_code)
-        for search in searches:
-            if "Postal Code" in wikipedia.summary(search):
-                return search
-        return None
+        rows=list()
+        for row in table.find_all("td"):
+            rows.append(row)
+
+    def fetch_postal_code_given_city(self, city):
+        search = requests.get("https://www.geonames.org/postalcode-search.html?q=1315&country=CH")
+        soup = BeautifulSoup(search.text, "html.parser")
+        print(soup)
+        table = soup.find("table", {"class":"restable"})
+
+        rows=list()
+        for row in table.find_all("td"):
+            rows.append(row)
