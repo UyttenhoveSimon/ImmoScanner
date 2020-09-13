@@ -1,6 +1,5 @@
 import sys
-from cmd import Cmd
-
+import tldextract
 from Means.Research import Research
 from Means.RealEstateResearch import RealEstateResearch
 from Workers.Immoweb import Immoweb
@@ -14,23 +13,29 @@ class ImmoScanner:
     def __init__(self):
         logging.basicConfig(level=logging.DEBUG)
 
-    def research_real_estate(self, country, postal_code="", city=""):
+    def research_real_estate(self, country_name, postal_code="", city=""):
         """Enter arguments in that order 1)Country 2)Type (real estate...) 3)Postal code 4)Buy/Rent   """
 
-        country = self.get_country(country)
+        country = Country().generate_country_given_name(country_name)
+        websites = list()
+        if country.name in country.dispatch_country.keys():
+            websites = country.get_real_estate_websites()
+        else:
+            print(f"the country {country} input is not implemented.")
 
         if not postal_code:
-            postal_code = self.get_postal_code(city)
+            postal_code = country.fetch_city_given_postal_code(city)
 
         if not city:
-            city = self.get_city(postal_code)
+            city = country.fetch_postal_code_given_city(postal_code)
 
-        searches_immo_to_sell = RealEstateResearch(
-            postal_code, city
-        )  # TODO: validate entries + research postal code or city name
-        results_immoweb_to_sell = Immoweb().get_results(searches_immo_to_sell)
+        searches_immo_to_sell = RealEstateResearch(postal_code, city)
 
-        good_stats_to_sell = StatisticalInsights(results_immoweb_to_sell)
+        results = list()
+        for website in websites:
+            results.append(website.get_results(searches_immo_to_sell))
+
+        good_stats_to_sell = StatisticalInsights(results)
         price_mean_to_sell = good_stats_to_sell.calculate_mean_price()
         price_median_to_sell = good_stats_to_sell.calculate_median_price()
 
@@ -52,13 +57,16 @@ class ImmoScanner:
     def research_real_estate_url(self, country, url):
         research = Research()
         research.url = url
-        results_immoweb = Immoweb().get_results(research)
 
-    def get_country(self, country):
-        return Country().generate_country_given_name(country)
+        websites = list()
+        country = Country().generate_country_given_name(country)
+        if country.name in country.dispatch_country.keys():
+            websites = country.get_real_estate_websites()
+        else:
+            print(f"the country {country} input is not implemented.")
 
-    def get_postal_code(self, city):
-        return Country().fetch_postal_code_given_city(city)
-
-    def get_city(self, postal_code):
-        return Country().fetch_city_given_postal_code(postal_code)
+        results = list()
+        parsed_uri = tldextract(research.url)
+        for website in websites:
+            if parsed_uri.domain == website.domain_name:
+                results.append(website.get_results(research))

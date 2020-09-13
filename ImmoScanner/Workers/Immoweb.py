@@ -11,6 +11,9 @@ import logging
 
 
 class Immoweb(RealEstateWorker):
+    def __init__(self):
+        self.domain_name = "immoweb"
+
     def fill_empty_fields(self, real_estate_research: RealEstateResearch):
         if real_estate_research.rent_or_buy is None:
             real_estate_research.rent_or_buy = "a-vendre"
