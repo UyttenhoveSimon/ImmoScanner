@@ -1,6 +1,8 @@
 import pycountry
 import requests
+import urllib.parse
 from bs4 import BeautifulSoup
+
 
 class Country:
     def __init__(self):
@@ -25,21 +27,31 @@ class Country:
         return country
 
     def fetch_city_given_postal_code(self, postal_code):
-        search = requests.get("https://www.geonames.org/postalcode-search.html?q=1315&country=CH")
+        search = requests.get(
+            "https://www.geonames.org/postalcode-search.html?q={postal_code}&country=CH"
+        )
         soup = BeautifulSoup(search.text, "html.parser")
         print(soup)
-        table = soup.find("table", {"class":"restable"})
+        table = soup.find("table", {"class": "restable"})
 
-        rows=list()
+        rows = list()
         for row in table.find_all("td"):
-            rows.append(row)
+            rows.append(row.text)
+
+        return rows[1]
+
+        # ['1', 'La Sarraz', '1315', 'Switzerland', 'Canton de Vaud', 'Morges District', 'La Sarraz\xa0\xa0\xa046.659/6.511\n\n', '', '\xa0\xa0\xa046.659/6.511', '']
+        #
 
     def fetch_postal_code_given_city(self, city):
-        search = requests.get("https://www.geonames.org/postalcode-search.html?q=1315&country=CH")
+        city = urllib.parse.quote_plus(city)
+        search = requests.get(
+            "https://www.geonames.org/postalcode-search.html?q={city}&country=CH"
+        )
         soup = BeautifulSoup(search.text, "html.parser")
         print(soup)
-        table = soup.find("table", {"class":"restable"})
+        table = soup.find("table", {"class": "restable"})
 
-        rows=list()
+        rows = list()
         for row in table.find_all("td"):
-            rows.append(row)
+            rows.append(row.text)
