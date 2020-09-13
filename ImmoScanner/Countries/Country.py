@@ -3,6 +3,9 @@ import requests
 import urllib.parse
 from bs4 import BeautifulSoup
 
+from Belgium import Belgium
+from Switzerland import Switzerland
+
 
 class Country:
     def __init__(self):
@@ -41,7 +44,6 @@ class Country:
         return rows[1]
 
         # ['1', 'La Sarraz', '1315', 'Switzerland', 'Canton de Vaud', 'Morges District', 'La Sarraz\xa0\xa0\xa046.659/6.511\n\n', '', '\xa0\xa0\xa046.659/6.511', '']
-        #
 
     def fetch_postal_code_given_city(self, city):
         city = urllib.parse.quote_plus(city)
@@ -55,3 +57,11 @@ class Country:
         rows = list()
         for row in table.find_all("td"):
             rows.append(row.text)
+
+        return rows[2]
+        # ['1', 'La Sarraz', '1315', 'Switzerland', 'Canton de Vaud', 'Morges District', 'La Sarraz\xa0\xa0\xa046.659/6.511\n\n', '', '\xa0\xa0\xa046.659/6.511', '']
+
+    dispatch_country = {"Belgium": Belgium(), "Switzerland": Switzerland()}
+
+    def get_real_estate_websites(self):
+        return self.dispatch_country[self.name].get_real_estate_websites()

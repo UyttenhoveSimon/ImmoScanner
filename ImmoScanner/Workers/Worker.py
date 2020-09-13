@@ -14,6 +14,7 @@ class Worker:
         self.driver = webdriver.Firefox(options=options)
         self.driver.set_page_load_timeout(60)
         self.ResearchResult = [ResearchResult()]
+        self.domain_name = ""
 
     def get_results(self, research):
         self.research = research
