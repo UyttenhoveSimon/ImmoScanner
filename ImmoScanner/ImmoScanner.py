@@ -66,7 +66,7 @@ class ImmoScanner:
             print(f"the country {country} input is not implemented.")
 
         results = list()
-        parsed_uri = tldextract(research.url)
+        parsed_uri = tldextract.extract(research.url)
         for website in websites:
             if parsed_uri.domain == website.domain_name:
                 results.append(website.get_results(research))
