@@ -12,7 +12,7 @@ import logging
 
 class Immoweb(RealEstateWorker):
     def __init__(self):
-        self.domain_name = "immoweb"
+        self.domain_name = "immoweb.be"
 
     def fill_empty_fields(self, real_estate_research: RealEstateResearch):
         if real_estate_research.rent_or_buy is None:
@@ -23,12 +23,6 @@ class Immoweb(RealEstateWorker):
 
         if real_estate_research.country is None:
             real_estate_research.country = "Belgique"
-
-    def get_soupe(self, url):
-        self.driver.get(url)  # TODO : parfois echoue avec dns error, à gerer
-        html = self.driver.page_source
-        soup = BeautifulSoup(html, "html.parser")
-        return soup
 
     def get_findings(self, real_estate_research: RealEstateResearch):
         real_estate_research_results = []
@@ -104,9 +98,7 @@ class Immoweb(RealEstateWorker):
             return f"https://www.immoweb.be/fr/recherche/{real_estate_research.type_bien}/{real_estate_research.louer_acheter}/{real_estate_research.ville}/{real_estate_research.code_postal}?countries=BE&page={page}"
 
         if real_estate_research.url is not "":
-            return (
-                real_estate_research.url
-            )  # TODO Ajouter fonction pour chopper les parametres de l'url
+            return real_estate_research.url
 
         return f"https://www.immoweb.be/fr/recherche/{real_estate_research.type_bien}/{real_estate_research.louer_acheter}/{real_estate_research.ville}/{real_estate_research.code_postal}?countries=BE&page={page}"
 
@@ -115,11 +107,7 @@ class Immoweb(RealEstateWorker):
         if not len(pagination) == 0:
             first_half = self.get_first_half(
                 pagination
-            )  # pagination presente deux fois sur la page
+            )  # pagination is present two times on the page
             return int(first_half[-1].text.split("Page", 1)[1].strip())
         else:
             return 1
-
-    def get_first_half(self, la_liste):
-        half = len(la_liste) // 2
-        return la_liste[:half]
