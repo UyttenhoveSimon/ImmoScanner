@@ -35,24 +35,7 @@ class ImmoScanner:
         for website in websites:
             results.append(website.get_results(searches_immo_to_sell))
 
-        good_stats_to_sell = StatisticalInsights(results)
-        price_mean_to_sell = good_stats_to_sell.calculate_mean_price()
-        price_median_to_sell = good_stats_to_sell.calculate_median_price()
-
-        searches_immo_to_rent = RealEstateResearch(
-            postal_code, city
-        )  # TODO: validate entries + research postal code or city name
-        searches_immo_to_rent.rent_or_buy = "a-louer"  # TODO : think how to orchestrate with another web site (deal with collisions)
-        results_immoweb_to_rent = Immoweb().get_results(searches_immo_to_rent)
-
-        good_stats_to_rent = StatisticalInsights(results_immoweb_to_rent)
-        price_mean_to_rent = good_stats_to_rent.calculate_mean_price()
-        price_median_to_rent = good_stats_to_rent.calculate_median_price()
-
-        yield_rent_gross_median = (
-            (price_median_to_rent * 12) / price_median_to_sell
-        ) * 100
-        logging.info(f"Rent yield gross median {yield_rent_gross_median}")
+        return results
 
     def research_real_estate_url(self, country, url):
         research = Research()
@@ -70,3 +53,19 @@ class ImmoScanner:
         for website in websites:
             if parsed_uri.domain == website.domain_name:
                 results.append(website.get_results(research))
+
+        return results
+
+    def get_insights(self, results):
+        good_stats_to_sell = StatisticalInsights(results)
+        price_mean_to_sell = good_stats_to_sell.calculate_mean_price()
+        price_median_to_sell = good_stats_to_sell.calculate_median_price()
+
+        good_stats_to_rent = StatisticalInsights(results)
+        price_mean_to_rent = good_stats_to_rent.calculate_mean_price()
+        price_median_to_rent = good_stats_to_rent.calculate_median_price()
+
+        yield_rent_gross_median = StatisticalInsights().calculate_gross_yield_median(
+            price_mean_to_rent, price_mean_to_sell
+        )
+        logging.info(f"Rent yield gross median {yield_rent_gross_median}")
