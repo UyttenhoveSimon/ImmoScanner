@@ -18,3 +18,6 @@ class StatisticalInsights:
             resultat.price for resultat in self.research_results
         )
         return self.price_median
+
+    def calculate_gross_yield_median(self, price_median_to_rent, price_median_to_sell):
+        return ((price_median_to_rent * 12) / price_median_to_sell) * 100
