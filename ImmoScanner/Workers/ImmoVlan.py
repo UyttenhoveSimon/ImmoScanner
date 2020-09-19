@@ -11,6 +11,9 @@ import logging
 
 
 class ImmoVlan(RealEstateWorker):
+    def __init__(self):
+        self.domain_name = "immo.vlan.be"
+
     def fill_empty_fields(self, real_estate_research: RealEstateResearch):
         if real_estate_research.rent_or_buy is None:
             real_estate_research.rent_or_buy = "a-vendre"
@@ -20,12 +23,6 @@ class ImmoVlan(RealEstateWorker):
 
         if real_estate_research.country is None:
             real_estate_research.country = "Belgique"
-
-    def get_soupe(self, url):
-        self.driver.get(url)  # TODO : parfois echoue avec dns error, à gerer
-        html = self.driver.page_source
-        soup = BeautifulSoup(html, "html.parser")
-        return soup
 
     def get_findings(self, real_estate_research: RealEstateResearch):
         real_estate_research_results = []
@@ -97,18 +94,18 @@ class ImmoVlan(RealEstateWorker):
         return real_estate_item
 
     def url_builder(self, real_estate_research: RealEstateResearch, page=1):
-        if page != 1:
-            return f"https://www.immovlan.be/fr/recherche/{real_estate_research.type_bien}/{real_estate_research.louer_acheter}/{real_estate_research.ville}/{real_estate_research.code_postal}?countries=BE&page={page}"
+        if (
+            page != 1
+        ):  # https://immo.vlan.be/fr/immobilier?transactiontypes=a-vendre,en-vente-publique&propertytypes=maison&towns=1410-waterloo&noindex=1
+            return f"https://immo.vlan.be/fr/immobilier?transactiontypes={real_estate_research.louer_acheter}&propertytypes={real_estate_research.type_bien}&towns={real_estate_research.ville}-{real_estate_research.code_postal}&noindex=1"
 
         if real_estate_research.url is not "":
-            return (
-                real_estate_research.url
-            )  # TODO Ajouter fonction pour chopper les parametres de l'url
+            return real_estate_research.url
 
-        return f"https://www.immovlan.be/fr/recherche/{real_estate_research.type_bien}/{real_estate_research.louer_acheter}/{real_estate_research.ville}/{real_estate_research.code_postal}?countries=BE&page={page}"
+        return f"https://immo.vlan.be/fr/immobilier?transactiontypes={real_estate_research.louer_acheter}&propertytypes={real_estate_research.type_bien}&towns={real_estate_research.ville}-{real_estate_research.code_postal}&noindex=1"
 
     def get_page_number(self, soup):
-        pagination = soup.find_all("a", {"pagination__link button button--text"})
+        pagination = soup.find_all("a", {"page--link"})
         if not len(pagination) == 0:
             first_half = self.get_first_half(
                 pagination
@@ -116,7 +113,3 @@ class ImmoVlan(RealEstateWorker):
             return int(first_half[-1].text.split("Page", 1)[1].strip())
         else:
             return 1
-
-    def get_first_half(self, la_liste):
-        half = len(la_liste) // 2
-        return la_liste[:half]

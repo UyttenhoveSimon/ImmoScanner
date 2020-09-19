@@ -60,10 +60,14 @@ class ImmoScanner:
         good_stats_to_sell = StatisticalInsights(results)
         price_mean_to_sell = good_stats_to_sell.calculate_mean_price()
         price_median_to_sell = good_stats_to_sell.calculate_median_price()
+        logging.info(f"Price mean to sell {price_median_to_sell}")
+        logging.info(f"Price median to sell {price_median_to_sell}")
 
         good_stats_to_rent = StatisticalInsights(results)
         price_mean_to_rent = good_stats_to_rent.calculate_mean_price()
         price_median_to_rent = good_stats_to_rent.calculate_median_price()
+        logging.info(f"Price mean to sell {price_median_to_sell}")
+        logging.info(f"price median to rent {price_median_to_rent}")
 
         yield_rent_gross_median = StatisticalInsights().calculate_gross_yield_median(
             price_mean_to_rent, price_mean_to_sell

@@ -1,5 +1,6 @@
 from Means.RealEstateResearchResult import RealEstateResearchResult
 from Workers.Worker import Worker
+from bs4 import BeautifulSoup
 
 
 class RealEstateWorker(Worker):
@@ -10,3 +11,13 @@ class RealEstateWorker(Worker):
     def get_results(self, recherche_immo):
         self.recherche = recherche_immo
         return [self.RealEstateResearchResult]
+
+    def get_first_half(self, liste):
+        half = len(liste) // 2
+        return liste[:half]
+
+    def get_soupe(self, url):
+        self.driver.get(url)  # TODO : parfois echoue avec dns error, à gerer
+        html = self.driver.page_source
+        soup = BeautifulSoup(html, "html.parser")
+        return soup

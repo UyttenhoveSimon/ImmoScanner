@@ -2,7 +2,7 @@ import statistics
 
 
 class StatisticalInsights:
-    def __init__(self, research_results):
+    def __init__(self, research_results=""):
         self.research_results = research_results
         self.price_average = 0
         self.price_median = 0
