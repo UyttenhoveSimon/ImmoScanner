@@ -39,7 +39,7 @@ class ImmoVlan(RealEstateWorker):
             for page in range(1, nombre_pages + 1):
                 url = self.url_builder(real_estate_research, page)
                 soup = self.get_soupe(url)
-                findings = soup.find_all("article", {"card card--result card--xl"})
+                findings = soup.find_all("div", {"pb-3 col-lg-12"})
 
                 if not findings:
                     findings = soup.find_all(
