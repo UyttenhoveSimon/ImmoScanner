@@ -6,7 +6,6 @@ from bs4 import BeautifulSoup
 from Belgium import Belgium
 from Switzerland import Switzerland
 
-
 class Country:
     def __init__(self):
         self.alpha_2 = ""
