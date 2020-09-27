@@ -9,16 +9,12 @@ from ImmoScanner import ImmoScanner
 @plac.flg('debug', "Enable debug mode")
 def main(country, postal_code="", city="", url="", debug=False):
     """
-    Welcome to ImmoScanner, please enter:
-    -country (mandatory)
-    -postal_code (optional)
-    -city (optional)
-    -url (optional)
+    Welcome to ImmoScanner.
     Add at least either the postal code or the city.
     If url is provided, only the targeted website will be parsed, country must still be provided.
     """
 
-    if url is not None:
+    if url != "":
         ImmoScanner().research_real_estate_url(country=country, url=url)
     elif (city is not None) or (postal_code is not None):
         ImmoScanner().research_real_estate(
