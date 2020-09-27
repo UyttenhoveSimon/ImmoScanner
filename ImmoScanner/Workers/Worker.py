@@ -11,11 +11,11 @@ class Worker:
         if logging.root.level > logging.DEBUG:
             options.headless = True
 
-        self.driver = webdriver.Firefox(options=options)
+        self.driver = webdriver.Firefox() #options=options
         self.driver.set_page_load_timeout(60)
-        self.ResearchResult = [ResearchResult()]
+        self.research_result = [ResearchResult()]
         self.domain_name = ""
 
     def get_results(self, research):
         self.research = research
-        return [self.ResearchResult]
+        return [self.research_result]
