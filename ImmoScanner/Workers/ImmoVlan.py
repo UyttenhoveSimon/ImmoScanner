@@ -12,6 +12,7 @@ import logging
 
 class ImmoVlan(RealEstateWorker):
     def __init__(self):
+        super().__init__()
         self.domain_name = "immo.vlan.be"
 
     def fill_empty_fields(self, real_estate_research: RealEstateResearch):

@@ -6,11 +6,11 @@ from bs4 import BeautifulSoup
 class RealEstateWorker(Worker):
     def __init__(self):
         super().__init__()
-        self.RealEstateResearchResult = [RealEstateResearchResult()]
+        self.real_estate_research_result = [RealEstateResearchResult()]
 
     def get_results(self, recherche_immo):
         self.recherche = recherche_immo
-        return [self.RealEstateResearchResult]
+        return self.real_estate_research_result
 
     def get_first_half(self, liste):
         half = len(liste) // 2

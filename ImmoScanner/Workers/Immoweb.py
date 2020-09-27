@@ -12,6 +12,7 @@ import logging
 
 class Immoweb(RealEstateWorker):
     def __init__(self):
+        super().__init__()
         self.domain_name = "immoweb.be"
 
     def fill_empty_fields(self, real_estate_research: RealEstateResearch):

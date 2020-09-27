@@ -38,7 +38,7 @@ class ImmoScanner:
 
         return results
 
-    def research_real_estate_url(self, country, url):
+    def research_real_estate_url(self, country_name, url):
         research = Research()
         research.url = url
 
