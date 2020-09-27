@@ -7,6 +7,7 @@ from pprint import pprint
 import logging
 from Intellectuals.StatisticalInsights import StatisticalInsights
 from Countries.Country import Country
+from Countries.CountryFactory import CountryFactory
 
 
 class ImmoScanner:
@@ -16,11 +17,13 @@ class ImmoScanner:
     def research_real_estate(self, country_name, postal_code="", city=""):
         """Enter arguments in that order 1)Country 2)Type (real estate...) 3)Postal code 4)Buy/Rent   """
 
-        country = Country().generate_country_given_name(country_name)
+        country = CountryFactory().generate_country_given_name(name=country_name)
+        import pdb
+        pdb.set_trace()
         websites = list()
-        if country.name in country.dispatch_country.keys():
-            websites = country.get_real_estate_websites()
-        else:
+        websites = country.get_real_estate_websites()
+
+        if websites is None:
             print(f"the country {country} input is not implemented.")
 
         if not postal_code:
@@ -42,10 +45,10 @@ class ImmoScanner:
         research.url = url
 
         websites = list()
-        country = Country().generate_country_given_name(country)
-        if country.name in country.dispatch_country.keys():
-            websites = country.get_real_estate_websites()
-        else:
+        country = CountryFactory().generate_country_given_name(name=country_name)
+        websites = country.get_real_estate_websites()
+
+        if websites is None:
             print(f"the country {country} input is not implemented.")
 
         results = list()

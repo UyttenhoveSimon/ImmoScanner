@@ -3,7 +3,6 @@ import requests
 import urllib.parse
 from bs4 import BeautifulSoup
 
-
 class Country:
     def __init__(self):
         self.alpha_2 = ""
@@ -15,20 +14,9 @@ class Country:
         self.languages = []
         self.websites = []
 
-    def generate_country_given_name(self, name):
-        country = pycountry.countries.get(name=name)
-        self.alpha_2 = country.alpha_2
-        self.alpha_3 = country.alpha_3
-        self.numeric = country.numeric
-        self.name = country.name
-        self.official_name = country.official_name
-        self.currency = country.currency
-        self.languages = country.languages
-        return country
-
     def fetch_city_given_postal_code(self, postal_code):
         search = requests.get(
-            "https://www.geonames.org/postalcode-search.html?q={postal_code}&country=CH"
+            f"https://www.geonames.org/postalcode-search.html?q={postal_code}&country={self.alpha_2}"
         )
         soup = BeautifulSoup(search.text, "html.parser")
         print(soup)
@@ -45,7 +33,7 @@ class Country:
     def fetch_postal_code_given_city(self, city):
         city = urllib.parse.quote_plus(city)
         search = requests.get(
-            "https://www.geonames.org/postalcode-search.html?q={city}&country=CH"
+            f"https://www.geonames.org/postalcode-search.html?q={city}&country={self.alpha_2}"
         )
         soup = BeautifulSoup(search.text, "html.parser")
         print(soup)
@@ -61,3 +49,4 @@ class Country:
 
     def get_real_estate_websites(self):
         pass
+
