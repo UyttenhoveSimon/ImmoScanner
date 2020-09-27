@@ -6,7 +6,7 @@ from ImmoScanner import ImmoScanner
 @plac.opt("postal_code", "postal code targeted by the research", type=str)
 @plac.opt("city", "city targeted by the research", type=str)
 @plac.opt("url", "url of targeted website", type=str)
-@plac.flg('debug', "Enable debug mode")
+@plac.flg("debug", "Enable debug mode")
 def main(country, postal_code="", city="", url="", debug=False):
     """
     Welcome to ImmoScanner.

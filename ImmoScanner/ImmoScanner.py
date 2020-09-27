@@ -18,8 +18,6 @@ class ImmoScanner:
         """Enter arguments in that order 1)Country 2)Type (real estate...) 3)Postal code 4)Buy/Rent   """
 
         country = CountryFactory().generate_country_given_name(name=country_name)
-        import pdb
-        pdb.set_trace()
         websites = list()
         websites = country.get_real_estate_websites()
 

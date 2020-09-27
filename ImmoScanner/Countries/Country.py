@@ -3,6 +3,7 @@ import requests
 import urllib.parse
 from bs4 import BeautifulSoup
 
+
 class Country:
     def __init__(self):
         self.alpha_2 = ""
@@ -46,7 +47,5 @@ class Country:
         return rows[2]
         # ['1', 'La Sarraz', '1315', 'Switzerland', 'Canton de Vaud', 'Morges District', 'La Sarraz\xa0\xa0\xa046.659/6.511\n\n', '', '\xa0\xa0\xa046.659/6.511', '']
 
-
     def get_real_estate_websites(self):
         pass
-
