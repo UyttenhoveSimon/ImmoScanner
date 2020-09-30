@@ -5,5 +5,5 @@ from Workers.ImmoVlan import ImmoVlan
 
 class Switzerland(Country):
     def get_real_estate_websites(self):
-        self.websites = [Immoweb(), ImmoVlan()]
+        self.websites = [ImmoVlan()] # Immoweb()
         return self.websites

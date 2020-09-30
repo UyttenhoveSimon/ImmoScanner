@@ -27,7 +27,7 @@ class ImmoVlan(RealEstateWorker):
 
     def get_findings(self, real_estate_research: RealEstateResearch):
         real_estate_research_results = []
-
+        breakpoint()
         self.fill_empty_fields(real_estate_research)
 
         url = self.url_builder(real_estate_research)
@@ -95,7 +95,7 @@ class ImmoVlan(RealEstateWorker):
         return real_estate_item
 
     def url_builder(self, real_estate_research: RealEstateResearch, page=1):
-        if real_estate_research.url is not "":
+        if real_estate_research.url != "":
             return real_estate_research.url
 
         if (

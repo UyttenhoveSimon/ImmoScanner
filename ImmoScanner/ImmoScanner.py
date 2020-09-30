@@ -19,6 +19,7 @@ class ImmoScanner:
 
         country = CountryFactory().generate_country_given_name(name=country_name)
         websites = list()
+        breakpoint()
         websites = country.get_real_estate_websites()
 
         if websites is None:
@@ -34,7 +35,7 @@ class ImmoScanner:
 
         results = list()
         for website in websites:
-            results.append(website.get_results(searches_immo_to_sell))
+            results.append(website.get_findings(searches_immo_to_sell))
 
         return results
 
@@ -53,7 +54,7 @@ class ImmoScanner:
         parsed_uri = tldextract.extract(research.url)
         for website in websites:
             if parsed_uri.domain == website.domain_name:
-                results.append(website.get_results(research))
+                results.append(website.get_findings(research))
 
         return results
 

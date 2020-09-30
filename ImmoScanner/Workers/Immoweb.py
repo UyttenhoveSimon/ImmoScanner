@@ -98,7 +98,7 @@ class Immoweb(RealEstateWorker):
         if page != 1:
             return f"https://www.immoweb.be/fr/recherche/{real_estate_research.type_bien}/{real_estate_research.louer_acheter}/{real_estate_research.ville}/{real_estate_research.code_postal}?countries=BE&page={page}"
 
-        if real_estate_research.url is not "":
+        if real_estate_research.url != "":
             return real_estate_research.url
 
         return f"https://www.immoweb.be/fr/recherche/{real_estate_research.type_bien}/{real_estate_research.louer_acheter}/{real_estate_research.ville}/{real_estate_research.code_postal}?countries=BE&page={page}"
