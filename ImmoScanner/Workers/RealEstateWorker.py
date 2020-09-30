@@ -8,10 +8,6 @@ class RealEstateWorker(Worker):
         super().__init__()
         self.real_estate_research_result = [RealEstateResearchResult()]
 
-    def get_results(self, recherche_immo):
-        self.recherche = recherche_immo
-        return self.real_estate_research_result
-
     def get_first_half(self, liste):
         half = len(liste) // 2
         return liste[:half]
