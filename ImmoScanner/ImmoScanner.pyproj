@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>6264263a-d243-4dff-b70d-d6c1044e7804</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>MaConsole.py</StartupFile>
+    <StartupFile>Console.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -22,23 +22,26 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Intellectuels\SavantesStatistiques.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="MaConsole.py" />
-    <Compile Include="Moyens\Recherche.py" />
-    <Compile Include="Moyens\RealEstateResearch.py" />
-    <Compile Include="Moyens\ResearchResult.py" />
-    <Compile Include="Moyens\RealEstateResearchResult.py" />
-    <Compile Include="Workers\AutoScout24.py" />
+    <Compile Include="Console.py" />
+    <Compile Include="Countries\Belgium.py" />
+    <Compile Include="Countries\Country.py" />
+    <Compile Include="Countries\CountryFactory.py" />
+    <Compile Include="Countries\Switzerland.py" />
+    <Compile Include="ImmoScanner.py" />
+    <Compile Include="Intellectuals\StatisticalInsights.py" />
+    <Compile Include="Means\RealEstateResearch.py" />
+    <Compile Include="Means\RealEstateResearchResult.py" />
+    <Compile Include="Means\Research.py" />
+    <Compile Include="Means\ResearchResult.py" />
     <Compile Include="Workers\Immoweb.py" />
     <Compile Include="Workers\Worker.py" />
     <Compile Include="Workers\RealEstateWorker.py" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Moyens\" />
-    <Folder Include="Intellectuels\" />
     <Folder Include="Workers\" />
+    <Folder Include="Means\" />
+    <Folder Include="Intellectuals\" />
+    <Folder Include="Countries\" />
   </ItemGroup>
   <ItemGroup>
     <Interpreter Include="env\">
