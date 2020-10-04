@@ -19,17 +19,16 @@ class ImmoScanner:
 
         country = CountryFactory().generate_country_given_name(name=country_name)
         websites = list()
-        breakpoint()
         websites = country.get_real_estate_websites()
 
         if websites is None:
             print(f"the country {country} input is not implemented.")
 
         if not postal_code:
-            postal_code = country.fetch_city_given_postal_code(city)
+            postal_code = country.fetch_postal_code_given_city(city)
 
         if not city:
-            city = country.fetch_postal_code_given_city(postal_code)
+            city = country.fetch_city_given_postal_code(postal_code)
 
         searches_immo_to_sell = RealEstateResearch(postal_code, city)
 
