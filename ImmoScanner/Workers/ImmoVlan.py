@@ -27,7 +27,6 @@ class ImmoVlan(RealEstateWorker):
 
     def get_findings(self, real_estate_research: RealEstateResearch):
         real_estate_research_results = []
-        breakpoint()
         self.fill_empty_fields(real_estate_research)
 
         url = self.url_builder(real_estate_research)
@@ -100,10 +99,10 @@ class ImmoVlan(RealEstateWorker):
 
         if (
             page == 1
-        ):  # https://immo.vlan.be/fr/immobilier?transactiontypes=a-vendre,en-vente-publique&propertytypes=maison&towns=1410-waterloo&noindex=1
-            return f"https://immo.vlan.be/fr/immobilier?transactiontypes={real_estate_research.louer_acheter}&propertytypes={real_estate_research.type_bien}&towns={real_estate_research.ville}-{real_estate_research.code_postal}&noindex=1"
+        ): 
+           return f"https://immo.vlan.be/fr/immobilier?transactiontypes={real_estate_research.rent_or_buy}&propertytypes={real_estate_research.type}&towns={real_estate_research.postal_code}-{real_estate_research.city.lower()}&noindex=1"
 
-        return f"https://immo.vlan.be/fr/immobilier?transactiontypes={real_estate_research.louer_acheter}&propertytypes={real_estate_research.type_bien}&towns={real_estate_research.ville}-{real_estate_research.code_postal}&countries=belgique&pageOffset={page}&noindex=1"
+        return f"https://immo.vlan.be/fr/immobilier?transactiontypes={real_estate_research.rent_or_buy}&propertytypes={real_estate_research.type}&towns={real_estate_research.postal_code}-{real_estate_research.city.lower()}&countries=belgique&pageOffset={page}&noindex=1"
 
     def get_page_number(self, soup):
         pagination = soup.find_all("a", {"page--link"})
