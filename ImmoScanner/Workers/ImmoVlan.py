@@ -105,11 +105,11 @@ class ImmoVlan(RealEstateWorker):
         return f"https://immo.vlan.be/fr/immobilier?transactiontypes={real_estate_research.rent_or_buy}&propertytypes={real_estate_research.type}&towns={real_estate_research.postal_code}-{real_estate_research.city.lower()}&countries=belgique&pageOffset={page}&noindex=1"
 
     def get_page_number(self, soup):
-        pagination = soup.find_elements_by_class_name("pagination")
-        if not len(pagination) == 0:
-            first_half = self.get_first_half(
-                pagination
-            )  # pagination presente deux fois sur la page
-            return int(first_half[-1].text.split("Page", 1)[1].strip())
+        breakpoint()
+        pagination = self.driver.find_elements_by_class_name("pagination")
+        pages = pagination.find_elements_by_tag_name("li")
+
+        if len(pagination) != 0:
+            return len(pagniation)
         else:
             return 1
