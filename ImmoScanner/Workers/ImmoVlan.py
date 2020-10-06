@@ -106,10 +106,11 @@ class ImmoVlan(RealEstateWorker):
 
     def get_page_number(self, soup):
         breakpoint()
-        pagination = self.driver.find_elements_by_class_name("pagination")
-        pages = pagination.find_elements_by_tag_name("li")
+        pagination = self.driver.find_element_by_class_name('pagination')
+        file1 = open("MyFile.txt", "w") 
+        file1.write(soup.content)
 
         if len(pagination) != 0:
-            return len(pagniation)
+            return len(pagination)
         else:
             return 1
