@@ -1,13 +1,15 @@
 import re
-
+import logging
+import time
+from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from bs4 import BeautifulSoup
+from price_parser import Price
 from Means.RealEstateResearchResult import RealEstateResearchResult
 from Workers.RealEstateWorker import RealEstateWorker
 from Means.RealEstateResearch import RealEstateResearch
-from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.common.by import By
-from bs4 import BeautifulSoup
-from price_parser import Price
-import logging
 
 
 class ImmoVlan(RealEstateWorker):
@@ -32,14 +34,21 @@ class ImmoVlan(RealEstateWorker):
         url = self.url_builder(real_estate_research)
         logging.info(url)
 
+
         try:
             soup = self.get_soupe(url)
-            nombre_pages = self.get_page_number(soup)
+            cookies_present = EC.presence_of_element_located((By.CSS_SELECTOR, "#didomi-notice-agree-button"))
+            WebDriverWait(self.driver, 5).until(cookies_present).click()
+                     
+            pagination_present = EC.presence_of_element_located((By.CLASS_NAME, 'pagination'))
+            WebDriverWait(self.driver, 5).until(pagination_present)
+            # soup = self.get_soupe(self.driver.page_source)
+            page_number = self.get_page_number()
 
-            for page in range(1, nombre_pages + 1):
+            for page in range(1, page_number + 1):
                 url = self.url_builder(real_estate_research, page)
-                soup = self.get_soupe(url)
-                findings = soup.find_all("div", {"pb-3 col-lg-12"})
+                soup = self.get_soupe_driver()
+                findings = soup.find_all("div", {"class", "pb-3 col-lg-12"})
 
                 if not findings:
                     findings = soup.find_all(
@@ -104,13 +113,11 @@ class ImmoVlan(RealEstateWorker):
 
         return f"https://immo.vlan.be/fr/immobilier?transactiontypes={real_estate_research.rent_or_buy}&propertytypes={real_estate_research.type}&towns={real_estate_research.postal_code}-{real_estate_research.city.lower()}&countries=belgique&pageOffset={page}&noindex=1"
 
-    def get_page_number(self, soup):
-        breakpoint()
-        pagination = self.driver.find_element_by_class_name('pagination')
-        file1 = open("MyFile.txt", "w") 
-        file1.write(soup.content)
-
-        if len(pagination) != 0:
-            return len(pagination)
-        else:
+    def get_page_number(self):      
+        page_number = self.driver.find_element_by_class_name('pagination').text.split('\n')[-1]
+        
+        try:
+            return int(page_number)
+        except :
             return 1
+
