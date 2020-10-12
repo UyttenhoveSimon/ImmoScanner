@@ -66,18 +66,18 @@ class ImmoVlan(RealEstateWorker):
         return result.a["id"]
 
     def get_result_description(self, result):
-        description = result.find(class="grey-text list-item-description")
+        description = result.find("p", class_="grey-text list-item-description").contents[0].text
         if description is None:
             return ""
         else:
-            return ""
+            return description
 
     def get_result_link(self, result):
-        return result.contents[0].contents[2].contents[0]["href"]
+        return result.find_all("a")[1]["href"]
 
-    def get_result_price(self, result):
+    def get_result_price(self, result):   
         price = Price.fromstring(
-            result.contents[0].contents[4].contents[0].contents[2].text.strip()
+            result.find("strong", class_="list-item-price").text
         )
         return price.amount, price.currency
 
