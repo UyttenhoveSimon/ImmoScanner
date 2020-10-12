@@ -63,11 +63,12 @@ class ImmoVlan(RealEstateWorker):
             return real_estate_research_results
 
     def get_result_id(self, result):
-        return result["id"].split("_")[1]
+        return result.a["id"]
 
     def get_result_description(self, result):
-        if hasattr(result.contents[0].contents[8], "text"):
-            return result.contents[0].contents[8].text
+        description = result.find(class="grey-text list-item-description")
+        if description is None:
+            return ""
         else:
             return ""
 
@@ -82,6 +83,8 @@ class ImmoVlan(RealEstateWorker):
 
     def extract_findings(self, result):
         real_estate_item = RealEstateResearchResult()
+
+        breakpoint()
 
         real_estate_item.id = self.get_result_id(result)
         logging.debug("id: " + real_estate_item.id)
