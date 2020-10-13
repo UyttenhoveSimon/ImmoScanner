@@ -73,18 +73,15 @@ class ImmoVlan(RealEstateWorker):
             return description
 
     def get_result_link(self, result):
-        return result.find_all("a")[1]["href"]
+        return self.domain_name + result.find_all("a")[1]["href"]
 
     def get_result_price(self, result):   
-        price = Price.fromstring(
+        return Price.fromstring(
             result.find("strong", class_="list-item-price").text
         )
-        return price.amount, price.currency
 
     def extract_findings(self, result):
         real_estate_item = RealEstateResearchResult()
-
-        breakpoint()
 
         real_estate_item.id = self.get_result_id(result)
         logging.debug("id: " + real_estate_item.id)
@@ -95,12 +92,15 @@ class ImmoVlan(RealEstateWorker):
         real_estate_item.url = self.get_result_link(result)
         logging.debug("lien: " + real_estate_item.url)
 
-        real_estate_item.price, real_estate_item.currency = self.get_result_price(
-            result
-        )
+        real_estate_item.price_obj = self.get_result_price(result)
+        real_estate_item.price = real_estate_item.price_obj.amount
+        real_estate_item.currency = real_estate_item.price_obj.currency
+        real_estate_item.price_text = real_estate_item.price_obj.amount_text        
+
+        breakpoint()
         logging.debug(
-            "price: " + str(real_estate_item.price),
-            "currency: " + real_estate_item.currency,
+            f"price:  {real_estate_item.price_text}",
+            f"currency: {real_estate_item.currency}",
         )
 
         return real_estate_item
