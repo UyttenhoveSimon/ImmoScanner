@@ -34,13 +34,16 @@ class ImmoVlan(RealEstateWorker):
         url = self.url_builder(real_estate_research)
         logging.info(url)
 
-
         try:
             soup = self.get_soupe(url)
-            cookies_present = EC.presence_of_element_located((By.CSS_SELECTOR, "#didomi-notice-agree-button"))
+            cookies_present = EC.presence_of_element_located(
+                (By.CSS_SELECTOR, "#didomi-notice-agree-button")
+            )
             WebDriverWait(self.driver, 5).until(cookies_present).click()
-                     
-            pagination_present = EC.presence_of_element_located((By.CLASS_NAME, 'pagination'))
+
+            pagination_present = EC.presence_of_element_located(
+                (By.CLASS_NAME, "pagination")
+            )
             WebDriverWait(self.driver, 5).until(pagination_present)
             # soup = self.get_soupe(self.driver.page_source)
             page_number = self.get_page_number()
@@ -66,7 +69,9 @@ class ImmoVlan(RealEstateWorker):
         return result.a["id"]
 
     def get_result_description(self, result):
-        description = result.find("p", class_="grey-text list-item-description").contents[0].text
+        description = (
+            result.find("p", class_="grey-text list-item-description").contents[0].text
+        )
         if description is None:
             return ""
         else:
@@ -75,33 +80,28 @@ class ImmoVlan(RealEstateWorker):
     def get_result_link(self, result):
         return self.domain_name + result.find_all("a")[1]["href"]
 
-    def get_result_price(self, result):   
-        return Price.fromstring(
-            result.find("strong", class_="list-item-price").text
-        )
+    def get_result_price(self, result):
+        return Price.fromstring(result.find("strong", class_="list-item-price").text)
 
     def extract_findings(self, result):
         real_estate_item = RealEstateResearchResult()
 
         real_estate_item.id = self.get_result_id(result)
-        logging.debug("id: " + real_estate_item.id)
+        logging.debug(f"id: {real_estate_item.id}")
 
         real_estate_item.description = self.get_result_description(result)
-        logging.debug("texte: " + real_estate_item.description)
+        logging.debug(f"texte: {real_estate_item.description}")
 
         real_estate_item.url = self.get_result_link(result)
-        logging.debug("lien: " + real_estate_item.url)
+        logging.debug(f"lien: {real_estate_item.url}")
 
         real_estate_item.price_obj = self.get_result_price(result)
         real_estate_item.price = real_estate_item.price_obj.amount
         real_estate_item.currency = real_estate_item.price_obj.currency
-        real_estate_item.price_text = real_estate_item.price_obj.amount_text        
+        real_estate_item.price_text = real_estate_item.price_obj.amount_text
 
-        breakpoint()
-        logging.debug(
-            f"price:  {real_estate_item.price_text}",
-            f"currency: {real_estate_item.currency}",
-        )
+        logging.debug(f"currency: {real_estate_item.currency}")
+        logging.debug(f"price:  {real_estate_item.price_text}")
 
         return real_estate_item
 
@@ -109,18 +109,17 @@ class ImmoVlan(RealEstateWorker):
         if real_estate_research.url != "":
             return real_estate_research.url
 
-        if (
-            page == 1
-        ): 
-           return f"https://immo.vlan.be/fr/immobilier?transactiontypes={real_estate_research.rent_or_buy}&propertytypes={real_estate_research.type}&towns={real_estate_research.postal_code}-{real_estate_research.city.lower()}&noindex=1"
+        if page == 1:
+            return f"https://immo.vlan.be/fr/immobilier?transactiontypes={real_estate_research.rent_or_buy}&propertytypes={real_estate_research.type}&towns={real_estate_research.postal_code}-{real_estate_research.city.lower()}&noindex=1"
 
         return f"https://immo.vlan.be/fr/immobilier?transactiontypes={real_estate_research.rent_or_buy}&propertytypes={real_estate_research.type}&towns={real_estate_research.postal_code}-{real_estate_research.city.lower()}&countries=belgique&pageOffset={page}&noindex=1"
 
-    def get_page_number(self):      
-        page_number = self.driver.find_element_by_class_name('pagination').text.split('\n')[-1]
-        
+    def get_page_number(self):
+        page_number = self.driver.find_element_by_class_name("pagination").text.split(
+            "\n"
+        )[-1]
+
         try:
             return int(page_number)
-        except :
+        except:
             return 1
-
