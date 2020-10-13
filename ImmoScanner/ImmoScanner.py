@@ -36,6 +36,8 @@ class ImmoScanner:
         for website in websites:
             results.append(website.get_findings(searches_immo_to_sell))
 
+
+
         return results
 
     def research_real_estate_url(self, country_name, url):
@@ -56,6 +58,9 @@ class ImmoScanner:
                 results.append(website.get_findings(research))
 
         return results
+
+    def duplicate_finder(self):
+        pass
 
     def get_insights(self, results):
         good_stats_to_sell = StatisticalInsights(results)
