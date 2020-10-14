@@ -50,13 +50,13 @@ class ImmoVlan(RealEstateWorker):
 
             for page in range(1, page_number + 1):
                 url = self.url_builder(real_estate_research, page)
-                soup = self.get_soupe_driver()
+                soup = self.get_soupe(url)
                 findings = soup.find_all("div", {"class", "pb-3 col-lg-12"})
 
-                if not findings:
-                    findings = soup.find_all(
-                        "article", {"card card--result card--large"}
-                    )
+                # if not findings:
+                #     findings = soup.find_all(
+                #         "article", {"card card--result card--large"}
+                #     )
 
                 for item in findings:
                     real_estate_research_results.append(self.extract_findings(item))
@@ -80,6 +80,19 @@ class ImmoVlan(RealEstateWorker):
     def get_result_link(self, result):
         return self.domain_name + result.find_all("a")[1]["href"]
 
+    # def get_posted_date(self, result):
+    #     return self.domain_name + result.find_all("a")[1]["href"]
+
+    def get_bedrooms_number(self, result):
+        return result.find(
+            "div", class_="text-center highlight-thumb ml-2 mr-2 mb-2 NrOfBedrooms"
+        ).text.split()[-1]
+
+    def get_livable_square_meters(self, result):
+        return result.find(
+            "div", class_="text-center highlight-thumb ml-2 mr-2 mb-2 LivableSurface"
+        ).text.split()[-2]
+
     def get_result_price(self, result):
         return Price.fromstring(result.find("strong", class_="list-item-price").text)
 
@@ -90,7 +103,7 @@ class ImmoVlan(RealEstateWorker):
         logging.debug(f"id: {real_estate_item.id}")
 
         real_estate_item.description = self.get_result_description(result)
-        logging.debug(f"texte: {real_estate_item.description}")
+        logging.debug(f"text: {real_estate_item.description}")
 
         real_estate_item.url = self.get_result_link(result)
         logging.debug(f"lien: {real_estate_item.url}")
@@ -102,6 +115,13 @@ class ImmoVlan(RealEstateWorker):
 
         logging.debug(f"currency: {real_estate_item.currency}")
         logging.debug(f"price:  {real_estate_item.price_text}")
+
+        real_estate_item.platform = self.domain_name
+
+        real_estate_item.bedrooms_number = int(self.get_bedrooms_number(result))
+        real_estate_item.livable_square_meters + int(
+            self.get_livable_square_meters(result)
+        )
 
         return real_estate_item
 
