@@ -18,11 +18,9 @@ class RealEstateWorker(Worker):
 
     def get_soupe(self, url):
         self.driver.get(url)  # TODO : sometimes fails with dns error
-        html = self.driver.page_source
-        soup = BeautifulSoup(html, "html.parser")
-        return soup
+        return self.get_page_source_soupe()
 
-    def get_soupe_driver(self):
+    def get_page_source_soupe(self):
         html = self.driver.page_source
         soup = BeautifulSoup(html, "html.parser")
         return soup

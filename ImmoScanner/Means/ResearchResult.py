@@ -6,3 +6,5 @@ class ResearchResult:
         self.price = 0
         self.id = ""
         self.currency = ""
+        self.platform = ""
+        self.posted_date = ""

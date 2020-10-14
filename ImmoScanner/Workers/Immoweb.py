@@ -66,42 +66,70 @@ class Immoweb(RealEstateWorker):
     def get_result_link(self, result):
         return result.contents[0].contents[2].contents[0]["href"]
 
+    # def get_posted_date(self, result):
+    #     return self.domain_name + result.find_all("a")[1]["href"]
+
+    def get_bedrooms_number(self, result):
+        return (
+            result.find(
+                "p",
+                class_="card__information card--result__information card__information--property",
+            )
+            .contents[0]
+            .text.split()[0]
+        )
+
+    def get_livable_square_meters(self, result):
+        return re.findall(
+            r"\d+",
+            result.find(
+                "p",
+                class_="card__information card--result__information card__information--property",
+            ).contents[1],
+        )[0]
+
     def get_result_price(self, result):
-        price = Price.fromstring(
+        return Price.fromstring(
             result.contents[0].contents[4].contents[0].contents[2].text.strip()
         )
-        return price.amount, price.currency
 
     def extract_findings(self, result):
         real_estate_item = RealEstateResearchResult()
 
         real_estate_item.id = self.get_result_id(result)
-        logging.debug("id: " + real_estate_item.id)
+        logging.debug(f"id: {real_estate_item.id}")
 
         real_estate_item.description = self.get_result_description(result)
-        logging.debug("texte: " + real_estate_item.description)
+        logging.debug(f"text: {real_estate_item.description}")
 
         real_estate_item.url = self.get_result_link(result)
-        logging.debug("lien: " + real_estate_item.url)
+        logging.debug(f"lien: {real_estate_item.url}")
 
-        real_estate_item.price, real_estate_item.currency = self.get_result_price(
-            result
-        )
-        logging.debug(
-            "price: " + str(real_estate_item.price),
-            "currency: " + real_estate_item.currency,
+        real_estate_item.price_obj = self.get_result_price(result)
+        real_estate_item.price = real_estate_item.price_obj.amount
+        real_estate_item.currency = real_estate_item.price_obj.currency
+        real_estate_item.price_text = real_estate_item.price_obj.amount_text
+
+        logging.debug(f"currency: {real_estate_item.currency}")
+        logging.debug(f"price:  {real_estate_item.price_text}")
+
+        real_estate_item.platform = self.domain_name
+
+        real_estate_item.bedrooms_number = int(self.get_bedrooms_number(result))
+        real_estate_item.livable_square_meters + int(
+            self.get_livable_square_meters(result)
         )
 
         return real_estate_item
 
     def url_builder(self, real_estate_research: RealEstateResearch, page=1):
         if page != 1:
-            return f"https://www.immoweb.be/fr/recherche/{real_estate_research.type_bien}/{real_estate_research.louer_acheter}/{real_estate_research.ville}/{real_estate_research.code_postal}?countries=BE&page={page}"
+            return f"https://www.immoweb.be/fr/recherche/{real_estate_research.type}/{real_estate_research.rent_or_buy}/{real_estate_research.city}/{real_estate_research.postal_code}?countries=BE&page={page}"
 
         if real_estate_research.url != "":
             return real_estate_research.url
 
-        return f"https://www.immoweb.be/fr/recherche/{real_estate_research.type_bien}/{real_estate_research.louer_acheter}/{real_estate_research.ville}/{real_estate_research.code_postal}?countries=BE&page={page}"
+        return f"https://www.immoweb.be/fr/recherche/{real_estate_research.type}/{real_estate_research.rent_or_buy}/{real_estate_research.city}/{real_estate_research.postal_code}?countries=BE&page={page}"
 
     def get_page_number(self, soup):
         pagination = soup.find_all("a", {"pagination__link button button--text"})
