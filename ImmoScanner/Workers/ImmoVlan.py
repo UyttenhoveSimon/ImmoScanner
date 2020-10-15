@@ -1,15 +1,13 @@
-import re
 import logging
-import time
-from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from bs4 import BeautifulSoup
+
 from price_parser import Price
-from Means.RealEstateResearchResult import RealEstateResearchResult
-from Workers.RealEstateWorker import RealEstateWorker
-from Means.RealEstateResearch import RealEstateResearch
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+
+from ImmoScanner.Means.RealEstateResearch import RealEstateResearch
+from ImmoScanner.Means.RealEstateResearchResult import RealEstateResearchResult
+from ImmoScanner.Workers.RealEstateWorker import RealEstateWorker
 
 
 class ImmoVlan(RealEstateWorker):
