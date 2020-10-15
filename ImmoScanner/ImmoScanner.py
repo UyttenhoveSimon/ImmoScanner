@@ -1,13 +1,10 @@
-import sys
-import tldextract
-from Means.Research import Research
-from Means.RealEstateResearch import RealEstateResearch
-from Workers.Immoweb import Immoweb
-from pprint import pprint
+import itertools
 import logging
-from Intellectuals.StatisticalInsights import StatisticalInsights
-from Countries.Country import Country
-from Countries.CountryFactory import CountryFactory
+import tldextract
+from ImmoScanner.Means.Research import Research
+from ImmoScanner.Means.RealEstateResearch import RealEstateResearch
+from ImmoScanner.Intellectuals.StatisticalInsights import StatisticalInsights
+from ImmoScanner.Countries.CountryFactory import CountryFactory
 
 
 class ImmoScanner:
@@ -18,7 +15,6 @@ class ImmoScanner:
         """Enter arguments in that order 1)Country 2)Type (real estate...) 3)Postal code 4)Buy/Rent   """
 
         country = CountryFactory().generate_country_given_name(name=country_name)
-        websites = list()
         websites = country.get_real_estate_websites()
 
         if websites is None:
@@ -42,7 +38,6 @@ class ImmoScanner:
         research = Research()
         research.url = url
 
-        websites = list()
         country = CountryFactory().generate_country_given_name(name=country_name)
         websites = country.get_real_estate_websites()
 
@@ -57,8 +52,19 @@ class ImmoScanner:
 
         return results
 
-    def duplicate_finder(self):
-        pass
+    def duplicate_finder(self, results):
+        # results is a list of list with results from each website
+        flat_list = list(itertools.chain(*results))
+
+        unique_items = []
+        for item in flat_list:
+            if item['price'] not in unique_items:
+                unique_items.append(item)
+            if item['livable_square_meters'] not in unique_items:
+                unique_items.append(item)
+
+        return unique_items
+
 
     def get_insights(self, results):
         good_stats_to_sell = StatisticalInsights(results)

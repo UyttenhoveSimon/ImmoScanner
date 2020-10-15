@@ -1,7 +1,6 @@
 import pycountry
-from Countries.Belgium import Belgium
-from Countries.Switzerland import Switzerland
-from Countries.Country import Country
+from ImmoScanner.Countries.Belgium import Belgium
+from ImmoScanner.Countries.Switzerland import Switzerland
 
 
 class CountryFactory:

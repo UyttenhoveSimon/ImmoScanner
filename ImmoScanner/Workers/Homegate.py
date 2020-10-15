@@ -1,17 +1,19 @@
 import logging
-import re
 
 from price_parser import Price
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 from ImmoScanner.Means.RealEstateResearch import RealEstateResearch
 from ImmoScanner.Means.RealEstateResearchResult import RealEstateResearchResult
 from ImmoScanner.Workers.RealEstateWorker import RealEstateWorker
 
 
-class Immoweb(RealEstateWorker):
+class Homegate(RealEstateWorker):
     def __init__(self):
         super().__init__()
-        self.domain_name = "immoweb.be"
+        self.domain_name = "immo.vlan.be"
 
     def fill_empty_fields(self, real_estate_research: RealEstateResearch):
         if real_estate_research.rent_or_buy is None:
@@ -25,7 +27,6 @@ class Immoweb(RealEstateWorker):
 
     def get_findings(self, real_estate_research: RealEstateResearch):
         real_estate_research_results = []
-
         self.fill_empty_fields(real_estate_research)
 
         url = self.url_builder(real_estate_research)
@@ -33,17 +34,27 @@ class Immoweb(RealEstateWorker):
 
         try:
             soup = self.get_soupe(url)
-            pages_number = self.get_page_number(soup)
+            cookies_present = EC.presence_of_element_located(
+                (By.CSS_SELECTOR, "#didomi-notice-agree-button")
+            )
+            WebDriverWait(self.driver, 5).until(cookies_present).click()
 
-            for page in range(1, pages_number + 1):
+            pagination_present = EC.presence_of_element_located(
+                (By.CLASS_NAME, "pagination")
+            )
+            WebDriverWait(self.driver, 5).until(pagination_present)
+            # soup = self.get_soupe(self.driver.page_source)
+            page_number = self.get_page_number()
+
+            for page in range(1, page_number + 1):
                 url = self.url_builder(real_estate_research, page)
                 soup = self.get_soupe(url)
-                findings = soup.find_all("article", {"card card--result card--xl"})
+                findings = soup.find_all("div", {"class", "pb-3 col-lg-12"})
 
-                if not findings:
-                    findings = soup.find_all(
-                        "article", {"card card--result card--large"}
-                    )
+                # if not findings:
+                #     findings = soup.find_all(
+                #         "article", {"card card--result card--large"}
+                #     )
 
                 for item in findings:
                     real_estate_research_results.append(self.extract_findings(item))
@@ -53,43 +64,35 @@ class Immoweb(RealEstateWorker):
             return real_estate_research_results
 
     def get_result_id(self, result):
-        return result["id"].split("_")[1]
+        return result.a["id"]
 
     def get_result_description(self, result):
-        if hasattr(result.contents[0].contents[8], "text"):
-            return result.contents[0].contents[8].text
-        else:
+        description = (
+            result.find("p", class_="grey-text list-item-description").contents[0].text
+        )
+        if description is None:
             return ""
+        else:
+            return description
 
     def get_result_link(self, result):
-        return result.contents[0].contents[2].contents[0]["href"]
+        return self.domain_name + result.find_all("a")[1]["href"]
 
     # def get_posted_date(self, result):
     #     return self.domain_name + result.find_all("a")[1]["href"]
 
     def get_bedrooms_number(self, result):
-        return (
-            result.find(
-                "p",
-                class_="card__information card--result__information card__information--property",
-            )
-            .contents[0]
-            .text.split()[0]
-        )
+        return result.find(
+            "div", class_="text-center highlight-thumb ml-2 mr-2 mb-2 NrOfBedrooms"
+        ).text.split()[-1]
 
     def get_livable_square_meters(self, result):
-        return re.findall(
-            r"\d+",
-            result.find(
-                "p",
-                class_="card__information card--result__information card__information--property",
-            ).contents[1],
-        )[0]
+        return result.find(
+            "div", class_="text-center highlight-thumb ml-2 mr-2 mb-2 LivableSurface"
+        ).text.split()[-2]
 
     def get_result_price(self, result):
-        return Price.fromstring(
-            result.contents[0].contents[4].contents[0].contents[2].text.strip()
-        )
+        return Price.fromstring(result.find("strong", class_="list-item-price").text)
 
     def extract_findings(self, result):
         real_estate_item = RealEstateResearchResult()
@@ -121,20 +124,20 @@ class Immoweb(RealEstateWorker):
         return real_estate_item
 
     def url_builder(self, real_estate_research: RealEstateResearch, page=1):
-        if page != 1:
-            return f"https://www.immoweb.be/fr/recherche/{real_estate_research.type}/{real_estate_research.rent_or_buy}/{real_estate_research.city}/{real_estate_research.postal_code}?countries=BE&page={page}"
-
         if real_estate_research.url != "":
             return real_estate_research.url
 
-        return f"https://www.immoweb.be/fr/recherche/{real_estate_research.type}/{real_estate_research.rent_or_buy}/{real_estate_research.city}/{real_estate_research.postal_code}?countries=BE&page={page}"
+        if page == 1:
+            return f"https://immo.vlan.be/fr/immobilier?transactiontypes={real_estate_research.rent_or_buy}&propertytypes={real_estate_research.type}&towns={real_estate_research.postal_code}-{real_estate_research.city.lower()}&noindex=1"
 
-    def get_page_number(self, soup):
-        pagination = soup.find_all("a", {"pagination__link button button--text"})
-        if not len(pagination) == 0:
-            first_half = self.get_first_half(
-                pagination
-            )  # pagination is present two times on the page
-            return int(first_half[-1].text.split("Page", 1)[1].strip())
-        else:
+        return f"https://immo.vlan.be/fr/immobilier?transactiontypes={real_estate_research.rent_or_buy}&propertytypes={real_estate_research.type}&towns={real_estate_research.postal_code}-{real_estate_research.city.lower()}&countries=belgique&pageOffset={page}&noindex=1"
+
+    def get_page_number(self):
+        page_number = self.driver.find_element_by_class_name("pagination").text.split(
+            "\n"
+        )[-1]
+
+        try:
+            return int(page_number)
+        except:
             return 1

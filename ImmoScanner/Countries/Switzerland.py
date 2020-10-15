@@ -1,9 +1,10 @@
-from Countries.Country import Country
-from Workers.Immoweb import Immoweb
-from Workers.ImmoVlan import ImmoVlan
+from ImmoScanner.Countries.Country import Country
+from ImmoScanner.Workers.Homegate import Homegate
 
 
 class Switzerland(Country):
+    def __init__(self):
+        self.websites = [Homegate()]
+
     def get_real_estate_websites(self):
-        self.websites = [ImmoVlan()]  # Immoweb()
         return self.websites

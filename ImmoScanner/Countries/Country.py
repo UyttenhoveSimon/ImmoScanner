@@ -1,6 +1,5 @@
-import pycountry
-import requests
 import urllib.parse
+import requests
 from bs4 import BeautifulSoup
 
 

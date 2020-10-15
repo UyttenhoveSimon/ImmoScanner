@@ -1,4 +1,4 @@
-from Means.Research import Research
+from ImmoScanner.Means.Research import Research
 
 
 class RealEstateResearch(Research):
