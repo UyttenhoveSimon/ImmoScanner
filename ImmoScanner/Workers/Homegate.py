@@ -13,17 +13,17 @@ from ImmoScanner.Workers.RealEstateWorker import RealEstateWorker
 class Homegate(RealEstateWorker):
     def __init__(self):
         super().__init__()
-        self.domain_name = "immo.vlan.be"
+        self.domain_name = "homegate.ch"
 
     def fill_empty_fields(self, real_estate_research: RealEstateResearch):
         if real_estate_research.rent_or_buy is None:
-            real_estate_research.rent_or_buy = "a-vendre"
+            real_estate_research.rent_or_buy = "acheter"
 
         if real_estate_research.type is None:
-            real_estate_research.type = "maison"
+            real_estate_research.type = "biens-immobiliers"
 
         if real_estate_research.country is None:
-            real_estate_research.country = "Belgique"
+            real_estate_research.country = "Switzerland"
 
     def get_findings(self, real_estate_research: RealEstateResearch):
         real_estate_research_results = []
@@ -49,7 +49,7 @@ class Homegate(RealEstateWorker):
             for page in range(1, page_number + 1):
                 url = self.url_builder(real_estate_research, page)
                 soup = self.get_soupe(url)
-                findings = soup.find_all("div", {"class", "pb-3 col-lg-12"})
+                findings = soup.find_all("div", {"data-test", "result-list"})
 
                 # if not findings:
                 #     findings = soup.find_all(
@@ -64,11 +64,11 @@ class Homegate(RealEstateWorker):
             return real_estate_research_results
 
     def get_result_id(self, result):
-        return result.a["id"]
+        return result.a["href"].split("/")[-1]
 
     def get_result_description(self, result):
         description = (
-            result.find("p", class_="grey-text list-item-description").contents[0].text
+            result.find("p", class_="ListItem_data_18_z_").contents[0].text
         )
         if description is None:
             return ""
@@ -76,23 +76,19 @@ class Homegate(RealEstateWorker):
             return description
 
     def get_result_link(self, result):
-        return self.domain_name + result.find_all("a")[1]["href"]
+        return self.domain_name + result.result.a["href"]
 
     # def get_posted_date(self, result):
     #     return self.domain_name + result.find_all("a")[1]["href"]
 
     def get_bedrooms_number(self, result):
-        return result.find(
-            "div", class_="text-center highlight-thumb ml-2 mr-2 mb-2 NrOfBedrooms"
-        ).text.split()[-1]
+        return result.find("p", class_="ListItem_data_18_z_").contents[0].text
 
     def get_livable_square_meters(self, result):
-        return result.find(
-            "div", class_="text-center highlight-thumb ml-2 mr-2 mb-2 LivableSurface"
-        ).text.split()[-2]
+        return result.find("p", class_="ListItem_data_18_z_").contents[0].text
 
     def get_result_price(self, result):
-        return Price.fromstring(result.find("strong", class_="list-item-price").text)
+        return Price.fromstring(result.find("p", class_="ListItem_data_18_z_").contents[0].text)
 
     def extract_findings(self, result):
         real_estate_item = RealEstateResearchResult()
@@ -128,9 +124,10 @@ class Homegate(RealEstateWorker):
             return real_estate_research.url
 
         if page == 1:
-            return f"https://immo.vlan.be/fr/immobilier?transactiontypes={real_estate_research.rent_or_buy}&propertytypes={real_estate_research.type}&towns={real_estate_research.postal_code}-{real_estate_research.city.lower()}&noindex=1"
+            return f"https://www.homegate.ch/{real_estate_research.rent_or_buy}/biens-immobiliers/npa-{real_estate_research.postal_code}/liste-annonces"
 
-        return f"https://immo.vlan.be/fr/immobilier?transactiontypes={real_estate_research.rent_or_buy}&propertytypes={real_estate_research.type}&towns={real_estate_research.postal_code}-{real_estate_research.city.lower()}&countries=belgique&pageOffset={page}&noindex=1"
+        return f"https://www.homegate.ch/{real_estate_research.rent_or_buy}/biens-immobiliers/npa-{real_estate_research.postal_code}/liste-annonces?ep={page}"
+
 
     def get_page_number(self):
         page_number = self.driver.find_element_by_class_name("pagination").text.split(

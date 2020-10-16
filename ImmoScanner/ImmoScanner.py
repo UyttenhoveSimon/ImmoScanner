@@ -80,19 +80,19 @@ class ImmoScanner:
         return unique_items
 
     def get_insights(self, results):
-        good_stats_to_sell = StatisticalInsights(results)
-        price_mean_to_sell = good_stats_to_sell.calculate_mean_price()
-        price_median_to_sell = good_stats_to_sell.calculate_median_price()
-        logging.info(f"Price mean to sell {price_median_to_sell}")
-        logging.info(f"Price median to sell {price_median_to_sell}")
+        stats_selling = StatisticalInsights(results)
+        price_mean_selling = stats_selling.calculate_mean_price()
+        price_median_selling = stats_selling.calculate_median_price()
+        logging.info(f"Selling mean price {price_median_selling}")
+        logging.info(f"Selling median price {price_median_selling}")
 
-        good_stats_to_rent = StatisticalInsights(results)
-        price_mean_to_rent = good_stats_to_rent.calculate_mean_price()
-        price_median_to_rent = good_stats_to_rent.calculate_median_price()
-        logging.info(f"Price mean to sell {price_median_to_sell}")
-        logging.info(f"price median to rent {price_median_to_rent}")
+        stats_renting = StatisticalInsights(results)
+        price_mean_renting = stats_renting.calculate_mean_price()
+        price_median_renting = stats_renting.calculate_median_price()
+        logging.info(f"Renting mean price {price_mean_renting}")
+        logging.info(f"Renting mean price {price_median_renting}")
 
         yield_rent_gross_median = StatisticalInsights().calculate_gross_yield_median(
-            price_mean_to_rent, price_mean_to_sell
+            price_mean_renting, price_mean_selling
         )
         logging.info(f"Rent yield gross median {yield_rent_gross_median}")
