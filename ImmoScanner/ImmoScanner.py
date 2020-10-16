@@ -56,15 +56,28 @@ class ImmoScanner:
         # results is a list of list with results from each website
         flat_list = list(itertools.chain(*results))
 
-        unique_items = []
+        # all items must have a price and livable square meters
         for item in flat_list:
-            if item['price'] not in unique_items:
-                unique_items.append(item)
-            if item['livable_square_meters'] not in unique_items:
-                unique_items.append(item)
+            if item["price"] is 0:
+                flat_list.remove(item)
+
+            if item["livable_square_meters"] is 0:
+                flat_list.remove(item)
+
+        unique_items = []
+
+        # results price and livable square meters are used to remove duplicate.
+        for item in flat_list:
+            for u_item in unique_items:
+                if item not in unique_items:
+                    if item["price"] != u_item["price"]:
+                        if (
+                            item["livable_square_meters"]
+                            != u_item["livable_square_meters"]
+                        ):
+                            unique_items.append(item)
 
         return unique_items
-
 
     def get_insights(self, results):
         good_stats_to_sell = StatisticalInsights(results)
