@@ -1,6 +1,6 @@
-from ImmoScanner.Countries.Country import Country
-from ImmoScanner.Workers.Immoweb import Immoweb
-from ImmoScanner.Workers.ImmoVlan import ImmoVlan
+from Countries.Country import Country
+from Workers.Immoweb import Immoweb
+from Workers.ImmoVlan import ImmoVlan
 
 
 class Belgium(Country):

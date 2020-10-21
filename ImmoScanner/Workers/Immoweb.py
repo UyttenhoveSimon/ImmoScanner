@@ -3,9 +3,9 @@ import re
 
 from price_parser import Price
 
-from ImmoScanner.Means.RealEstateResearch import RealEstateResearch
-from ImmoScanner.Means.RealEstateResearchResult import RealEstateResearchResult
-from ImmoScanner.Workers.RealEstateWorker import RealEstateWorker
+from Means.RealEstateResearch import RealEstateResearch
+from Means.RealEstateResearchResult import RealEstateResearchResult
+from Workers.RealEstateWorker import RealEstateWorker
 
 
 class Immoweb(RealEstateWorker):
