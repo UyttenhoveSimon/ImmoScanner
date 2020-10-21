@@ -31,7 +31,7 @@ class Homegate(RealEstateWorker):
 
         url = self.url_builder(real_estate_research)
         logging.info(url)
-
+        breakpoint()
         try:
             soup = self.get_soupe(url)
             cookies_present = EC.presence_of_element_located(
