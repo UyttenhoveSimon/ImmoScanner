@@ -1,5 +1,5 @@
-from ImmoScanner.Means.RealEstateResearchResult import RealEstateResearchResult
-from ImmoScanner.Workers.Worker import Worker
+from Means.RealEstateResearchResult import RealEstateResearchResult
+from Workers.Worker import Worker
 from bs4 import BeautifulSoup
 
 

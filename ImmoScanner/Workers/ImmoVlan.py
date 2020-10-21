@@ -5,9 +5,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-from ImmoScanner.Means.RealEstateResearch import RealEstateResearch
-from ImmoScanner.Means.RealEstateResearchResult import RealEstateResearchResult
-from ImmoScanner.Workers.RealEstateWorker import RealEstateWorker
+from Means.RealEstateResearch import RealEstateResearch
+from Means.RealEstateResearchResult import RealEstateResearchResult
+from Workers.RealEstateWorker import RealEstateWorker
 
 
 class ImmoVlan(RealEstateWorker):

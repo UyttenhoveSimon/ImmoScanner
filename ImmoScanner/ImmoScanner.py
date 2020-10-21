@@ -1,10 +1,10 @@
 import itertools
 import logging
 import tldextract
-from ImmoScanner.Means.Research import Research
-from ImmoScanner.Means.RealEstateResearch import RealEstateResearch
-from ImmoScanner.Intellectuals.StatisticalInsights import StatisticalInsights
-from ImmoScanner.Countries.CountryFactory import CountryFactory
+from Means.Research import Research
+from Means.RealEstateResearch import RealEstateResearch
+from Intellectuals.StatisticalInsights import StatisticalInsights
+from Countries.CountryFactory import CountryFactory
 
 
 class ImmoScanner:

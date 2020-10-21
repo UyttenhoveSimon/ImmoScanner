@@ -1,5 +1,5 @@
-from ImmoScanner.Countries.Country import Country
-from ImmoScanner.Workers.Homegate import Homegate
+from Countries.Country import Country
+from Workers.Homegate import Homegate
 
 
 class Switzerland(Country):
