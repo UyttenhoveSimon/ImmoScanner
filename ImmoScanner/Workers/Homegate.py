@@ -34,13 +34,13 @@ class Homegate(RealEstateWorker):
         breakpoint()
         try:
             soup = self.get_soupe(url)
-            cookies_present = EC.presence_of_element_located(
-                (By.CSS_SELECTOR, "#didomi-notice-agree-button")
-            )
-            WebDriverWait(self.driver, 5).until(cookies_present).click()
+            # cookies_present = EC.presence_of_element_located(
+            #     (By.CSS_SELECTOR, "#didomi-notice-agree-button")
+            # )
+            # WebDriverWait(self.driver, 5).until(cookies_present).click()
 
             pagination_present = EC.presence_of_element_located(
-                (By.CLASS_NAME, "pagination")
+                (By.CLASS_NAME, "router-link-exact-active router-link-active")
             )
             WebDriverWait(self.driver, 5).until(pagination_present)
             # soup = self.get_soupe(self.driver.page_source)
@@ -130,7 +130,7 @@ class Homegate(RealEstateWorker):
 
 
     def get_page_number(self):
-        page_number = self.driver.find_element_by_class_name("pagination").text.split(
+        page_number = self.driver.find_element_by_class_name("HgPaginationSelector_paginatorBox_15QHK ResultListPage_paginationHolder_3XZql").text.split(
             "\n"
         )[-1]
 
@@ -138,3 +138,4 @@ class Homegate(RealEstateWorker):
             return int(page_number)
         except:
             return 1
+
