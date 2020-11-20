@@ -30,6 +30,7 @@ class ImmoScanner:
 
         results = list()
         for website in websites:
+            website.start()
             results.append(website.get_findings(searches_immo_to_sell))
 
         return results
@@ -58,10 +59,10 @@ class ImmoScanner:
 
         # all items must have a price and livable square meters
         for item in flat_list:
-            if item["price"] is 0:
+            if item["price"] == 0:
                 flat_list.remove(item)
 
-            if item["livable_square_meters"] is 0:
+            if item["livable_square_meters"] == 0:
                 flat_list.remove(item)
 
         unique_items = []

@@ -28,12 +28,17 @@ class Worker:
     webdriver_session_id = property(get_webdriver_session_id, set_webdriver_session_id)
 
     def __init__(self):
-        options = Options()
-        # if logging.root.level > logging.DEBUG:
-        # options.headless = True
 
+        self.research_result = [ResearchResult()]
+        self.domain_name = ""
+        self.options = Options()
+        
+        if logging.root.level > logging.DEBUG:
+            self.options.headless = True
+
+    def start(self):
         if sys.platform.startswith("win32"):
-            options.binary_location = "C:\\Program Files (x86)\\BraveSoftware\\Brave-Browser\\Application\\brave.exe"
+            self.options.binary_location = "C:\\Program Files (x86)\\BraveSoftware\\Brave-Browser\\Application\\brave.exe"
             # Tried to have only one browser opened via class properties, not working
             # chromedriver.exe is within the path
             # if self.webdriver_session_id != "":
@@ -45,10 +50,12 @@ class Worker:
             #     self.driver = webdriver.Chrome(options=options)
             #     self.webdriver_url = self.driver.command_executor._url
             #     self.webdriver_session_id = self.driver.session_id
-            self.driver = webdriver.Chrome(options=options)
+            
+            self.driver = webdriver.Chrome(options=self.options)
+            self.driver.set_page_load_timeout(60)
 
         elif sys.platform.startswith("linux"):
-            options.binary_location = "/usr/bin/brave"
+            self.options.binary_location = "/usr/bin/brave"
 
             # if self.webdriver_session_id != "":
             #     self.driver = webdriver.Remote(
@@ -61,10 +68,9 @@ class Worker:
             #     )
             #     self.webdriver_url = self.driver.command_executor._url
             #     self.webdriver_session_id = self.driver.session_id
+           
             self.driver = webdriver.Chrome(
-                options=options, executable_path="/usr/local/bin/chromedriver"
+                options=self.options, executable_path="/usr/local/bin/chromedriver"
             )
+            self.driver.set_page_load_timeout(60)
 
-        self.driver.set_page_load_timeout(60)
-        self.research_result = [ResearchResult()]
-        self.domain_name = ""
