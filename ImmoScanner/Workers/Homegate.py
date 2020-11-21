@@ -31,20 +31,16 @@ class Homegate(RealEstateWorker):
 
         url = self.url_builder(real_estate_research)
         logging.info(url)
-        breakpoint()
+
         try:
             soup = self.get_soupe(url)
-            # cookies_present = EC.presence_of_element_located(
-            #     (By.CSS_SELECTOR, "#didomi-notice-agree-button")
+       
+            # pagination_present = EC.presence_of_element_located(
+            #     (By.CLASS_NAME, "router-link-exact-active router-link-active")
             # )
-            # WebDriverWait(self.driver, 5).until(cookies_present).click()
-
-            pagination_present = EC.presence_of_element_located(
-                (By.CLASS_NAME, "router-link-exact-active router-link-active")
-            )
-            WebDriverWait(self.driver, 5).until(pagination_present)
+            # WebDriverWait(self.driver, 10).until(pagination_present)
             # soup = self.get_soupe(self.driver.page_source)
-            page_number = self.get_page_number()
+            page_number = self.get_page_number(soup)
 
             for page in range(1, page_number + 1):
                 url = self.url_builder(real_estate_research, page)
@@ -129,13 +125,16 @@ class Homegate(RealEstateWorker):
         return f"https://www.homegate.ch/{real_estate_research.rent_or_buy}/biens-immobiliers/npa-{real_estate_research.postal_code}/liste-annonces?ep={page}"
 
 
-    def get_page_number(self):
-        page_number = self.driver.find_element_by_class_name("HgPaginationSelector_paginatorBox_15QHK ResultListPage_paginationHolder_3XZql").text.split(
-            "\n"
-        )[-1]
+    def get_page_number(self, soupe):
+        page_number_text = soupe.find("div",class_="HgPaginationSelector_paginatorBox_15QHK ResultListPage_paginationHolder_3XZql").text
+        breakpoint()
+        ## text is 12...4 
+        if "..." in page_number_text:
+            return int(page_number_text.split(".")[-1])    
 
+        ## text is 12 or 1
         try:
-            return int(page_number)
+            return int(page_number_text) % 10
         except:
             return 1
 

@@ -32,7 +32,7 @@ class ImmoScanner:
         for website in websites:
             website.start()
             results.append(website.get_findings(searches_immo_to_sell))
-
+        ## TODO find a way to replay the results instead of searching again
         return results
 
     def research_real_estate_url(self, country_name, url):
