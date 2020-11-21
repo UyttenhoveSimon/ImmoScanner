@@ -30,6 +30,7 @@ class Country:
 
         # ['1', 'La Sarraz', '1315', 'Switzerland', 'Canton de Vaud', 'Morges District', 'La Sarraz\xa0\xa0\xa046.659/6.511\n\n', '', '\xa0\xa0\xa046.659/6.511', '']
 
+    ## TODO deal when city has moe than once postal code.
     def fetch_postal_code_given_city(self, city):
         city = urllib.parse.quote_plus(city)
         search = requests.get(
