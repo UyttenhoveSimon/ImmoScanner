@@ -26,6 +26,8 @@ bld/
 [Bb]in/
 [Oo]bj/
 [Ll]og/
+lib/
+
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
@@ -340,3 +342,4 @@ ASALocalRun/
 healthchecksdb
 /ImmoScanner/env
 /env
+lib64
