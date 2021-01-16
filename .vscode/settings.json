@@ -1,5 +1,6 @@
 {
     "python.linting.enabled": true,
     "python.linting.pylintEnabled": true,
-    "python.pythonPath": "/usr/sbin/python"
+    "python.pythonPath": "/usr/sbin/python",
+    "python.autoComplete.extraPaths": ["./ImmoScanner"],
 }
