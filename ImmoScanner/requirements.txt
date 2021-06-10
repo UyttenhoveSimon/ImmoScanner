@@ -55,7 +55,7 @@ pacman-mirrors==4.16.4
 paramiko==2.7.2
 pathspec==0.8.0
 pep517==0.8.2
-Pillow==8.1.1
+Pillow==8.2.0
 plac==1.2.0
 ply==3.11
 price-parser==0.3.3
