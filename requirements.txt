@@ -2,7 +2,7 @@ astroid==2.4.2
 attrs==20.3.0
 beautifulsoup4==4.9.3
 bs4==0.0.1
-certifi==2020.12.5
+certifi==2022.12.7
 chardet==4.0.0
 docutils==0.16
 filelock==3.0.12
