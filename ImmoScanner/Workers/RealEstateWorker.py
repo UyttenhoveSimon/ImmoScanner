@@ -1,6 +1,6 @@
+from bs4 import BeautifulSoup
 from Means.RealEstateResearchResult import RealEstateResearchResult
 from Workers.Worker import Worker
-from bs4 import BeautifulSoup
 
 
 class RealEstateWorker(Worker):

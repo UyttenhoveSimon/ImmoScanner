@@ -1,10 +1,11 @@
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-import selenium.webdriver.common.by
-from Means.ResearchResult import ResearchResult
 import logging
 import os
 import sys
+
+import selenium.webdriver.common.by
+from Means.ResearchResult import ResearchResult
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 
 
 class Worker:
@@ -32,7 +33,7 @@ class Worker:
         self.research_result = [ResearchResult()]
         self.domain_name = ""
         self.options = Options()
-        
+
         if logging.root.level > logging.DEBUG:
             self.options.headless = True
 
@@ -50,7 +51,7 @@ class Worker:
             #     self.driver = webdriver.Chrome(options=options)
             #     self.webdriver_url = self.driver.command_executor._url
             #     self.webdriver_session_id = self.driver.session_id
-            
+
             self.driver = webdriver.Chrome(options=self.options)
             self.driver.set_page_load_timeout(60)
 
@@ -68,9 +69,8 @@ class Worker:
             #     )
             #     self.webdriver_url = self.driver.command_executor._url
             #     self.webdriver_session_id = self.driver.session_id
-           
+
             self.driver = webdriver.Chrome(
                 options=self.options, executable_path="/usr/local/bin/chromedriver"
             )
             self.driver.set_page_load_timeout(60)
-

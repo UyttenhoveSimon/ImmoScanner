@@ -1,12 +1,11 @@
 import logging
 
+from Means.RealEstateResearch import RealEstateResearch
+from Means.RealEstateResearchResult import RealEstateResearchResult
 from price_parser import Price
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-
-from Means.RealEstateResearch import RealEstateResearch
-from Means.RealEstateResearchResult import RealEstateResearchResult
 from Workers.RealEstateWorker import RealEstateWorker
 
 
@@ -34,7 +33,7 @@ class Comparis(RealEstateWorker):
 
         try:
             soup = self.get_soupe(url)
-       
+
             # pagination_present = EC.presence_of_element_located(
             #     (By.CLASS_NAME, "router-link-exact-active router-link-active")
             # )
@@ -63,9 +62,7 @@ class Comparis(RealEstateWorker):
         return result.a["href"].split("/")[-1]
 
     def get_result_description(self, result):
-        description = (
-            result.find("p", class_="ListItem_data_18_z_").contents[0].text
-        )
+        description = result.find("p", class_="ListItem_data_18_z_").contents[0].text
         if description is None:
             return ""
         else:
@@ -84,7 +81,9 @@ class Comparis(RealEstateWorker):
         return result.find("p", class_="ListItem_data_18_z_").contents[0].text
 
     def get_result_price(self, result):
-        return Price.fromstring(result.find("p", class_="ListItem_data_18_z_").contents[0].text)
+        return Price.fromstring(
+            result.find("p", class_="ListItem_data_18_z_").contents[0].text
+        )
 
     def extract_findings(self, result):
         real_estate_item = RealEstateResearchResult()
@@ -124,17 +123,18 @@ class Comparis(RealEstateWorker):
 
         return f"https://fr.comparis.ch/immobilien/result/list?requestobject=%7B%22DealType%22%3A20%2C%22SiteId%22%3A-1%2C%22RootPropertyTypes%22%3A%5B%5D%2C%22PropertyTypes%22%3Anull%2C%22RoomsFrom%22%3A%22-10%22%2C%22RoomsTo%22%3Anull%2C%22FloorSearchType%22%3A0%2C%22LivingSpaceFrom%22%3Anull%2C%22LivingSpaceTo%22%3Anull%2C%22PriceFrom%22%3Anull%2C%22PriceTo%22%3A%22-10%22%2C%22ComparisPointsMin%22%3A-1%2C%22AdAgeMax%22%3A-1%2C%22AdAgeInHoursMax%22%3Anull%2C%22Keyword%22%3Anull%2C%22WithImagesOnly%22%3Anull%2C%22WithPointsOnly%22%3Anull%2C%22Radius%22%3Anull%2C%22MinAvailableDate%22%3Anull%2C%22MinChangeDate%22%3Anull%2C%22LocationSearchString%22%3A%221618%22%2C%22Sort%22%3A11%2C%22HasBalcony%22%3Afalse%2C%22HasTerrace%22%3Afalse%2C%22HasFireplace%22%3Afalse%2C%22HasDishwasher%22%3Afalse%2C%22HasWashingMachine%22%3Afalse%2C%22HasLift%22%3Afalse%2C%22HasParking%22%3Afalse%2C%22PetsAllowed%22%3Afalse%2C%22MinergieCertified%22%3Afalse%2C%22WheelchairAccessible%22%3Afalse%2C%22LowerLeftLatitude%22%3Anull%2C%22LowerLeftLongitude%22%3Anull%2C%22UpperRightLatitude%22%3Anull%2C%22UpperRightLongitude%22%3Anull%7D&page={page}"
 
-
     def get_page_number(self, soupe):
-        page_number_text = soupe.find("div",class_="HgPaginationSelector_paginatorBox_15QHK ResultListPage_paginationHolder_3XZql").text
+        page_number_text = soupe.find(
+            "div",
+            class_="HgPaginationSelector_paginatorBox_15QHK ResultListPage_paginationHolder_3XZql",
+        ).text
         breakpoint()
-        ## text is 12...4 
+        ## text is 12...4
         if "..." in page_number_text:
-            return int(page_number_text.split(".")[-1])    
+            return int(page_number_text.split(".")[-1])
 
         ## text is 12 or 1
         try:
             return int(page_number_text) % 10
         except:
             return 1
-

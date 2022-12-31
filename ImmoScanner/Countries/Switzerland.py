@@ -1,6 +1,6 @@
 from Countries.Country import Country
-from Workers.Homegate import Homegate
 from Workers.Comparis import Comparis
+from Workers.Homegate import Homegate
 
 
 class Switzerland(Country):

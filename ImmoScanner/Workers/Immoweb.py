@@ -1,10 +1,9 @@
 import logging
 import re
 
-from price_parser import Price
-
 from Means.RealEstateResearch import RealEstateResearch
 from Means.RealEstateResearchResult import RealEstateResearchResult
+from price_parser import Price
 from Workers.RealEstateWorker import RealEstateWorker
 
 

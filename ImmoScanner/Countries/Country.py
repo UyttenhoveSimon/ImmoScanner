@@ -1,4 +1,5 @@
 import urllib.parse
+
 import requests
 from bs4 import BeautifulSoup
 
@@ -14,7 +15,11 @@ class Country:
         self.languages = []
         self.websites = []
 
-    def fetch_city_given_postal_code(self, postal_code):
+    def fetch_city_given_postal_code(self, postal_code) -> list:
+        """
+        return following list:
+        ['1', 'La Sarraz', '1315', 'Switzerland', 'Canton de Vaud', 'Morges District', 'La Sarraz\xa0\xa0\xa046.659/6.511\n\n', '', '\xa0\xa0\xa046.659/6.511', '']
+        """
         search = requests.get(
             f"https://www.geonames.org/postalcode-search.html?q={postal_code}&country={self.alpha_2}"
         )
@@ -28,10 +33,14 @@ class Country:
 
         return rows[1]
 
-        # ['1', 'La Sarraz', '1315', 'Switzerland', 'Canton de Vaud', 'Morges District', 'La Sarraz\xa0\xa0\xa046.659/6.511\n\n', '', '\xa0\xa0\xa046.659/6.511', '']
+        # 
 
-    ## TODO deal when city has moe than once postal code.
+    ## TODO deal when city has more than once postal code.
     def fetch_postal_code_given_city(self, city):
+        """
+        return list:
+        # ['1', 'La Sarraz', '1315', 'Switzerland', 'Canton de Vaud', 'Morges District', 'La Sarraz\xa0\xa0\xa046.659/6.511\n\n', '', '\xa0\xa0\xa046.659/6.511', '']
+        """
         city = urllib.parse.quote_plus(city)
         search = requests.get(
             f"https://www.geonames.org/postalcode-search.html?q={city}&country={self.alpha_2}"
@@ -45,7 +54,6 @@ class Country:
             rows.append(row.text)
 
         return rows[2]
-        # ['1', 'La Sarraz', '1315', 'Switzerland', 'Canton de Vaud', 'Morges District', 'La Sarraz\xa0\xa0\xa046.659/6.511\n\n', '', '\xa0\xa0\xa046.659/6.511', '']
 
     def get_real_estate_websites(self):
         pass

@@ -1,10 +1,11 @@
 import itertools
 import logging
+
 import tldextract
-from Means.Research import Research
-from Means.RealEstateResearch import RealEstateResearch
-from Intellectuals.StatisticalInsights import StatisticalInsights
 from Countries.CountryFactory import CountryFactory
+from Intellectuals.StatisticalInsights import StatisticalInsights
+from Means.RealEstateResearch import RealEstateResearch
+from Means.Research import Research
 
 
 class ImmoScanner:
@@ -12,7 +13,7 @@ class ImmoScanner:
         logging.basicConfig(level=logging.DEBUG)
 
     def research_real_estate(self, country_name, postal_code="", city=""):
-        """Enter arguments in that order 1)Country 2)Type (real estate...) 3)Postal code 4)Buy/Rent   """
+        """Enter arguments in that order 1)Country 2)Type (real estate...) 3)Postal code 4)Buy/Rent"""
 
         country = CountryFactory().generate_country_given_name(name=country_name)
         websites = country.get_real_estate_websites()

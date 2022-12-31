@@ -1,12 +1,11 @@
 import logging
 
+from Means.RealEstateResearch import RealEstateResearch
+from Means.RealEstateResearchResult import RealEstateResearchResult
 from price_parser import Price
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-
-from Means.RealEstateResearch import RealEstateResearch
-from Means.RealEstateResearchResult import RealEstateResearchResult
 from Workers.RealEstateWorker import RealEstateWorker
 
 
@@ -34,7 +33,7 @@ class Homegate(RealEstateWorker):
 
         try:
             soup = self.get_soupe(url)
-       
+
             # pagination_present = EC.presence_of_element_located(
             #     (By.CLASS_NAME, "router-link-exact-active router-link-active")
             # )
@@ -63,9 +62,7 @@ class Homegate(RealEstateWorker):
         return result.a["href"].split("/")[-1]
 
     def get_result_description(self, result):
-        description = (
-            result.find("p", class_="ListItem_data_18_z_").contents[0].text
-        )
+        description = result.find("p", class_="ListItem_data_18_z_").contents[0].text
         if description is None:
             return ""
         else:
@@ -84,7 +81,9 @@ class Homegate(RealEstateWorker):
         return result.find("p", class_="ListItem_data_18_z_").contents[0].text
 
     def get_result_price(self, result):
-        return Price.fromstring(result.find("p", class_="ListItem_data_18_z_").contents[0].text)
+        return Price.fromstring(
+            result.find("p", class_="ListItem_data_18_z_").contents[0].text
+        )
 
     def extract_findings(self, result):
         real_estate_item = RealEstateResearchResult()
@@ -124,17 +123,18 @@ class Homegate(RealEstateWorker):
 
         return f"https://www.homegate.ch/{real_estate_research.rent_or_buy}/biens-immobiliers/npa-{real_estate_research.postal_code}/liste-annonces?ep={page}"
 
-
     def get_page_number(self, soupe):
-        page_number_text = soupe.find("div",class_="HgPaginationSelector_paginatorBox_15QHK ResultListPage_paginationHolder_3XZql").text
+        page_number_text = soupe.find(
+            "div",
+            class_="HgPaginationSelector_paginatorBox_15QHK ResultListPage_paginationHolder_3XZql",
+        ).text
         breakpoint()
-        ## text is 12...4 
+        ## text is 12...4
         if "..." in page_number_text:
-            return int(page_number_text.split(".")[-1])    
+            return int(page_number_text.split(".")[-1])
 
         ## text is 12 or 1
         try:
             return int(page_number_text) % 10
         except:
             return 1
-

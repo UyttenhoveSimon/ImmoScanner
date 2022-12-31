@@ -1,4 +1,5 @@
 import plac
+
 from ImmoScanner import ImmoScanner
 
 

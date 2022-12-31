@@ -1,12 +1,11 @@
 import logging
 
+from Means.RealEstateResearch import RealEstateResearch
+from Means.RealEstateResearchResult import RealEstateResearchResult
 from price_parser import Price
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-
-from Means.RealEstateResearch import RealEstateResearch
-from Means.RealEstateResearchResult import RealEstateResearchResult
 from Workers.RealEstateWorker import RealEstateWorker
 
 
