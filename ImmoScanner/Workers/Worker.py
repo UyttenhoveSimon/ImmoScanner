@@ -3,6 +3,7 @@ import logging
 from playwright.sync_api import sync_playwright
 from Means.ResearchResult import ResearchResult
 
+
 class Worker:
     def __init__(self):
         self.research_result = [ResearchResult()]
@@ -16,9 +17,14 @@ class Worker:
             browser_type = p.chromium
             if sys.platform.startswith("win32"):
                 executable_path = "C:\\Program Files (x86)\\BraveSoftware\\Brave-Browser\\Application\\brave.exe"
-                self.browser = browser_type.launch(executable_path=executable_path, headless=logging.root.level > logging.DEBUG)
+                self.browser = browser_type.launch(
+                    executable_path=executable_path,
+                    headless=logging.root.level > logging.DEBUG,
+                )
             else:
-                self.browser = browser_type.launch(headless=logging.root.level > logging.DEBUG)
+                self.browser = browser_type.launch(
+                    headless=logging.root.level > logging.DEBUG
+                )
 
             self.context = self.browser.new_context()
             self.page = self.context.new_page()
