@@ -3,9 +3,6 @@ import logging
 from Means.RealEstateResearch import RealEstateResearch
 from Means.RealEstateResearchResult import RealEstateResearchResult
 from price_parser import Price
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
 from Workers.RealEstateWorker import RealEstateWorker
 
 
@@ -33,12 +30,6 @@ class Homegate(RealEstateWorker):
 
         try:
             soup = self.get_soupe(url)
-
-            # pagination_present = EC.presence_of_element_located(
-            #     (By.CLASS_NAME, "router-link-exact-active router-link-active")
-            # )
-            # WebDriverWait(self.driver, 10).until(pagination_present)
-            # soup = self.get_soupe(self.driver.page_source)
             page_number = self.get_page_number(soup)
 
             for page in range(1, page_number + 1):
@@ -55,7 +46,7 @@ class Homegate(RealEstateWorker):
                     real_estate_research_results.append(self.extract_findings(item))
 
         finally:
-            self.driver.close()
+            self.close()
             return real_estate_research_results
 
     def get_result_id(self, result):

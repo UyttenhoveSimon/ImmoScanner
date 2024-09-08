@@ -8,6 +8,21 @@ from Workers.RealEstateWorker import RealEstateWorker
 
 
 class Immoweb(RealEstateWorker):
+    """
+    The `Immoweb` class is a subclass of `RealEstateWorker` and is responsible for scraping real estate data from the Immoweb website. It provides methods to fill in missing fields, build URLs, extract findings from the website, and retrieve various properties of the real estate listings.
+    
+    The `fill_empty_fields` method ensures that the `rent_or_buy`, `type`, and `country` fields of the `RealEstateResearch` object are set to default values if they are None.
+    
+    The `get_findings` method is the main entry point for scraping real estate data. It constructs the URL, retrieves the HTML content, and extracts the relevant information from the search results. The method returns a list of `RealEstateResearchResult` objects containing the extracted data.
+    
+    The `get_result_id`, `get_result_description`, `get_result_link`, `get_bedrooms_number`, `get_livable_square_meters`, and `get_result_price` methods are helper methods that extract specific properties from the HTML content of a single real estate listing.
+    
+    The `extract_findings` method takes a single real estate listing HTML element and creates a `RealEstateResearchResult` object with the extracted data.
+    
+    The `url_builder` method constructs the URL for the real estate search based on the provided `RealEstateResearch` object and the current page number.
+    
+    The `get_page_number` method determines the number of pages of search results by parsing the pagination links in the HTML content.
+    """
     def __init__(self):
         super().__init__()
         self.domain_name = "immoweb.be"
@@ -48,7 +63,7 @@ class Immoweb(RealEstateWorker):
                     real_estate_research_results.append(self.extract_findings(item))
 
         finally:
-            self.driver.close()
+            self.close()
             return real_estate_research_results
 
     def get_result_id(self, result):

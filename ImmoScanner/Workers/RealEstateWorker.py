@@ -13,14 +13,14 @@ class RealEstateWorker(Worker):
         return list_[:half]
 
     def get_html(self, url):
-        self.driver.get(url)  # TODO : sometimes fails with dns error
-        return self.driver.page_source
+        self.navigate(url)  # TODO : sometimes fails with dns error
+        return self.page.content()
 
     def get_soupe(self, url):
-        self.driver.get(url)  # TODO : sometimes fails with dns error
+        self.navigate(url)  # TODO : sometimes fails with dns error
         return self.get_page_source_soupe()
 
     def get_page_source_soupe(self):
-        html = self.driver.page_source
+        html = self.page.content()
         soup = BeautifulSoup(html, "html.parser")
         return soup
