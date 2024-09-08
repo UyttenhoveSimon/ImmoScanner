@@ -2,11 +2,8 @@ import logging
 
 from Means.RealEstateResearch import RealEstateResearch
 from Means.RealEstateResearchResult import RealEstateResearchResult
+from playwright.sync_api import sync_playwright
 from price_parser import Price
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
-from Workers.RealEstateWorker import RealEstateWorker
 
 
 class ImmoVlan(RealEstateWorker):
@@ -31,67 +28,68 @@ class ImmoVlan(RealEstateWorker):
         url = self.url_builder(real_estate_research)
         logging.info(url)
 
-        try:
-            soup = self.get_soupe(url)
-            cookies_present = EC.presence_of_element_located(
-                (By.CSS_SELECTOR, "#didomi-notice-agree-button")
-            )
-            WebDriverWait(self.driver, 5).until(cookies_present).click()
+        with sync_playwright() as p:
+            browser = p.chromium.launch()
+            page = browser.new_page()
+            page.goto(url)
 
-            pagination_present = EC.presence_of_element_located(
-                (By.CLASS_NAME, "pagination")
-            )
-            WebDriverWait(self.driver, 5).until(pagination_present)
-            # soup = self.get_soupe(self.driver.page_source)
-            page_number = self.get_page_number()
+            try:
+                page.click("#didomi-notice-agree-button")
+                page.wait_for_selector(".pagination")
 
-            for page in range(1, page_number + 1):
-                url = self.url_builder(real_estate_research, page)
-                soup = self.get_soupe(url)
-                findings = soup.find_all("div", {"class", "pb-3 col-lg-12"})
+                page_number = self.get_page_number(page)
 
-                # if not findings:
-                #     findings = soup.find_all(
-                #         "article", {"card card--result card--large"}
-                #     )
+                for page_num in range(1, page_number + 1):
+                    url = self.url_builder(real_estate_research, page_num)
+                    page.goto(url)
+                    findings = page.query_selector_all("div.pb-3.col-lg-12")
 
-                for item in findings:
-                    real_estate_research_results.append(self.extract_findings(item))
+                    for item in findings:
+                        real_estate_research_results.append(self.extract_findings(item))
 
-        finally:
-            self.driver.close()
-            return real_estate_research_results
+            finally:
+                browser.close()
+                return real_estate_research_results
 
     def get_result_id(self, result):
-        return result.a["id"]
+        return result.query_selector("a").get_attribute("id")
 
     def get_result_description(self, result):
-        description = (
-            result.find("p", class_="grey-text list-item-description").contents[0].text
-        )
-        if description is None:
-            return ""
-        else:
-            return description
+        description = result.query_selector(
+            "p.grey-text.list-item-description"
+        ).inner_text()
+        return description if description else ""
 
     def get_result_link(self, result):
-        return self.domain_name + result.find_all("a")[1]["href"]
+        return self.domain_name + result.query_selector_all("a")[1].get_attribute(
+            "href"
+        )
 
     # def get_posted_date(self, result):
     #     return self.domain_name + result.find_all("a")[1]["href"]
 
     def get_bedrooms_number(self, result):
-        return result.find(
-            "div", class_="text-center highlight-thumb ml-2 mr-2 mb-2 NrOfBedrooms"
-        ).text.split()[-1]
+        return (
+            result.query_selector(
+                "div.text-center.highlight-thumb.ml-2.mr-2.mb-2.NrOfBedrooms"
+            )
+            .inner_text()
+            .split()[-1]
+        )
 
     def get_livable_square_meters(self, result):
-        return result.find(
-            "div", class_="text-center highlight-thumb ml-2 mr-2 mb-2 LivableSurface"
-        ).text.split()[-2]
+        return (
+            result.query_selector(
+                "div.text-center.highlight-thumb.ml-2.mr-2.mb-2.LivableSurface"
+            )
+            .inner_text()
+            .split()[-2]
+        )
 
     def get_result_price(self, result):
-        return Price.fromstring(result.find("strong", class_="list-item-price").text)
+        return Price.fromstring(
+            result.query_selector("strong.list-item-price").inner_text()
+        )
 
     def extract_findings(self, result):
         real_estate_item = RealEstateResearchResult()
@@ -116,7 +114,7 @@ class ImmoVlan(RealEstateWorker):
         real_estate_item.platform = self.domain_name
 
         real_estate_item.bedrooms_number = int(self.get_bedrooms_number(result))
-        real_estate_item.livable_square_meters + int(
+        real_estate_item.livable_square_meters = int(
             self.get_livable_square_meters(result)
         )
 
@@ -131,10 +129,8 @@ class ImmoVlan(RealEstateWorker):
 
         return f"https://immo.vlan.be/fr/immobilier?transactiontypes={real_estate_research.rent_or_buy}&propertytypes={real_estate_research.type}&towns={real_estate_research.postal_code}-{real_estate_research.city.lower()}&countries=belgique&pageOffset={page}&noindex=1"
 
-    def get_page_number(self):
-        page_number = self.driver.find_element_by_class_name("pagination").text.split(
-            "\n"
-        )[-1]
+    def get_page_number(self, page):
+        page_number = page.query_selector(".pagination").inner_text().split("\n")[-1]
 
         try:
             return int(page_number)
