@@ -33,7 +33,7 @@ class Country:
 
         return rows[1]
 
-        # 
+        #
 
     ## TODO deal when city has more than once postal code.
     def fetch_postal_code_given_city(self, city):
