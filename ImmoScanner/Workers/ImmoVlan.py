@@ -67,6 +67,10 @@ class ImmoVlan(RealEstateWorker):
         if not href:
             link = result.select_one("h2.v3-search-card-title a")
             href = link.get("href", "") if link else ""
+        if not href:
+            # Without this a linkless card is handed the bare domain, whose
+            # last path segment then passes for a listing reference.
+            return ""
         return href if href.startswith("http") else f"{BASE_URL}{href}"
 
     def get_pill(self, result, unit_pattern):

@@ -64,6 +64,8 @@ class Immoweb(RealEstateWorker):
     def get_result_link(self, result):
         link = result.select_one("a.card__title-link")
         href = link.get("href", "") if link else ""
+        if not href:
+            return ""
         return href if href.startswith("http") else f"{BASE_URL}{href}"
 
     def get_property_information(self, result):
