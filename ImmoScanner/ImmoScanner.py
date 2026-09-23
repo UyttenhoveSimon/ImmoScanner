@@ -64,7 +64,10 @@ class ImmoScanner:
         if country is None:
             raise ValueError(f"the country {country_name} is not implemented")
 
-        domain = tldextract.extract(url).registered_domain
+        # Built from the parts rather than read off `registered_domain`, which
+        # tldextract has deprecated.
+        extracted = tldextract.extract(url)
+        domain = f"{extracted.domain}.{extracted.suffix}".strip(".")
         results = []
         for website in country.get_real_estate_websites():
             if domain != website.domain_name:
