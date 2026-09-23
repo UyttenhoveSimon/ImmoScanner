@@ -289,8 +289,9 @@ comparis aggregates both, and every result names its originating portal in
 ## Tests
 
 ```bash
-uv run pytest            # offline, against search pages captured in tests/fixtures
-uv run pytest -m live    # hits the real portals; run weekly in CI as a canary
+uv run pytest                     # offline, against pages captured in tests/fixtures
+uv run pytest --cov               # 99% of the package, gated at 95% in CI
+uv run pytest -m live             # hits the real portals; weekly in CI as a canary
 ```
 
 A portal redesign is silent — a scan just returns less, and the numbers drift.
@@ -301,9 +302,17 @@ for good. The live suite is the canary, and CI runs it every Monday.
 | file | covers |
 | --- | --- |
 | `test_workers.py` | extraction, against captured search pages |
+| `test_fallbacks.py` | what each extractor falls back on, and the base defaults |
 | `test_fetching.py` | the fetch ladder and the page walk, fully stubbed |
+| `test_worker.py` | http sessions, the browser session, and their release |
 | `test_geolocation.py` | coordinate parsing, and what the geographic key merges |
+| `test_countries.py` | geonames lookups, and the country to portal wiring |
 | `test_pipeline.py` | a whole scan: fan-out, failures, search urls |
 | `test_scanner.py` | de-duplication, statistics, source filtering |
 | `test_store.py` | the archive and its diff |
+| `test_console.py` | the cli: routing, printing, writing |
 | `test_live_portals.py` | the live canary (`-m live`) |
+
+Nothing reaches the network except the canary: geonames answers from a
+captured page, portals from captured search pages, and both the http clients
+and the browser from fakes.
