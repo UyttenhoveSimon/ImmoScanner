@@ -143,23 +143,6 @@ class Worker:
                 )
         return self.page.content()
 
-    def navigate(self, url, wait_until="domcontentloaded"):
-        self.start()
-        return self.page.goto(url, wait_until=wait_until)
-
-    def find_element(self, selector):
-        return self.page.query_selector(selector)
-
-    def find_elements(self, selector):
-        return self.page.query_selector_all(selector)
-
-    def get_text(self, selector):
-        element = self.find_element(selector)
-        return element.inner_text() if element else None
-
-    def click(self, selector):
-        self.page.click(selector)
-
     def dismiss_banner(self, selector, timeout=3_000):
         """Click a consent banner if it shows up; never fail the scrape over it."""
         if self.page is None:
@@ -169,9 +152,6 @@ class Worker:
             return True
         except Exception:
             return False
-
-    def fill(self, selector, value):
-        self.page.fill(selector, value)
 
     def wait(self, milliseconds):
         if self.page is not None:

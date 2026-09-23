@@ -112,10 +112,6 @@ class RealEstateWorker(Worker):
         """How many listings the portal says the search matched, if it says so."""
         return None
 
-    def get_first_half(self, list_):
-        half = len(list_) // 2
-        return list_[:half]
-
     def get_html(self, url, wait_for=()):
         """Fetch ``url``, over HTTP when the portal serves the list that way.
 
@@ -143,11 +139,6 @@ class RealEstateWorker(Worker):
 
     def get_soup(self, url, wait_for=()):
         html = self.get_html(url, wait_for)
-        self.raise_on_bot_wall(html)
-        return BeautifulSoup(html, HTML_PARSER)
-
-    def get_page_source_soup(self):
-        html = self.page.content()
         self.raise_on_bot_wall(html)
         return BeautifulSoup(html, HTML_PARSER)
 

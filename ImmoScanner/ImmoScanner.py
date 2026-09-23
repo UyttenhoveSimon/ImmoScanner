@@ -119,26 +119,28 @@ class ImmoScanner:
         # in would describe no property at all.
         properties = [item for item in selling_results if not item.is_project]
 
-        selling = StatisticalInsights(properties)
+        # Neutral names: the same call summarises a sale search and a rental
+        # one. Only the yield comparison below has a selling and a renting side.
+        scanned = StatisticalInsights(properties)
         insights = {
             "listings": len(properties),
             "projects": len(selling_results) - len(properties),
-            "selling_mean_price": selling.calculate_mean_price(),
-            "selling_median_price": selling.calculate_median_price(),
-            "selling_median_price_per_m2": selling.price_per_square_meter_median(),
+            "mean_price": scanned.calculate_mean_price(),
+            "median_price": scanned.calculate_median_price(),
+            "median_price_per_m2": scanned.price_per_square_meter_median(),
         }
 
         if renting_results:
             rentals = [item for item in renting_results if not item.is_project]
             renting = StatisticalInsights(rentals)
             insights["rental_listings"] = len(rentals)
-            insights["renting_mean_price"] = renting.calculate_mean_price()
-            insights["renting_median_price"] = renting.calculate_median_price()
-            insights["renting_median_price_per_m2"] = (
+            insights["rental_mean_price"] = renting.calculate_mean_price()
+            insights["rental_median_price"] = renting.calculate_median_price()
+            insights["rental_median_price_per_m2"] = (
                 renting.price_per_square_meter_median()
             )
             insights["gross_yield_percent"] = StatisticalInsights.gross_yield(
-                insights["renting_median_price"], insights["selling_median_price"]
+                insights["rental_median_price"], insights["median_price"]
             )
 
         for name, value in insights.items():

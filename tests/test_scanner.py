@@ -51,8 +51,8 @@ class TestInsights:
 
         insights = ImmoScanner().get_insights(selling, renting)
 
-        assert insights["selling_median_price"] == 300000
-        assert insights["renting_median_price"] == 1500
+        assert insights["median_price"] == 300000
+        assert insights["rental_median_price"] == 1500
         assert insights["gross_yield_percent"] == (1500 * 12) / 300000 * 100
 
     def test_leaves_developments_out_of_the_statistics(self):
@@ -61,11 +61,11 @@ class TestInsights:
 
         assert insights["listings"] == 1
         assert insights["projects"] == 1
-        assert insights["selling_median_price"] == 200000
+        assert insights["median_price"] == 200000
 
     def test_survives_an_empty_search(self):
         insights = ImmoScanner().get_insights([])
-        assert insights["selling_median_price"] == 0
+        assert insights["median_price"] == 0
 
     def test_gross_yield_of_a_free_market_is_zero(self):
         assert StatisticalInsights.gross_yield(1000, 0) == 0
