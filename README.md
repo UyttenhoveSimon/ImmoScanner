@@ -139,7 +139,14 @@ holds — listings, median price, median price per m², quartiles — then lets 
 pick one and read its listings, sorted by price per m² and filterable by
 originating portal, and see which prices have moved since the first scan.
 
-It is read-only, listens on the loopback only, and needs nothing installed.
+The form at the top adds a place without going back to the shell: give it a
+postal code, and the scan runs in the background while the page polls it. One
+scan runs at a time — a second ask while one is under way is refused rather
+than queued, since a scan already runs its portals in parallel.
+
+It listens on the loopback only, opens the archive read-only for reading, and
+what the form may ask for comes from the code that defines it rather than from
+a list repeated in the page.
 
 ### As a library
 
@@ -170,7 +177,7 @@ Workers/            one class per portal, on a shared fetch-and-walk base
 Means/              what is searched for (Research) and what comes back (Result)
 Intellectuals/      statistics over a set of results
 Archives/           sqlite archive of every listing ever seen
-Showrooms/          a local, read-only web view onto an archive
+Showrooms/          a local web view onto an archive, and the scans it starts
 ```
 
 A scan runs as follows.
@@ -344,6 +351,7 @@ for good. The live suite is the canary, and CI runs it every Monday.
 | `test_store.py` | the archive and its diff |
 | `test_console.py` | the cli: routing, printing, writing |
 | `test_showroom.py` | the explorer's views and the server that exposes them |
+| `test_runner.py` | scans asked for from the page, and their endpoint |
 | `test_live_portals.py` | the live canary (`-m live`) |
 
 Nothing reaches the network except the canary: geonames answers from a

@@ -41,8 +41,13 @@
   .bar { height: 9px; border-radius: 5px; background: var(--accent); min-width: 2px; }
   .scroll { overflow-x: auto; }
   .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
-  input, select { font: inherit; color: inherit; background: var(--ground);
+  input, select, button { font: inherit; color: inherit; background: var(--ground);
                   border: 1px solid var(--line); border-radius: 7px; padding: 6px 9px; }
+  button { background: var(--accent); color: var(--card); border-color: transparent;
+           font-weight: 600; cursor: pointer; }
+  button[disabled] { opacity: .55; cursor: default; }
+  label { display: flex; align-items: center; gap: 5px; }
+  .fail { color: var(--warm); }
   .muted { color: var(--dim); }
   .down { color: var(--accent); } .up { color: var(--warm); }
   .empty { color: var(--dim); padding: 22px 0; text-align: center; }
@@ -54,7 +59,17 @@
   <p class="lede">Every search kept in this archive, and what changed in it.</p>
 
   <h2>Cities</h2>
-  <section><div class="scroll"><table id="searches"></table></div></section>
+  <section>
+    <form class="row" id="add">
+      <select id="country"></select>
+      <input id="place" placeholder="postal code, e.g. 1300" size="18" required>
+      <select id="kind"></select>
+      <label class="muted"><input type="checkbox" id="torent"> to let</label>
+      <button id="go">Scan it</button>
+      <span id="progress" class="muted"></span>
+    </form>
+    <div class="scroll"><table id="searches"></table></div>
+  </section>
 
   <h2>Listings</h2>
   <section>
@@ -155,9 +170,70 @@ async function loadMovements() {
     "No price has moved since the first scan of this search.");
 }
 
+async function loadOptions() {
+  const options = await get("/api/options", {});
+  const fill = (id, values) => document.getElementById(id).innerHTML =
+    values.map(v => `<option value="${v}">${v}</option>`).join("");
+  fill("country", options.countries);
+  fill("kind", options.types);
+}
+
+const progress = document.getElementById("progress");
+const button = document.getElementById("go");
+
+async function poll() {
+  const status = await get("/api/scans", {});
+
+  if (status.state === "running") {
+    progress.className = "muted";
+    progress.textContent = `scanning ${status.asked}…`;
+    button.disabled = true;
+    return setTimeout(poll, 1200);
+  }
+
+  button.disabled = false;
+  if (status.state === "done") {
+    progress.className = "muted";
+    progress.textContent = `${status.asked}: ${status.listings} listings — ${status.summary}`;
+    scope = status.search_key;
+    loadSearches(); loadListings(); loadMovements();
+  } else if (status.state === "failed") {
+    progress.className = "fail";
+    progress.textContent = status.error;
+  }
+}
+
+document.getElementById("add").onsubmit = async event => {
+  event.preventDefault();
+  progress.className = "muted";
+  progress.textContent = "asking…";
+  button.disabled = true;
+
+  const answer = await fetch("/api/scans", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      country: document.getElementById("country").value,
+      postal_code: document.getElementById("place").value,
+      type: document.getElementById("kind").value,
+      rent_or_buy: document.getElementById("torent").checked ? "rent" : "buy",
+    }),
+  });
+
+  if (!answer.ok) {
+    progress.className = "fail";
+    progress.textContent = await answer.text();
+    button.disabled = false;
+    return;
+  }
+  poll();
+};
+
 document.getElementById("sort").onchange = loadListings;
 document.getElementById("source").oninput = loadListings;
+loadOptions();
 loadSearches();
+poll();
 </script>
 </body>
 </html>

@@ -345,3 +345,6 @@ healthchecksdb
 lib64
 
 .venv/
+
+# local archives
+*.db

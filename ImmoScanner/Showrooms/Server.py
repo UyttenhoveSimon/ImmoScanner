@@ -11,7 +11,10 @@ import pathlib
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+from ..Countries.CountryFactory import CountryFactory
+from ..Means.RealEstateResearch import PROPERTY_TYPES, TRANSACTIONS
 from .Explorer import Explorer
+from .Runner import Busy, ScanRunner
 
 logger = logging.getLogger(__name__)
 
@@ -39,11 +42,20 @@ def answer(explorer, path, query):
     if path == "/api/movements":
         return explorer.movements(query.get("search", ""))
 
+    if path == "/api/options":
+        # What a scan may be asked for, straight from the code that knows.
+        return {
+            "countries": sorted(CountryFactory().countries),
+            "types": list(PROPERTY_TYPES),
+            "transactions": list(TRANSACTIONS),
+        }
+
     return None
 
 
 class Handler(BaseHTTPRequestHandler):
     archive_path = None
+    runner = None
     server_version = "ImmoScanner"
 
     def log_message(self, format, *args):
@@ -60,6 +72,9 @@ class Handler(BaseHTTPRequestHandler):
         if parsed.path in ("/", "/index.html"):
             return self.send_bytes(PAGE.read_bytes(), "text/html; charset=utf-8")
 
+        if parsed.path == "/api/scans":
+            return self.send_json(self.runner.status())
+
         if not parsed.path.startswith("/api/"):
             return self.send_error(404)
 
@@ -73,20 +88,58 @@ class Handler(BaseHTTPRequestHandler):
         if payload is None:
             return self.send_error(404)
 
+        self.send_json(payload)
+
+    def do_POST(self):
+        if urllib.parse.urlsplit(self.path).path != "/api/scans":
+            return self.send_error(404)
+
+        try:
+            length = int(self.headers.get("Content-Length") or 0)
+            asked = json.loads(self.rfile.read(length) or b"{}")
+        except ValueError:
+            return self.send_error(400, "that is not json")
+
+        try:
+            return self.send_json(
+                self.runner.start(
+                    country=asked.get("country", ""),
+                    postal_code=str(asked.get("postal_code", "")).strip(),
+                    city=str(asked.get("city", "")).strip(),
+                    type=asked.get("type", "any"),
+                    rent_or_buy=asked.get("rent_or_buy", "buy"),
+                ),
+                status=202,
+            )
+        except Busy as error:
+            return self.send_error(409, str(error))
+        except ValueError as error:
+            return self.send_error(400, str(error))
+
+    def send_json(self, payload, status=200):
         self.send_bytes(
-            json.dumps(payload, default=str).encode(), "application/json; charset=utf-8"
+            json.dumps(payload, default=str).encode(),
+            "application/json; charset=utf-8",
+            status=status,
         )
 
-    def send_bytes(self, body, content_type):
-        self.send_response(200)
+    def send_bytes(self, body, content_type, status=200):
+        self.send_response(status)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
 
 
-def build_server(archive_path, host=DEFAULT_HOST, port=DEFAULT_PORT):
-    handler = type("BoundHandler", (Handler,), {"archive_path": str(archive_path)})
+def build_server(archive_path, host=DEFAULT_HOST, port=DEFAULT_PORT, runner=None):
+    handler = type(
+        "BoundHandler",
+        (Handler,),
+        {
+            "archive_path": str(archive_path),
+            "runner": runner or ScanRunner(str(archive_path)),
+        },
+    )
     return ThreadingHTTPServer((host, port), handler)
 
 
