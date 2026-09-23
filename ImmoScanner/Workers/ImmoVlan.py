@@ -127,11 +127,13 @@ class ImmoVlan(RealEstateWorker):
         if real_estate_research.url:
             return self.with_query_param(real_estate_research.url, "page", page)
 
-        town = f"{real_estate_research.postal_code}-{real_estate_research.city.lower()}"
+        # "towns" takes the postal code on its own; appending the name is
+        # optional and only a liability, since a name it does not recognise
+        # makes it drop the filter and answer with the whole country.
         url = (
             f"{BASE_URL}/fr/immobilier"
             f"?transactiontypes={TRANSACTIONS[real_estate_research.rent_or_buy]}"
             f"&propertytypes={PROPERTY_TYPES[real_estate_research.type]}"
-            f"&towns={town}&noindex=1"
+            f"&towns={real_estate_research.postal_code}&noindex=1"
         )
         return url if page == 1 else f"{url}&page={page}"
