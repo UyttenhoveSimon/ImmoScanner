@@ -1,5 +1,6 @@
 import logging
 import re
+import unicodedata
 import urllib.parse
 
 from bs4 import BeautifulSoup
@@ -179,6 +180,18 @@ class RealEstateWorker(Worker):
         query[name] = str(value)
         return urllib.parse.urlunsplit(
             parts._replace(query=urllib.parse.urlencode(query))
+        )
+
+    @staticmethod
+    def slugify(value):
+        """A portal's url spelling of a place name: ascii, lower, hyphenated."""
+        stripped = (
+            unicodedata.normalize("NFKD", value or "")
+            .encode("ascii", "ignore")
+            .decode()
+        )
+        return re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", stripped.lower())).strip(
+            "-"
         )
 
     @staticmethod

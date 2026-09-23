@@ -259,6 +259,21 @@ class TestScanEndpoint:
             post(base, payload)
         assert refused.value.code == 400
 
+    @pytest.mark.parametrize(
+        "place, expected",
+        [("1400", {"postal_code": "1400", "city": ""}),
+         ("Nivelles", {"postal_code": "", "city": "Nivelles"})],
+    )
+    def test_one_field_on_the_page_becomes_a_code_or_a_name(self, running, place, expected):
+        """Typing a postal code is not friendly; the page asks for either."""
+        base, scans = running
+        post(base, {"country": "Belgium", "place": place})
+        finished(scans)
+
+        asked = scans.scanner.asked[0]
+        assert asked["postal_code"] == expected["postal_code"]
+        assert asked["city"] == expected["city"]
+
     def test_a_body_that_is_not_json_is_refused(self, running):
         base, _ = running
         with pytest.raises(urllib.error.HTTPError) as refused:

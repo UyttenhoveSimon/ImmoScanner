@@ -22,6 +22,8 @@ CONSENT_BUTTON = "#didomi-notice-agree-button"
 TRANSACTIONS = {BUY: "a-vendre", RENT: "a-louer"}
 # immovlan lists every type when propertytypes is left out
 PROPERTY_TYPES = {ANY: "", HOUSE: "maison", APARTMENT: "appartement"}
+#: no Belgian town has this many listings; past it the filter did not apply
+IMPLAUSIBLE_FOR_ONE_TOWN = 5_000
 
 
 class ImmoVlan(RealEstateWorker):
@@ -48,7 +50,14 @@ class ImmoVlan(RealEstateWorker):
         counter = soup.select_one(".v3-search-result-count")
         if counter is None:
             return None
-        return self.first_int(self.visible_text(counter)) or None
+
+        total = self.first_int(self.visible_text(counter)) or None
+        if total and total > IMPLAUSIBLE_FOR_ONE_TOWN:
+            logger.warning(
+                f"{self.domain_name}: {total} results for one town - the town "
+                "filter was probably dropped; check the locality"
+            )
+        return total
 
     def get_result_id(self, result):
         # The listing reference is the last segment of the detail URL ("vbe67521");
@@ -131,13 +140,17 @@ class ImmoVlan(RealEstateWorker):
         if real_estate_research.url:
             return self.with_query_param(real_estate_research.url, "page", page)
 
-        # "towns" takes the postal code on its own; appending the name is
-        # optional and only a liability, since a name it does not recognise
-        # makes it drop the filter and answer with the whole country.
+        # "towns" needs the name as well as the code whenever a postal code
+        # covers more than one locality: 1400 alone resolves to Monstreux and
+        # its two listings rather than to Nivelles and its hundred. The name
+        # must be slugified - an unrecognised one makes immovlan drop the
+        # filter and answer with the whole country.
+        town = self.slugify(real_estate_research.city)
+        code = real_estate_research.postal_code
         url = (
             f"{BASE_URL}/fr/immobilier"
             f"?transactiontypes={TRANSACTIONS[real_estate_research.rent_or_buy]}"
             f"&propertytypes={PROPERTY_TYPES[real_estate_research.type]}"
-            f"&towns={real_estate_research.postal_code}&noindex=1"
+            f"&towns={f'{code}-{town}' if town else code}&noindex=1"
         )
         return url if page == 1 else f"{url}&page={page}"

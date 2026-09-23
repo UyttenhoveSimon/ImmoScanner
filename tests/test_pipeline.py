@@ -185,27 +185,49 @@ class TestUrlMode:
 
 
 class TestSearchUrls:
-    """Regression cover for the locality bug.
+    """Regression cover for the locality bugs, which went both ways.
 
     "Braine-L'Alleud" in an immoweb path returned a generic page with no
-    listing at all, and an unrecognised town name makes immovlan drop the
-    filter and answer with the whole country. Both search on the postal code.
+    listing at all, so immoweb searches on the postal code alone. immovlan
+    needs the name as well: a postal code covering several localities resolves
+    to whichever one it feels like - 1400 alone means Monstreux and its two
+    listings, not Nivelles and its hundred.
     """
 
-    @pytest.mark.parametrize("worker_class", [Immoweb, ImmoVlan])
-    def test_the_city_name_never_reaches_the_url(self, worker_class):
+    def test_immoweb_leaves_the_city_name_out_entirely(self):
         research = RealEstateResearch(postal_code="1420", city="Braine-L'Alleud")
-        url = worker_class().url_builder(research, 1)
-        assert "1420" in url
+        url = Immoweb().url_builder(research, 1)
+        assert "postalCodes=1420" in url
         assert "raine" not in url and "'" not in url
 
-    def test_immoweb_searches_on_the_postal_code(self):
+    def test_immoweb_paginates_on_the_query(self):
         url = Immoweb().url_builder(RealEstateResearch(postal_code="1420"), 2)
         assert "postalCodes=1420" in url and "page=2" in url
 
-    def test_immovlan_searches_on_the_postal_code(self):
-        url = ImmoVlan().url_builder(RealEstateResearch(postal_code="1420"), 1)
-        assert "towns=1420" in url
+    def test_immovlan_pairs_the_postal_code_with_the_town(self):
+        url = ImmoVlan().url_builder(
+            RealEstateResearch(postal_code="1400", city="Nivelles"), 1
+        )
+        assert "towns=1400-nivelles" in url
+
+    @pytest.mark.parametrize(
+        "city, slug",
+        [
+            ("Braine-L'Alleud", "braine-l-alleud"),
+            ("Liège", "liege"),
+            ("Ottignies-Louvain-la-Neuve", "ottignies-louvain-la-neuve"),
+        ],
+    )
+    def test_immovlan_slugifies_the_town(self, city, slug):
+        """An unrecognised spelling makes immovlan answer with the country."""
+        url = ImmoVlan().url_builder(
+            RealEstateResearch(postal_code="1420", city=city), 1
+        )
+        assert f"towns=1420-{slug}" in url
+
+    def test_immovlan_falls_back_to_the_code_when_the_town_is_unknown(self):
+        url = ImmoVlan().url_builder(RealEstateResearch(postal_code="1400"), 1)
+        assert "towns=1400&" in url
 
     @pytest.mark.parametrize(
         "worker_class, expected",

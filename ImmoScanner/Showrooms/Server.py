@@ -103,12 +103,20 @@ class Handler(BaseHTTPRequestHandler):
         except ValueError:
             return self.send_error(400, "that is not json")
 
+        # One field on the page, two on the way in: a postal code is four or
+        # five digits, anything else is a name the country can look up.
+        place = str(asked.get("place", "")).strip()
+        postal_code = str(asked.get("postal_code", "")).strip()
+        city = str(asked.get("city", "")).strip()
+        if place:
+            postal_code, city = (place, "") if place.isdigit() else ("", place)
+
         try:
             return self.send_json(
                 self.runner.start(
                     country=asked.get("country", ""),
-                    postal_code=str(asked.get("postal_code", "")).strip(),
-                    city=str(asked.get("city", "")).strip(),
+                    postal_code=postal_code,
+                    city=city,
                     type=asked.get("type", "any"),
                     rent_or_buy=asked.get("rent_or_buy", "buy"),
                 ),

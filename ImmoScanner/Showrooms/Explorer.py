@@ -49,8 +49,30 @@ class Explorer:
             "SELECT search_key, COUNT(*) AS listings, MAX(last_seen) AS last_seen "
             "FROM listings GROUP BY search_key ORDER BY search_key"
         ):
-            summaries.append({**scope, **self.statistics_for(scope["search_key"])})
+            summaries.append(
+                {
+                    **scope,
+                    "city": self.city_of(scope["search_key"]),
+                    **self.statistics_for(scope["search_key"]),
+                }
+            )
         return summaries
+
+    def city_of(self, search_key):
+        """The place a search actually reached, named rather than numbered.
+
+        A search is keyed by postal code, but its listings carry the name, so
+        the archive can say "Waterloo" without asking anyone. A postal code can
+        span several localities; the one most of the listings are in is the one
+        that names the search.
+        """
+        named = self.rows(
+            "SELECT city, COUNT(*) AS listings FROM listings "
+            "WHERE search_key = ? AND city != '' "
+            "GROUP BY city ORDER BY listings DESC LIMIT 1",
+            (search_key,),
+        )
+        return named[0]["city"] if named else ""
 
     def statistics_for(self, search_key):
         priced = self.rows(
@@ -95,6 +117,7 @@ class Explorer:
                 {
                     "country": country,
                     "place": place,
+                    "city": buying.get("city") or renting.get("city") or place,
                     "type": type,
                     "for_sale": buying["listings"],
                     "to_let": renting["listings"],

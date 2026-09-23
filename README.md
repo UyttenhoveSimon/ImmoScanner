@@ -250,14 +250,19 @@ already collected — counting distinct ids, since immoweb repeats a sponsored
 card on every page. A page past the last one stops the walk instead of
 discarding everything collected so far.
 
-**Searching on the postal code, never on the city name.** immoweb accepts a
-`/<city>/<postal code>` path but keys off the postal code and ignores the name
-— except that an apostrophe in it breaks the route outright: "Braine-L'Alleud"
-returned a generic page with **no listing at all**, silently, while the postal
-code alone returns 288. immovlan is worse in the other direction: a town name
-it does not recognise makes it drop the filter and answer with the whole
-country. Both are searched on `1420` alone. The city is still looked up for
-display, but nothing depends on spelling it the way a portal happens to.
+**Localities, spelled each portal's own way.** The two portals want opposite
+things, and getting either wrong loses listings in silence.
+
+immoweb keys off the postal code and ignores the city segment — except that an
+apostrophe in it breaks the route outright: "Braine-L'Alleud" returned a
+generic page with **no listing at all**, where the postal code alone returns
+288. So immoweb is searched on `1420`, with no name.
+
+immovlan needs both. A postal code on its own resolves to whichever locality it
+covers first: `1400` means Monstreux and its two listings, not Nivelles and its
+hundred. So it gets `1400-nivelles`, with the name slugified — an unrecognised
+spelling makes it drop the filter and answer with the whole country, which it
+now warns about rather than reporting as a town with 32 000 properties.
 
 **A portal-neutral vocabulary.** A search is expressed as `buy`/`rent` and
 `any`/`house`/`apartment`; each worker maps those onto its own url scheme

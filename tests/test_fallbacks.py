@@ -153,6 +153,41 @@ class TestImmoVlanFallbacks:
         assert dismissed == ["#didomi-notice-agree-button"]
 
 
+class TestSlugs:
+    @pytest.mark.parametrize(
+        "given, expected",
+        [
+            ("Nivelles", "nivelles"),
+            ("Braine-L'Alleud", "braine-l-alleud"),
+            ("Liège", "liege"),
+            ("Châtel-St-Denis", "chatel-st-denis"),
+            ("  spaced  out  ", "spaced-out"),
+            ("", ""),
+            (None, ""),
+        ],
+    )
+    def test_a_place_name_becomes_a_url_spelling(self, given, expected):
+        assert RealEstateWorker.slugify(given) == expected
+
+
+class TestImmoVlanSanity:
+    def test_a_town_with_a_whole_country_of_results_is_flagged(self, caplog):
+        soup = fragment(
+            '<div class="v3-search-result-count">32 124 résultats (1 - 20)</div>'
+        )
+        with caplog.at_level("WARNING"):
+            assert ImmoVlan().total_results(soup) == 32124
+        assert "filter was probably dropped" in caplog.text
+
+    def test_a_plausible_town_passes_quietly(self, caplog):
+        soup = fragment(
+            '<div class="v3-search-result-count">105 résultats (1 - 20)</div>'
+        )
+        with caplog.at_level("WARNING"):
+            assert ImmoVlan().total_results(soup) == 105
+        assert caplog.text == ""
+
+
 class TestComparisFallbacks:
     def test_a_page_that_is_not_the_result_route_is_an_error(self):
         with pytest.raises(ValueError, match="__NEXT_DATA__"):
