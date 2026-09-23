@@ -39,6 +39,7 @@
   tbody tr.on { background: color-mix(in srgb, var(--accent) 16%, transparent); }
   a { color: var(--accent); }
   .bar { height: 9px; border-radius: 5px; background: var(--accent); min-width: 2px; }
+  .bar.pale { background: color-mix(in srgb, var(--accent) 45%, transparent); }
   .scroll { overflow-x: auto; }
   .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
   input, select, button { font: inherit; color: inherit; background: var(--ground);
@@ -74,10 +75,13 @@
 
   <h2>Rental yield</h2>
   <section>
-    <p class="lede" style="margin-top:0">Gross yearly yield, from the medians per
-      square metre — rental stock skews small and sale stock skews large, so
-      comparing one median price with the other would compare a studio's rent
-      with a house's price.</p>
+    <p class="lede" style="margin-top:0">Gross yearly yield, both ways.
+      <strong>Per m²</strong> divides the median rent per square metre by the
+      median price per square metre. <strong>On medians</strong> divides one
+      median by the other, the way the figure is usually quoted — rental stock
+      skews small and sale stock skews large, so it compares a studio's rent
+      with a house's price. They rank places differently; the best of each is
+      marked.</p>
     <div class="scroll"><table id="yields"></table></div>
   </section>
 
@@ -145,20 +149,28 @@ async function loadSearches() {
 
 async function loadYields() {
   const rows = await get("/api/yields", {});
-  const top = Math.max(...rows.map(r => r.gross_yield), 1);
+  const topPerM2 = Math.max(...rows.map(r => r.gross_yield), 0.01);
+  const topMedian = Math.max(...rows.map(r => r.gross_yield_on_medians), 0.01);
+  // the two methods disagree, so each names its own winner
+  const bestPerM2 = rows.reduce((a, b) => b.gross_yield > a.gross_yield ? b : a, rows[0] || {});
+  const bestMedian = rows.reduce((a, b) => b.gross_yield_on_medians > a.gross_yield_on_medians ? b : a, rows[0] || {});
+
+  const cell = (value, top, winner) => `
+    <td class="${winner ? "best" : ""}">${value.toFixed(2)}%</td>
+    <td style="width:110px"><div class="bar${winner ? "" : " pale"}"
+        style="width:${(value / top * 100).toFixed(1)}%"></div></td>`;
 
   table(document.getElementById("yields"),
-    ["place", "yield", "", "€/m² to buy", "€/m² to let", "for sale", "to let", "on medians"],
-    rows.map((r, i) => `
+    ["place", "per m²", "", "on medians", "", "€/m² to buy", "€/m² to let", "median price", "median rent"],
+    rows.map(r => `
       <tr>
-        <td>${r.place}<div class="muted">${r.country} · ${r.type}</div></td>
-        <td class="${i === 0 ? "best" : ""}">${r.gross_yield.toFixed(2)}%</td>
-        <td style="width:150px"><div class="bar" style="width:${(r.gross_yield / top * 100).toFixed(1)}%"></div></td>
+        <td>${r.place}<div class="muted">${r.country} · ${r.type} · ${r.for_sale} for sale, ${r.to_let} to let</div></td>
+        ${cell(r.gross_yield, topPerM2, r === bestPerM2)}
+        ${cell(r.gross_yield_on_medians, topMedian, r === bestMedian)}
         <td>${money(r.price_per_m2)}</td>
         <td>${r.rent_per_m2.toFixed(2)}</td>
-        <td class="muted">${r.for_sale}</td>
-        <td class="muted">${r.to_let}</td>
-        <td class="muted">${r.gross_yield_on_medians.toFixed(2)}%</td>
+        <td class="muted">${money(r.median_price)}</td>
+        <td class="muted">${money(r.median_rent)}</td>
       </tr>`),
     "Scan a place both to buy and to let, and its yield shows up here.");
 }
