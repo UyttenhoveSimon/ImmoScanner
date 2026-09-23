@@ -101,6 +101,18 @@ class Comparis(RealEstateWorker):
         logger.debug(f"{self.domain_name}: {real_estate_item}")
         return real_estate_item
 
+    @staticmethod
+    def location_of(real_estate_research):
+        """What comparis wants in its one free-text location field.
+
+        A canton is "Canton Vaud" - the spelling comparis puts in its own
+        canton pages. A bare name means the town of that name instead, and
+        nothing at all means the whole country.
+        """
+        if real_estate_research.region:
+            return f"Canton {real_estate_research.region}"
+        return real_estate_research.postal_code or real_estate_research.city
+
     def url_builder(self, real_estate_research: RealEstateResearch, page=1):
         if real_estate_research.url:
             # comparis pages are zero-based
@@ -113,8 +125,7 @@ class Comparis(RealEstateWorker):
             "SiteId": -1,
             "RootPropertyTypes": ROOT_PROPERTY_TYPES[real_estate_research.type],
             "PropertyTypes": None,
-            "LocationSearchString": real_estate_research.postal_code
-            or real_estate_research.city,
+            "LocationSearchString": self.location_of(real_estate_research),
             "Sort": 11,
         }
         query = urllib.parse.urlencode(

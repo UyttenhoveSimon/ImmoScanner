@@ -140,6 +140,19 @@ class ImmoVlan(RealEstateWorker):
         if real_estate_research.url:
             return self.with_query_param(real_estate_research.url, "page", page)
 
+        search = (
+            f"{BASE_URL}/fr/immobilier"
+            f"?transactiontypes={TRANSACTIONS[real_estate_research.rent_or_buy]}"
+            f"&propertytypes={PROPERTY_TYPES[real_estate_research.type]}"
+        )
+
+        if real_estate_research.region:
+            url = (
+                f"{search}&provinces={self.slugify(real_estate_research.region)}"
+                "&noindex=1"
+            )
+            return url if page == 1 else f"{url}&page={page}"
+
         # "towns" needs the name as well as the code whenever a postal code
         # covers more than one locality: 1400 alone resolves to Monstreux and
         # its two listings rather than to Nivelles and its hundred. The name
@@ -147,10 +160,5 @@ class ImmoVlan(RealEstateWorker):
         # filter and answer with the whole country.
         town = self.slugify(real_estate_research.city)
         code = real_estate_research.postal_code
-        url = (
-            f"{BASE_URL}/fr/immobilier"
-            f"?transactiontypes={TRANSACTIONS[real_estate_research.rent_or_buy]}"
-            f"&propertytypes={PROPERTY_TYPES[real_estate_research.type]}"
-            f"&towns={f'{code}-{town}' if town else code}&noindex=1"
-        )
+        url = f"{search}&towns={f'{code}-{town}' if town else code}&noindex=1"
         return url if page == 1 else f"{url}&page={page}"

@@ -15,6 +15,9 @@ USER_AGENT = "ImmoScanner (+https://github.com/UyttenhoveSimon/ImmoScanner)"
 
 
 class Country:
+    #: provinces, cantons - whatever the country calls the tier above a town
+    REGIONS = ()
+
     def __init__(self):
         self.alpha_2 = ""
         self.alpha_3 = ""
@@ -102,6 +105,14 @@ class Country:
             logger.warning(f"no postal code found for city {city}")
             return ""
         return hit["postal_code"]
+
+    def find_region(self, name):
+        """Match a region however it was typed, or return None."""
+        wanted = (name or "").casefold()
+        for region in self.REGIONS:
+            if region.casefold() == wanted:
+                return region
+        return None
 
     def get_real_estate_websites(self):
         return self.websites

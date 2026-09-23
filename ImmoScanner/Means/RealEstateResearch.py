@@ -17,6 +17,7 @@ class RealEstateResearch(Research):
         self,
         postal_code: str = "",
         city: str = "",
+        region: str = "",
         type: str = ANY,
         rent_or_buy: str = BUY,
         country: str = None,
@@ -28,4 +29,6 @@ class RealEstateResearch(Research):
         self.rent_or_buy = rent_or_buy
         self.country = country
         self.city = city
+        #: a province or a canton, searched instead of a single locality
+        self.region = region
         self.postal_code = postal_code

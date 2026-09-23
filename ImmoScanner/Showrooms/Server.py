@@ -47,8 +47,13 @@ def answer(explorer, path, query):
 
     if path == "/api/options":
         # What a scan may be asked for, straight from the code that knows.
+        countries = CountryFactory().countries
         return {
-            "countries": sorted(CountryFactory().countries),
+            "countries": sorted(countries),
+            "regions": {
+                name: list(country.REGIONS)
+                for name, country in sorted(countries.items())
+            },
             "types": list(PROPERTY_TYPES),
             "transactions": list(TRANSACTIONS),
         }
@@ -105,7 +110,7 @@ class Handler(BaseHTTPRequestHandler):
 
         # One field on the page, two on the way in: a postal code is four or
         # five digits, anything else is a name the country can look up.
-        place = str(asked.get("place", "")).strip()
+        place = "" if asked.get("region") else str(asked.get("place", "")).strip()
         postal_code = str(asked.get("postal_code", "")).strip()
         city = str(asked.get("city", "")).strip()
         if place:
@@ -117,6 +122,7 @@ class Handler(BaseHTTPRequestHandler):
                     country=asked.get("country", ""),
                     postal_code=postal_code,
                     city=city,
+                    region=str(asked.get("region", "")).strip(),
                     type=asked.get("type", "any"),
                     rent_or_buy=asked.get("rent_or_buy", "buy"),
                 ),

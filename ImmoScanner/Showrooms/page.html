@@ -44,6 +44,7 @@
   .bar.pale { background: color-mix(in srgb, var(--accent) 45%, transparent); }
   .scroll { overflow-x: auto; }
   .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+  input:disabled { opacity: .5; }
   input, select, button { font: inherit; color: inherit; background: var(--ground);
                   border: 1px solid var(--line); border-radius: 7px; padding: 6px 9px; }
   button { background: var(--accent); color: var(--card); border-color: transparent;
@@ -67,7 +68,8 @@
   <section>
     <form class="row" id="add">
       <select id="country"></select>
-      <input id="place" placeholder="city or postal code, e.g. Nivelles" size="24" required>
+      <input id="place" placeholder="city or postal code, e.g. Nivelles" size="24">
+      <select id="region"></select>
       <select id="kind"></select>
       <label class="muted"><input type="checkbox" id="torent"> to let</label>
       <button id="go">Scan it</button>
@@ -253,13 +255,37 @@ async function loadMovements() {
   ], rows, "No price has moved since the first scan of this search.");
 }
 
+let regionsByCountry = {};
+
 async function loadOptions() {
   const options = await get("/api/options", {});
   const fill = (id, values) => document.getElementById(id).innerHTML =
     values.map(v => `<option value="${v}">${v}</option>`).join("");
   fill("country", options.countries);
   fill("kind", options.types);
+  regionsByCountry = options.regions || {};
+  showRegions();
 }
+
+/* A region replaces the place rather than narrowing it, so choosing one
+   disables the free-text field instead of quietly ignoring it. */
+function showRegions() {
+  const country = document.getElementById("country").value;
+  const select = document.getElementById("region");
+  select.innerHTML = '<option value="">a single place\u2026</option>' +
+    (regionsByCountry[country] || []).map(r => `<option value="${r}">${r}</option>`).join("");
+  pickedRegion();
+}
+
+function pickedRegion() {
+  const place = document.getElementById("place");
+  place.disabled = !!document.getElementById("region").value;
+  place.placeholder = place.disabled
+    ? "the whole region" : "city or postal code, e.g. Nivelles";
+}
+
+document.getElementById("country").onchange = showRegions;
+document.getElementById("region").onchange = pickedRegion;
 
 const progress = document.getElementById("progress");
 const button = document.getElementById("go");
@@ -292,12 +318,20 @@ document.getElementById("add").onsubmit = async event => {
   progress.textContent = "asking\u2026";
   button.disabled = true;
 
+  if (!document.getElementById("region").value && !document.getElementById("place").value) {
+    progress.className = "fail";
+    progress.textContent = "name a place, or pick a region";
+    button.disabled = false;
+    return;
+  }
+
   const answer = await fetch("/api/scans", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       country: document.getElementById("country").value,
       place: document.getElementById("place").value,
+      region: document.getElementById("region").value,
       type: document.getElementById("kind").value,
       rent_or_buy: document.getElementById("torent").checked ? "rent" : "buy",
     }),

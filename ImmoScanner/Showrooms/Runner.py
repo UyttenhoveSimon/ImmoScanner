@@ -35,9 +35,11 @@ class ScanRunner:
         with self.lock:
             return dict(self.state)
 
-    def start(self, country, postal_code="", city="", type=ANY, rent_or_buy=BUY):
-        if not (postal_code or city):
-            raise ValueError("a postal code or a city is needed")
+    def start(
+        self, country, postal_code="", city="", region="", type=ANY, rent_or_buy=BUY
+    ):
+        if not (postal_code or city or region):
+            raise ValueError("a postal code, a city or a region is needed")
         if type not in PROPERTY_TYPES:
             raise ValueError(f"unknown property type {type}")
         if rent_or_buy not in TRANSACTIONS:
@@ -48,7 +50,7 @@ class ScanRunner:
                 raise Busy(f"already scanning {self.state.get('asked')}")
             self.state = {
                 "state": RUNNING,
-                "asked": postal_code or city,
+                "asked": region or postal_code or city,
                 "country": country,
                 "type": type,
                 "rent_or_buy": rent_or_buy,
@@ -59,18 +61,19 @@ class ScanRunner:
 
         self.thread = threading.Thread(
             target=self.run,
-            args=(country, postal_code, city, type, rent_or_buy),
+            args=(country, postal_code, city, region, type, rent_or_buy),
             daemon=True,
         )
         self.thread.start()
         return accepted
 
-    def run(self, country, postal_code, city, type, rent_or_buy):
+    def run(self, country, postal_code, city, region, type, rent_or_buy):
         try:
             results = self.scanner.research_real_estate(
                 country_name=country,
                 postal_code=postal_code,
                 city=city,
+                region=region,
                 type=type,
                 rent_or_buy=rent_or_buy,
             )
@@ -78,7 +81,7 @@ class ScanRunner:
 
             with self.store(self.archive_path) as archive:
                 key = archive.search_key(
-                    country, postal_code or city, type, rent_or_buy
+                    country, region or postal_code or city, type, rent_or_buy
                 )
                 report = archive.record(key, findings)
 
@@ -92,7 +95,7 @@ class ScanRunner:
                 }
             )
         except Exception as error:
-            logger.warning(f"scan of {postal_code or city} failed: {error}")
+            logger.warning(f"scan of {region or postal_code or city} failed: {error}")
             self.finish({"state": FAILED, "error": str(error)})
 
     def finish(self, state):

@@ -13,6 +13,7 @@ from .Showrooms.Server import DEFAULT_PORT, serve
 @plac.pos("country", "Country targeted by the research", type=str)
 @plac.opt("postal_code", "postal code targeted by the research", type=str)
 @plac.opt("city", "city targeted by the research", type=str)
+@plac.opt("region", "province or canton to scan whole", type=str, abbrev="g")
 @plac.opt("url", "url of targeted website", type=str)
 @plac.opt("type", "property type", type=str, choices=PROPERTY_TYPES)
 @plac.opt("output", "write the findings as JSON to this file", type=str)
@@ -29,6 +30,7 @@ from .Showrooms.Server import DEFAULT_PORT, serve
     type=str,
     abbrev="x",
 )
+@plac.opt("max_pages", "result pages to walk per portal", type=int, abbrev="m")
 @plac.opt("port", "port the explorer listens on", type=int, abbrev="n")
 @plac.flg("serve_", "browse an archive instead of scanning", abbrev="w")
 @plac.flg("rent", "search rentals instead of properties for sale")
@@ -38,12 +40,14 @@ def main(
     country,
     postal_code="",
     city="",
+    region="",
     url="",
     type=ANY,
     output="",
     store="",
     source="",
     exclude_source="",
+    max_pages=0,
     port=DEFAULT_PORT,
     serve_=False,
     rent=False,
@@ -69,23 +73,29 @@ def main(
 
     if yield_:
         insights = scanner.research_gross_yield(
-            country_name=country, postal_code=postal_code, city=city, type=type
+            country_name=country,
+            postal_code=postal_code,
+            city=city,
+            region=region,
+            type=type,
         )
         print_insights(insights)
         return
 
     if url:
         results = scanner.research_real_estate_url(country_name=country, url=url)
-    elif city or postal_code:
+    elif city or postal_code or region:
         results = scanner.research_real_estate(
             country_name=country,
             city=city,
             postal_code=postal_code,
+            region=region,
             type=type,
             rent_or_buy=RENT if rent else BUY,
+            max_pages=max_pages,
         )
     else:
-        sys.exit("provide either --postal-code, --city or --url")
+        sys.exit("provide one of --postal-code, --city, --region or --url")
 
     scanned = sum(len(group) for group in results)
     results = scanner.filter_by_source(
@@ -106,7 +116,7 @@ def main(
     if store:
         with Store(store) as archive:
             key = archive.search_key(
-                country, postal_code or city, type, RENT if rent else BUY
+                country, region or postal_code or city, type, RENT if rent else BUY
             )
             print_report(archive.record(key, findings))
 

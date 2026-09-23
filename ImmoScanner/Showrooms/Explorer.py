@@ -66,6 +66,11 @@ class Explorer:
         span several localities; the one most of the listings are in is the one
         that names the search.
         """
+        place = search_key.split("/")[1] if "/" in search_key else ""
+        if place and not place.isdigit():
+            # A province or a canton is already a name; only a code needs one.
+            return place
+
         named = self.rows(
             "SELECT city, COUNT(*) AS listings FROM listings "
             "WHERE search_key = ? AND city != '' "

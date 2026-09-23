@@ -21,8 +21,10 @@ class ImmoScanner:
         country_name,
         postal_code="",
         city="",
+        region="",
         type=ANY,
         rent_or_buy=BUY,
+        max_pages=None,
     ):
         country = CountryFactory().generate_country_given_name(name=country_name)
         if country is None:
@@ -32,19 +34,34 @@ class ImmoScanner:
         if not websites:
             raise ValueError(f"no real estate website registered for {country_name}")
 
-        if not postal_code:
-            postal_code = country.fetch_postal_code_given_city(city)
+        if region:
+            # A whole province or canton: there is no locality to look up.
+            matched = country.find_region(region)
+            if matched is None:
+                raise ValueError(
+                    f"{country_name} has no region called {region!r}; "
+                    f"try one of {', '.join(country.REGIONS)}"
+                )
+            region, postal_code, city = matched, "", ""
+            logger.info(f"searching {region} in {country_name}")
+        else:
+            if not postal_code:
+                postal_code = country.fetch_postal_code_given_city(city)
 
-        if not city:
-            city = country.fetch_city_given_postal_code(postal_code)
+            if not city:
+                city = country.fetch_city_given_postal_code(postal_code)
 
-        logger.info(f"searching {city} ({postal_code}) in {country_name}")
+            logger.info(f"searching {city} ({postal_code}) in {country_name}")
 
         def scan(website):
+            if max_pages:
+                website.MAX_PAGES = max_pages
+
             # fill_empty_fields mutates the research, so each portal gets its own
             research = RealEstateResearch(
                 postal_code=postal_code,
                 city=city,
+                region=region,
                 type=type,
                 rent_or_buy=rent_or_buy,
             )

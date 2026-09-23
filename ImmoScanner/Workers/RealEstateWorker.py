@@ -58,6 +58,7 @@ class RealEstateWorker(Worker):
         """
         self.fill_empty_fields(real_estate_research)
         results = []
+        announced = None
 
         try:
             for page in range(1, self.MAX_PAGES + 1):
@@ -78,6 +79,7 @@ class RealEstateWorker(Worker):
                     )
                     break
 
+                announced = total if total is not None else announced
                 logger.debug(f"{self.domain_name}: page {page} -> {len(items)} cards")
                 if not items:
                     break
@@ -93,8 +95,15 @@ class RealEstateWorker(Worker):
                 if total is not None and len({item.id for item in results}) >= total:
                     break
             else:
+                # The sample is the portal's first pages in its own order, not a
+                # slice of the market: say so loudly rather than let statistics
+                # be drawn from it in silence.
                 logger.warning(
-                    f"{self.domain_name}: stopped at the {self.MAX_PAGES} page cap"
+                    f"{self.domain_name}: stopped at the {self.MAX_PAGES} page cap "
+                    f"with {len(results)} of "
+                    f"{announced if announced is not None else 'an unknown number of'} "
+                    "listings - this is a sample in the portal's own order, not "
+                    "the whole search; raise --max-pages for all of it"
                 )
         finally:
             self.close()

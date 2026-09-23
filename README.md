@@ -16,6 +16,7 @@ a portal search url.
 
 ```bash
 uv run immoscanner Belgium --city Namur
+uv run immoscanner Belgium --region "Brabant wallon" --max-pages 60
 uv run immoscanner Belgium --postal-code 1000 --type apartment --rent
 uv run immoscanner Switzerland --postal-code 1618 --output ch.json
 uv run immoscanner Belgium --postal-code 1000 --type apartment --yield
@@ -26,6 +27,8 @@ uv run immoscanner Belgium --url "https://www.immoweb.be/fr/recherche/maison/a-v
 | flag | effect |
 | --- | --- |
 | `--city NAME` / `--postal-code CODE` | either one is enough; the other is looked up |
+| `--region NAME` | a whole province or canton instead of one locality |
+| `--max-pages N` | result pages to walk per portal (default 20) |
 | `--type any\|house\|apartment` | property type, mapped onto each portal's own vocabulary |
 | `--rent` | rentals instead of properties for sale |
 | `--yield` | scan for sale *and* to let, and report the gross rental yield |
@@ -269,6 +272,27 @@ hundred. So it gets `1400-nivelles`, with the name slugified — an unrecognised
 spelling makes it drop the filter and answer with the whole country, which it
 now warns about rather than reporting as a town with 32 000 properties.
 
+**Regions are each portal's own idea of one.** A province or a canton is a
+search in its own right, not a bag of postal codes, and all three portals have
+one — spelled three different ways. immoweb takes a path segment followed by
+its kind (`/brabant-wallon/province`), immovlan a parameter
+(`?provinces=brabant-wallon`), and comparis its single free-text location field
+filled with `Canton Vaud`, the spelling its own canton pages emit. A bare
+`Vaud` there would mean the *town* of that name.
+
+Each country declares its regions in French and the workers translate, which is
+where the exceptions live: comparis does not recognise "Schwytz", only
+"Schwyz". All 11 provinces and all 26 cantons were checked against the live
+portals before being written down.
+
+**A page cap, and a loud one.** A search walks at most `--max-pages` pages per
+portal, 20 by default — about 600 listings on immoweb, 400 on immovlan. A town
+never reaches it; a province always does, since Brabant wallon alone holds
+3 000 listings. What comes back then is the portal's own first pages in its own
+relevance order, which is a biased sample and not a slice of the market, so the
+scan says so in as many words rather than letting a median be drawn from it in
+silence.
+
 **A portal-neutral vocabulary.** A search is expressed as `buy`/`rent` and
 `any`/`house`/`apartment`; each worker maps those onto its own url scheme
 (`a-vendre`, `acheter`, `DealType: 20`). Callers never have to know that
@@ -373,6 +397,7 @@ for good. The live suite is the canary, and CI runs it every Monday.
 | `test_scanner.py` | de-duplication, statistics, source filtering |
 | `test_store.py` | the archive and its diff |
 | `test_console.py` | the cli: routing, printing, writing |
+| `test_regions.py` | provinces and cantons, and how each portal spells them |
 | `test_showroom.py` | the explorer's views and the server that exposes them |
 | `test_runner.py` | scans asked for from the page, and their endpoint |
 | `test_live_portals.py` | the live canary (`-m live`) |

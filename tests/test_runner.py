@@ -87,6 +87,12 @@ class TestValidation:
         with pytest.raises(ValueError, match="postal code"):
             runner().start("Belgium")
 
+    def test_a_region_is_somewhere_to_look(self):
+        assert (
+            runner().start("Belgium", region="Brabant wallon")["asked"]
+            == "Brabant wallon"
+        )
+
     def test_an_unknown_property_type_is_refused(self):
         with pytest.raises(ValueError, match="castle"):
             runner().start("Belgium", postal_code="1300", type="castle")
@@ -116,6 +122,7 @@ class TestRunning:
                 "country_name": "Belgium",
                 "postal_code": "1300",
                 "city": "",
+                "region": "",
                 "type": "apartment",
                 "rent_or_buy": "rent",
             }
@@ -261,10 +268,14 @@ class TestScanEndpoint:
 
     @pytest.mark.parametrize(
         "place, expected",
-        [("1400", {"postal_code": "1400", "city": ""}),
-         ("Nivelles", {"postal_code": "", "city": "Nivelles"})],
+        [
+            ("1400", {"postal_code": "1400", "city": ""}),
+            ("Nivelles", {"postal_code": "", "city": "Nivelles"}),
+        ],
     )
-    def test_one_field_on_the_page_becomes_a_code_or_a_name(self, running, place, expected):
+    def test_one_field_on_the_page_becomes_a_code_or_a_name(
+        self, running, place, expected
+    ):
         """Typing a postal code is not friendly; the page asks for either."""
         base, scans = running
         post(base, {"country": "Belgium", "place": place})

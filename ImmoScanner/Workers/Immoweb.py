@@ -182,13 +182,23 @@ class Immoweb(RealEstateWorker):
         if real_estate_research.url:
             return self.with_query_param(real_estate_research.url, "page", page)
 
+        search = (
+            f"{BASE_URL}/fr/recherche/{PROPERTY_TYPES[real_estate_research.type]}"
+            f"/{TRANSACTIONS[real_estate_research.rent_or_buy]}"
+        )
+
+        if real_estate_research.region:
+            # A province is a path segment followed by its kind.
+            return (
+                f"{search}/{self.slugify(real_estate_research.region)}/province"
+                f"?countries=BE&page={page}"
+            )
+
         # Searching by postal code alone. immoweb also accepts a
         # /<city>/<postal code> path but keys off the postal code and ignores
         # the name - and an apostrophe in it ("Braine-L'Alleud") silently
         # returned a generic page with no result at all.
         return (
-            f"{BASE_URL}/fr/recherche/{PROPERTY_TYPES[real_estate_research.type]}"
-            f"/{TRANSACTIONS[real_estate_research.rent_or_buy]}"
-            f"?countries=BE&postalCodes={real_estate_research.postal_code}"
+            f"{search}?countries=BE&postalCodes={real_estate_research.postal_code}"
             f"&page={page}"
         )

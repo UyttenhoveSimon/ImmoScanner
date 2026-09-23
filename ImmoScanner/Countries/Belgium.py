@@ -6,6 +6,20 @@ from .Country import Country
 class Belgium(Country):
     CURRENCY_CODE = "EUR"
     LANGUAGE_CODES = ("nl", "fr", "de")
+    #: the provinces, as both portals spell them once slugified
+    REGIONS = (
+        "Anvers",
+        "Brabant flamand",
+        "Brabant wallon",
+        "Bruxelles",
+        "Flandre occidentale",
+        "Flandre orientale",
+        "Hainaut",
+        "Limbourg",
+        "Liège",
+        "Luxembourg",
+        "Namur",
+    )
 
     def __init__(self):
         super().__init__()
