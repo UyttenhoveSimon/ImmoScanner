@@ -44,6 +44,33 @@ class TestDuplicateFinder:
         assert len(ImmoScanner().duplicate_finder(results)) == 2
 
 
+class TestSourceFilter:
+    def aggregated(self):
+        return [
+            [
+                listing(300000, platform="comparis.ch", source="homegate.ch", id="a"),
+                listing(310000, platform="comparis.ch", source="immobilier.ch", id="b"),
+                listing(320000, platform="immoweb.be", id="c"),
+            ]
+        ]
+
+    def test_keeps_only_the_asked_origin(self):
+        kept = ImmoScanner().filter_by_source(self.aggregated(), keep=["homegate"])
+        assert [item.id for group in kept for item in group] == ["a"]
+
+    def test_drops_an_origin(self):
+        kept = ImmoScanner().filter_by_source(self.aggregated(), drop=["immobilier"])
+        assert [item.id for group in kept for item in group] == ["a", "c"]
+
+    def test_a_portal_without_an_aggregator_is_its_own_origin(self):
+        kept = ImmoScanner().filter_by_source(self.aggregated(), keep=["immoweb"])
+        assert [item.id for group in kept for item in group] == ["c"]
+
+    def test_no_filter_returns_the_input_untouched(self):
+        results = self.aggregated()
+        assert ImmoScanner().filter_by_source(results) is results
+
+
 class TestInsights:
     def test_reports_medians_and_gross_yield(self):
         selling = [listing(200000, area=100), listing(400000, area=100)]

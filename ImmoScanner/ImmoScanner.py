@@ -90,6 +90,30 @@ class ImmoScanner:
         )
         return self.get_insights(selling, renting)
 
+    def filter_by_source(self, results, keep=(), drop=()):
+        """Keep or drop listings by the portal they originally came from.
+
+        An aggregator republishes other portals' listings and names the origin
+        in ``source``; a portal that publishes its own listings leaves it empty
+        and is its own origin. Matching is a case-insensitive substring, so
+        "homegate" selects "homegate.ch".
+
+        Applied before de-duplication: filtering afterwards would compare
+        against a representative that may well be the copy you asked to drop.
+        """
+        keep = tuple(pattern.casefold() for pattern in keep if pattern)
+        drop = tuple(pattern.casefold() for pattern in drop if pattern)
+        if not keep and not drop:
+            return results
+
+        def wanted(item):
+            origin = (item.source or item.platform).casefold()
+            if keep and not any(pattern in origin for pattern in keep):
+                return False
+            return not any(pattern in origin for pattern in drop)
+
+        return [[item for item in group if wanted(item)] for group in results]
+
     def duplicate_finder(self, results):
         """Flatten per-portal results, dropping the same property seen twice.
 

@@ -16,6 +16,18 @@ from .Means.RealEstateResearch import ANY, BUY, PROPERTY_TYPES, RENT
 @plac.opt("type", "property type", type=str, choices=PROPERTY_TYPES)
 @plac.opt("output", "write the findings as JSON to this file", type=str)
 @plac.opt("store", "sqlite archive to compare this run against", type=str)
+@plac.opt(
+    "source",
+    "keep only listings from these originating portals, comma separated",
+    type=str,
+    abbrev="f",
+)
+@plac.opt(
+    "exclude_source",
+    "drop listings from these originating portals, comma separated",
+    type=str,
+    abbrev="x",
+)
 @plac.flg("rent", "search rentals instead of properties for sale")
 @plac.flg("yield_", "scan for sale and to let, and report the gross rental yield")
 @plac.flg("debug", "Enable debug logging")
@@ -27,6 +39,8 @@ def main(
     type=ANY,
     output="",
     store="",
+    source="",
+    exclude_source="",
     rent=False,
     yield_=False,
     debug=False,
@@ -63,8 +77,19 @@ def main(
     else:
         sys.exit("provide either --postal-code, --city or --url")
 
+    scanned = sum(len(group) for group in results)
+    results = scanner.filter_by_source(
+        results, keep=split_list(source), drop=split_list(exclude_source)
+    )
+    kept = sum(len(group) for group in results)
+
     findings = scanner.duplicate_finder(results)
-    print(f"{sum(len(group) for group in results)} listings, {len(findings)} unique")
+    if kept != scanned:
+        print(
+            f"{scanned} listings, {kept} from the asked sources, {len(findings)} unique"
+        )
+    else:
+        print(f"{scanned} listings, {len(findings)} unique")
 
     print_insights(scanner.get_insights(findings))
 
@@ -85,6 +110,10 @@ def main(
                 indent=2,
             )
         print(f"written to {output}")
+
+
+def split_list(value):
+    return [part.strip() for part in value.split(",") if part.strip()]
 
 
 def print_insights(insights):

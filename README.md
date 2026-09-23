@@ -30,6 +30,8 @@ uv run immoscanner Belgium --url "https://www.immoweb.be/fr/recherche/maison/a-v
 | `--rent` | rentals instead of properties for sale |
 | `--yield` | scan for sale *and* to let, and report the gross rental yield |
 | `--store FILE.db` | archive the run and report what is new, repriced or gone |
+| `--source NAMES` | keep only these originating portals, comma separated |
+| `--exclude-source NAMES` | drop these originating portals, comma separated |
 | `--output FILE.json` | write the de-duplicated listings |
 | `--url URL` | scan one portal's own search url, paginating it |
 | `--debug` | per-card logging |
@@ -106,7 +108,16 @@ One json object per de-duplicated listing:
 ```
 
 `source` is filled when the portal is an aggregator: comparis names the site it
-took the listing from. `price` is `0` on a development, which instead carries
+took the listing from, which is what `--source` and `--exclude-source` match on
+(case-insensitive substring; a portal that publishes its own listings is its own
+origin). Filtering happens before de-duplication, so asking for one origin picks
+that copy rather than whichever copy happened to survive.
+
+```
+$ uv run immoscanner Switzerland --postal-code 1003 --type apartment --rent --source homegate
+102 listings, 13 from the asked sources, 11 unique
+```
+ `price` is `0` on a development, which instead carries
 `price_min` and `price_max`. `latitude` and `longitude` are present only for the
 portals that geocode.
 
