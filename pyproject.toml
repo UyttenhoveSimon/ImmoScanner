@@ -1,24 +1,50 @@
-[tool.poetry]
+[project]
 name = "immoscanner"
-version = "0.1.0"
+version = "0.2.0"
 description = "Allows scanning of real estates websites"
-authors = ["Simon Uyttenhove"]
+authors = [{ name = "Simon Uyttenhove" }]
 license = "MIT"
 readme = "README.md"
+requires-python = ">=3.10,<3.16"
+dependencies = [
+    # Rust CDP engine with a Playwright-compatible sync API; no Node driver to ship.
+    "rustwright>=0.3.0,<0.4",
+    "pycountry>=22.3.5",
+    "price-parser>=0.3.4",
+    "plac>=1.4.3",
+    "beautifulsoup4>=4.12",
+    # geonames serves unclosed table rows that html.parser cannot recover from
+    "lxml>=5.3",
+    "requests>=2.32",
+    "tldextract>=5.1",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-playwright = "^1.29.0"
-pycountry = "^22.3.5"
-price-parser = "^0.3.4"
-plac = "^1.4.3"
-bs4 = "^0.0.2"
-types-beautifulsoup4 = "^4.12.0.20240907"
+[project.optional-dependencies]
+# kept to diff behaviour against the engine ImmoScanner used to run on
+compare = ["playwright>=1.50"]
 
-[tool.poetry.group.dev.dependencies]
-beautifulsoup4 = "^4.11.1"
-tldextract = "^3.4.0"
+[project.scripts]
+immoscanner = "ImmoScanner.Console:cli"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "types-beautifulsoup4>=4.12.0.20240907",
+]
+
+[tool.black]
+# requires-python allows 3.15, which the pinned interpreter cannot parse
+target-version = ["py310"]
+
+[tool.pytest.ini_options]
+# the live portal checks are opt-in: `pytest -m live`
+addopts = "-m 'not live'"
+markers = ["live: hits the real portals over the network"]
+testpaths = ["tests"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["ImmoScanner"]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"

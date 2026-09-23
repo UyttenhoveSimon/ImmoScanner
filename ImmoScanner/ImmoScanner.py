@@ -1,25 +1,36 @@
 import itertools
 import logging
+from concurrent.futures import ThreadPoolExecutor
 
 import tldextract
-from Countries.CountryFactory import CountryFactory
-from Intellectuals.StatisticalInsights import StatisticalInsights
-from Means.RealEstateResearch import RealEstateResearch
-from Means.Research import Research
+
+from .Countries.CountryFactory import CountryFactory
+from .Intellectuals.StatisticalInsights import StatisticalInsights
+from .Means.RealEstateResearch import ANY, BUY, RENT, RealEstateResearch
+
+logger = logging.getLogger(__name__)
+
+#: portals are independent, and each worker owns its own http session and
+#: browser, so they are scanned side by side rather than one after the other
+MAX_CONCURRENT_PORTALS = 4
 
 
 class ImmoScanner:
-    def __init__(self):
-        logging.basicConfig(level=logging.DEBUG)
-
-    def research_real_estate(self, country_name, postal_code="", city=""):
-        """Enter arguments in that order 1)Country 2)Type (real estate...) 3)Postal code 4)Buy/Rent"""
-
+    def research_real_estate(
+        self,
+        country_name,
+        postal_code="",
+        city="",
+        type=ANY,
+        rent_or_buy=BUY,
+    ):
         country = CountryFactory().generate_country_given_name(name=country_name)
-        websites = country.get_real_estate_websites()
+        if country is None:
+            raise ValueError(f"the country {country_name} is not implemented")
 
-        if websites is None:
-            print(f"the country {country} input is not implemented.")
+        websites = country.get_real_estate_websites()
+        if not websites:
+            raise ValueError(f"no real estate website registered for {country_name}")
 
         if not postal_code:
             postal_code = country.fetch_postal_code_given_city(city)
@@ -27,74 +38,110 @@ class ImmoScanner:
         if not city:
             city = country.fetch_city_given_postal_code(postal_code)
 
-        searches_immo_to_sell = RealEstateResearch(postal_code, city)
+        logger.info(f"searching {city} ({postal_code}) in {country_name}")
 
-        results = list()
-        for website in websites:
-            website.start()
-            results.append(website.get_findings(searches_immo_to_sell))
-        ## TODO find a way to replay the results instead of searching again
-        return results
+        def scan(website):
+            # fill_empty_fields mutates the research, so each portal gets its own
+            research = RealEstateResearch(
+                postal_code=postal_code,
+                city=city,
+                type=type,
+                rent_or_buy=rent_or_buy,
+            )
+            try:
+                return website.get_findings(research)
+            except Exception as error:
+                logger.error(f"{website.domain_name}: search failed ({error})")
+                return []
+
+        with ThreadPoolExecutor(
+            max_workers=min(len(websites), MAX_CONCURRENT_PORTALS)
+        ) as pool:
+            return list(pool.map(scan, websites))
 
     def research_real_estate_url(self, country_name, url):
-        research = Research()
-        research.url = url
-
         country = CountryFactory().generate_country_given_name(name=country_name)
-        websites = country.get_real_estate_websites()
+        if country is None:
+            raise ValueError(f"the country {country_name} is not implemented")
 
-        if websites is None:
-            print(f"the country {country} input is not implemented.")
+        domain = tldextract.extract(url).registered_domain
+        results = []
+        for website in country.get_real_estate_websites():
+            if domain != website.domain_name:
+                continue
+            results.append(website.get_findings(RealEstateResearch(url=url)))
 
-        results = list()
-        parsed_uri = tldextract.extract(research.url)
-        for website in websites:
-            if parsed_uri.domain == website.domain_name:
-                results.append(website.get_findings(research))
+        if not results:
+            logger.warning(f"no worker registered for {domain}")
 
         return results
 
+    def research_gross_yield(self, country_name, postal_code="", city="", type=ANY):
+        """Scan the same area twice, for sale and to let, and compare the two."""
+        selling = self.duplicate_finder(
+            self.research_real_estate(
+                country_name, postal_code, city, type, rent_or_buy=BUY
+            )
+        )
+        renting = self.duplicate_finder(
+            self.research_real_estate(
+                country_name, postal_code, city, type, rent_or_buy=RENT
+            )
+        )
+        return self.get_insights(selling, renting)
+
     def duplicate_finder(self, results):
-        # results is a list of list with results from each website
-        flat_list = list(itertools.chain(*results))
+        """Flatten per-portal results, dropping the same property seen twice.
 
-        # all items must have a price and livable square meters
-        for item in flat_list:
-            if item["price"] == 0:
-                flat_list.remove(item)
-
-            if item["livable_square_meters"] == 0:
-                flat_list.remove(item)
+        Listings are matched on :meth:`RealEstateResearchResult.fingerprint`,
+        which identifies the property rather than the advertisement.
+        """
+        flat_list = [
+            item
+            for item in itertools.chain(*results)
+            if item.is_project or (item.price and item.livable_square_meters)
+        ]
 
         unique_items = []
-
-        # results price and livable square meters are used to remove duplicate.
+        seen = set()
         for item in flat_list:
-            for u_item in unique_items:
-                if item not in unique_items:
-                    if item["price"] != u_item["price"]:
-                        if (
-                            item["livable_square_meters"]
-                            != u_item["livable_square_meters"]
-                        ):
-                            unique_items.append(item)
+            keys = [item.fingerprint(), item.geo_fingerprint()]
+            keys = [key for key in keys if key is not None]
+            if any(key in seen for key in keys):
+                continue
+            seen.update(keys)
+            unique_items.append(item)
 
         return unique_items
 
-    def get_insights(self, results):
-        stats_selling = StatisticalInsights(results)
-        price_mean_selling = stats_selling.calculate_mean_price()
-        price_median_selling = stats_selling.calculate_median_price()
-        logging.info(f"Selling mean price {price_median_selling}")
-        logging.info(f"Selling median price {price_median_selling}")
+    def get_insights(self, selling_results, renting_results=None):
+        # A development has a price range over a whole building; averaging it
+        # in would describe no property at all.
+        properties = [item for item in selling_results if not item.is_project]
 
-        stats_renting = StatisticalInsights(results)
-        price_mean_renting = stats_renting.calculate_mean_price()
-        price_median_renting = stats_renting.calculate_median_price()
-        logging.info(f"Renting mean price {price_mean_renting}")
-        logging.info(f"Renting mean price {price_median_renting}")
+        selling = StatisticalInsights(properties)
+        insights = {
+            "listings": len(properties),
+            "projects": len(selling_results) - len(properties),
+            "selling_mean_price": selling.calculate_mean_price(),
+            "selling_median_price": selling.calculate_median_price(),
+            "selling_median_price_per_m2": selling.price_per_square_meter_median(),
+        }
 
-        yield_rent_gross_median = StatisticalInsights().calculate_gross_yield_median(
-            price_mean_renting, price_mean_selling
-        )
-        logging.info(f"Rent yield gross median {yield_rent_gross_median}")
+        if renting_results:
+            rentals = [item for item in renting_results if not item.is_project]
+            renting = StatisticalInsights(rentals)
+            insights["rental_listings"] = len(rentals)
+            insights["renting_mean_price"] = renting.calculate_mean_price()
+            insights["renting_median_price"] = renting.calculate_median_price()
+            insights["renting_median_price_per_m2"] = (
+                renting.price_per_square_meter_median()
+            )
+            insights["gross_yield_percent"] = StatisticalInsights.gross_yield(
+                insights["renting_median_price"], insights["selling_median_price"]
+            )
+
+        for name, value in insights.items():
+            logger.info(f"{name}: {value}")
+
+        return insights

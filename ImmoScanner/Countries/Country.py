@@ -1,7 +1,17 @@
+import logging
 import urllib.parse
 
 import requests
 from bs4 import BeautifulSoup
+
+logger = logging.getLogger(__name__)
+
+GEONAMES_SEARCH = "https://www.geonames.org/postalcode-search.html"
+# geonames serves unclosed <tr>s; html.parser then swallows the whole table into
+# the first row, so the lenient-but-structured lxml parser is used here.
+GEONAMES_PARSER = "lxml"
+REQUEST_TIMEOUT = 20
+USER_AGENT = "ImmoScanner (+https://github.com/UyttenhoveSimon/ImmoScanner)"
 
 
 class Country:
@@ -15,45 +25,83 @@ class Country:
         self.languages = []
         self.websites = []
 
-    def fetch_city_given_postal_code(self, postal_code) -> list:
+    def search_postal_codes(self, query):
+        """Return the geonames hits for a postal code or a place name.
+
+        Each hit is ``{"place": ..., "postal_code": ..., "municipality": ...}``.
         """
-        return following list:
-        ['1', 'La Sarraz', '1315', 'Switzerland', 'Canton de Vaud', 'Morges District', 'La Sarraz\xa0\xa0\xa046.659/6.511\n\n', '', '\xa0\xa0\xa046.659/6.511', '']
-        """
-        search = requests.get(
-            f"https://www.geonames.org/postalcode-search.html?q={postal_code}&country={self.alpha_2}"
+        response = requests.get(
+            GEONAMES_SEARCH,
+            params={"q": query, "country": self.alpha_2},
+            headers={"User-Agent": USER_AGENT},
+            timeout=REQUEST_TIMEOUT,
         )
-        soup = BeautifulSoup(search.text, "html.parser")
-        print(soup)
-        table = soup.find("table", {"class": "restable"})
+        response.raise_for_status()
 
-        rows = list()
-        for row in table.find_all("td"):
-            rows.append(row.text)
+        table = BeautifulSoup(response.text, GEONAMES_PARSER).find(
+            "table", {"class": "restable"}
+        )
+        if table is None:
+            return []
 
-        return rows[1]
+        hits = []
+        for row in table.find_all("tr"):
+            cells = [
+                cell.get_text(" ", strip=True)
+                for cell in row.find_all("td", recursive=False)
+            ]
+            if len(cells) < 4 or not cells[0].isdigit():
+                continue
+            hits.append(
+                {
+                    "place": cells[1],
+                    "postal_code": cells[2],
+                    "municipality": cells[-1],
+                }
+            )
+        return hits
 
-        #
+    @staticmethod
+    def _pick(hits, preferred=None):
+        """Prefer an exact name match, then the entry that names its own municipality.
 
-    ## TODO deal when city has more than once postal code.
+        For "5000" geonames returns both Beez and Namur; only the latter has a
+        place name equal to its municipality, which is the one searches expect.
+        """
+        if not hits:
+            return None
+
+        if preferred:
+            normalized = preferred.casefold()
+            for hit in hits:
+                if hit["place"].casefold() == normalized:
+                    return hit
+
+        for hit in hits:
+            if hit["place"].casefold() == hit["municipality"].casefold():
+                return hit
+
+        return hits[0]
+
+    def fetch_city_given_postal_code(self, postal_code):
+        hits = [
+            hit
+            for hit in self.search_postal_codes(postal_code)
+            if hit["postal_code"] == str(postal_code)
+        ]
+        hit = self._pick(hits)
+        if hit is None:
+            logger.warning(f"no city found for postal code {postal_code}")
+            return ""
+        return hit["place"]
+
     def fetch_postal_code_given_city(self, city):
-        """
-        return list:
-        # ['1', 'La Sarraz', '1315', 'Switzerland', 'Canton de Vaud', 'Morges District', 'La Sarraz\xa0\xa0\xa046.659/6.511\n\n', '', '\xa0\xa0\xa046.659/6.511', '']
-        """
-        city = urllib.parse.quote_plus(city)
-        search = requests.get(
-            f"https://www.geonames.org/postalcode-search.html?q={city}&country={self.alpha_2}"
-        )
-        soup = BeautifulSoup(search.text, "html.parser")
-        print(soup)
-        table = soup.find("table", {"class": "restable"})
-
-        rows = list()
-        for row in table.find_all("td"):
-            rows.append(row.text)
-
-        return rows[2]
+        hits = self.search_postal_codes(urllib.parse.quote_plus(city))
+        hit = self._pick(hits, preferred=city)
+        if hit is None:
+            logger.warning(f"no postal code found for city {city}")
+            return ""
+        return hit["postal_code"]
 
     def get_real_estate_websites(self):
-        pass
+        return self.websites

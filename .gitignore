@@ -343,3 +343,5 @@ healthchecksdb
 /ImmoScanner/env
 /env
 lib64
+
+.venv/
