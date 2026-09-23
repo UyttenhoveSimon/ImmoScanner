@@ -189,13 +189,20 @@ import. It drives Chromium over raw CDP with no Node driver subprocess in the
 path, and it reuses whatever Chromium is already installed instead of demanding
 its own pinned download.
 
-**Plain HTTP first, browser second.** immoweb and immovlan server-render their
-result lists, and a `requests` GET reads one in well under a second where a
-browser needs several. Each worker tries HTTP, checks `PROBE_SELECTOR` to see
-whether the real list came back, and switches to the browser permanently on the
-first miss — so a portal that needs a browser pays for exactly one wasted GET.
-comparis is such a portal: it refuses plain HTTP whatever the headers say,
-because the rejection is on the TLS fingerprint, not on the request.
+**A fetch ladder, cheapest rung first.** A plain `requests` GET; then the same
+GET through [curl_cffi](https://github.com/lexiforest/curl_cffi), which speaks a
+real browser's TLS and HTTP/2 handshake; then a real browser. immoweb and
+immovlan server-render their result lists and never leave the first rung, where
+a page costs well under a second against several for a browser. comparis
+refuses a plain GET whatever the headers say — the rejection is on the TLS
+fingerprint, not on the request — and is read from the second rung, which took
+its scans from 15 s to 6 s.
+
+A rung is abandoned for good the first time it comes back short, so a portal
+that needs a higher rung pays one wasted attempt per rung rather than one per
+page. Once a rung has read a real page, it keeps it: portals answer 404 for a
+page past the last one, and reading that as a broken client would restart the
+whole scan in a browser.
 
 **Structured payloads over css selectors.** Both Belgian and Swiss portals ship
 their listings as JSON inside the page, and that JSON holds fields the rendered
@@ -212,6 +219,15 @@ already collected — counting distinct ids, since immoweb repeats a sponsored
 card on every page. A page past the last one stops the walk instead of
 discarding everything collected so far.
 
+**Searching on the postal code, never on the city name.** immoweb accepts a
+`/<city>/<postal code>` path but keys off the postal code and ignores the name
+— except that an apostrophe in it breaks the route outright: "Braine-L'Alleud"
+returned a generic page with **no listing at all**, silently, while the postal
+code alone returns 288. immovlan is worse in the other direction: a town name
+it does not recognise makes it drop the filter and answer with the whole
+country. Both are searched on `1420` alone. The city is still looked up for
+display, but nothing depends on spelling it the way a portal happens to.
+
 **A portal-neutral vocabulary.** A search is expressed as `buy`/`rent` and
 `any`/`house`/`apartment`; each worker maps those onto its own url scheme
 (`a-vendre`, `acheter`, `DealType: 20`). Callers never have to know that
@@ -220,8 +236,21 @@ immoweb spells "all types" `maison-et-appartement`.
 **Two de-duplication keys.** The same flat is listed on several portals under
 different ids. Listings are matched on `(postal code, price, surface, bedrooms)`,
 which every portal supplies, *and* on `(latitude, longitude, price)` rounded to
-about eleven metres for the portals that geocode. Either match is enough, so a
-pair that disagrees by one square metre still collapses.
+four decimals — about eleven metres — for the portals that geocode. Either
+match is enough, so a pair that disagrees by one square metre still collapses.
+
+Coordinates come from immoweb's embedded json and from comparis's `Coordinate`
+object; immovlan publishes a locality and never a point, and immoweb omits the
+position on sponsored cards and on listings whose address the seller hid, so
+roughly half of a Belgian scan has no coordinates at all. Those fall back on
+the coarse key, which is why it is the one every portal must satisfy.
+
+The geographic key earns its keep most on comparis, where the same property
+arrives from several aggregated sources under different ids. Its known loss:
+two identical flats in one building, same price and same surface, are
+indistinguishable from one listing published twice, and collapse into one. The
+duplicate is much the commoner case, so that trade is deliberate — and pinned
+by a test that says so.
 
 **Developments are not properties.** A new-build is advertised as a price range
 over a whole building. Averaging that into a median would describe nothing, so
@@ -244,11 +273,13 @@ portal never passes for a market with nothing for sale.
 
 ## Portal status
 
-| Portal | Country | State |
-| --- | --- | --- |
-| immoweb.be | BE | works — listing JSON embedded in the server-rendered cards |
-| immovlan.be | BE | works — moved off `immo.vlan.be`, which now 503s |
-| comparis.ch | CH | works — `__NEXT_DATA__` payload; needs the browser |
+| Portal | Country | Read from | Fetched with | Geocoded |
+| --- | --- | --- | --- | --- |
+| immoweb.be | BE | json embedded in the server-rendered cards | plain http | partly |
+| immovlan.be | BE | schema.org microdata on the cards | plain http | no |
+| comparis.ch | CH | the `__NEXT_DATA__` payload | curl_cffi | yes |
+
+immovlan moved off `immo.vlan.be`, which now answers 503 at the Akamai edge.
 
 homegate.ch and immoscout24.ch sit behind DataDome on every entry point, their
 APIs included, so they have no worker. Their listings still come through:
@@ -266,3 +297,13 @@ A portal redesign is silent — a scan just returns less, and the numbers drift.
 The offline suite asserts on the exact selectors and payload keys the workers
 depend on, so a break is a failure; recapture the fixture when a portal changes
 for good. The live suite is the canary, and CI runs it every Monday.
+
+| file | covers |
+| --- | --- |
+| `test_workers.py` | extraction, against captured search pages |
+| `test_fetching.py` | the fetch ladder and the page walk, fully stubbed |
+| `test_geolocation.py` | coordinate parsing, and what the geographic key merges |
+| `test_pipeline.py` | a whole scan: fan-out, failures, search urls |
+| `test_scanner.py` | de-duplication, statistics, source filtering |
+| `test_store.py` | the archive and its diff |
+| `test_live_portals.py` | the live canary (`-m live`) |
