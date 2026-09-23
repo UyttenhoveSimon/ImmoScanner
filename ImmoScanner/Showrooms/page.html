@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ImmoScanner</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --ink: #16181d; --dim: #6b7280; --line: #e3e6ea;
+    --ground: #f7f8fa; --card: #ffffff; --accent: #2f6f4f; --warm: #a8553a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #e8eaed; --dim: #9aa2ae; --line: #2a2e36;
+      --ground: #15171b; --card: #1d2026; --accent: #6fbf95; --warm: #d98b6d;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px 16px 64px; background: var(--ground); color: var(--ink);
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: 20px; margin: 0 0 2px; letter-spacing: -0.01em; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em;
+       color: var(--dim); margin: 32px 0 10px; font-weight: 600; }
+  .lede { color: var(--dim); margin: 0 0 8px; }
+  section { background: var(--card); border: 1px solid var(--line);
+            border-radius: 10px; padding: 16px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: right; padding: 7px 10px; border-bottom: 1px solid var(--line);
+           white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; white-space: normal; }
+  th { color: var(--dim); font-weight: 600; font-size: 12px; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr.pick { cursor: pointer; }
+  tbody tr.pick:hover { background: color-mix(in srgb, var(--accent) 9%, transparent); }
+  tbody tr.on { background: color-mix(in srgb, var(--accent) 16%, transparent); }
+  a { color: var(--accent); }
+  .bar { height: 9px; border-radius: 5px; background: var(--accent); min-width: 2px; }
+  .scroll { overflow-x: auto; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+  input, select { font: inherit; color: inherit; background: var(--ground);
+                  border: 1px solid var(--line); border-radius: 7px; padding: 6px 9px; }
+  .muted { color: var(--dim); }
+  .down { color: var(--accent); } .up { color: var(--warm); }
+  .empty { color: var(--dim); padding: 22px 0; text-align: center; }
+</style>
+</head>
+<body>
+<main>
+  <h1>ImmoScanner</h1>
+  <p class="lede">Every search kept in this archive, and what changed in it.</p>
+
+  <h2>Cities</h2>
+  <section><div class="scroll"><table id="searches"></table></div></section>
+
+  <h2>Listings</h2>
+  <section>
+    <div class="row">
+      <select id="sort">
+        <option value="price_per_m2">by price per m²</option>
+        <option value="price">by price</option>
+        <option value="surface">by surface</option>
+        <option value="seen">by last seen</option>
+      </select>
+      <input id="source" placeholder="originating portal, e.g. homegate" size="26">
+      <span class="muted" id="scope"></span>
+    </div>
+    <div class="scroll"><table id="listings"></table></div>
+  </section>
+
+  <h2>Price movements</h2>
+  <section><div class="scroll"><table id="movements"></table></div></section>
+</main>
+
+<script>
+const money = n => n ? Math.round(n).toLocaleString() : "—";
+const get = (path, params) =>
+  fetch(path + "?" + new URLSearchParams(params)).then(r => r.json());
+
+let scope = null;
+
+const table = (node, head, rows, empty) => {
+  if (!rows.length) { node.innerHTML = `<tr><td class="empty" colspan="${head.length}">${empty}</td></tr>`; return; }
+  node.innerHTML =
+    "<thead><tr>" + head.map(h => `<th>${h}</th>`).join("") + "</tr></thead>" +
+    "<tbody>" + rows.join("") + "</tbody>";
+};
+
+const city = key => key.split("/").slice(0, 2).join(" ");
+
+async function loadSearches() {
+  const searches = await get("/api/searches", {});
+  const top = Math.max(...searches.map(s => s.median_price_per_m2), 1);
+
+  table(document.getElementById("searches"),
+    ["search", "listings", "median", "per m²", "", "Q1", "Q3"],
+    searches.map(s => `
+      <tr class="pick${s.search_key === scope ? " on" : ""}" data-key="${s.search_key}">
+        <td>${city(s.search_key)}<div class="muted">${s.search_key}</div></td>
+        <td>${s.listings}</td>
+        <td>${money(s.median_price)}</td>
+        <td><strong>${money(s.median_price_per_m2)}</strong></td>
+        <td style="width:150px"><div class="bar" style="width:${(s.median_price_per_m2 / top * 100).toFixed(1)}%"></div></td>
+        <td class="muted">${money(s.first_quartile)}</td>
+        <td class="muted">${money(s.third_quartile)}</td>
+      </tr>`),
+    "Nothing archived yet — run a scan with --store.");
+
+  document.querySelectorAll("#searches tr.pick").forEach(row =>
+    row.onclick = () => { scope = row.dataset.key; loadSearches(); loadListings(); loadMovements(); });
+
+  if (scope === null && searches.length) {
+    scope = searches[0].search_key;
+    loadSearches(); loadListings(); loadMovements();
+  }
+}
+
+async function loadListings() {
+  document.getElementById("scope").textContent = scope ? city(scope) : "";
+  const rows = await get("/api/listings", {
+    search: scope || "", sort: document.getElementById("sort").value,
+    source: document.getElementById("source").value, limit: 300 });
+
+  table(document.getElementById("listings"),
+    ["property", "city", "price", "m²", "per m²", "bed", "from"],
+    rows.map(r => `
+      <tr>
+        <td><a href="${r.url}" target="_blank" rel="noreferrer">${(r.description || r.type || r.listing_id).slice(0, 78)}</a></td>
+        <td>${r.postal_code || ""} ${r.city || ""}</td>
+        <td>${money(r.price)}</td>
+        <td>${r.livable_square_meters || "—"}</td>
+        <td>${r.price && r.livable_square_meters ? money(r.price / r.livable_square_meters) : "—"}</td>
+        <td>${r.bedrooms_number || "—"}</td>
+        <td class="muted">${r.source || r.platform}</td>
+      </tr>`),
+    "No listing matches.");
+}
+
+async function loadMovements() {
+  const rows = await get("/api/movements", { search: scope || "" });
+  table(document.getElementById("movements"),
+    ["property", "city", "was", "now", "change"],
+    rows.map(r => {
+      const delta = r.price - r.first_price;
+      return `<tr>
+        <td><a href="${r.url}" target="_blank" rel="noreferrer">${r.listing_id}</a></td>
+        <td>${r.city || ""}</td>
+        <td class="muted">${money(r.first_price)}</td>
+        <td>${money(r.price)}</td>
+        <td class="${delta < 0 ? "down" : "up"}">${delta < 0 ? "" : "+"}${money(delta)}</td>
+      </tr>`; }),
+    "No price has moved since the first scan of this search.");
+}
+
+document.getElementById("sort").onchange = loadListings;
+document.getElementById("source").oninput = loadListings;
+loadSearches();
+</script>
+</body>
+</html>

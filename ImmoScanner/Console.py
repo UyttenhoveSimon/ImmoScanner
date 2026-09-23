@@ -7,6 +7,7 @@ import plac
 from .Archives.Store import Store
 from .ImmoScanner import ImmoScanner
 from .Means.RealEstateResearch import ANY, BUY, PROPERTY_TYPES, RENT
+from .Showrooms.Server import DEFAULT_PORT, serve
 
 
 @plac.pos("country", "Country targeted by the research", type=str)
@@ -28,6 +29,8 @@ from .Means.RealEstateResearch import ANY, BUY, PROPERTY_TYPES, RENT
     type=str,
     abbrev="x",
 )
+@plac.opt("port", "port the explorer listens on", type=int, abbrev="n")
+@plac.flg("serve_", "browse an archive instead of scanning", abbrev="w")
 @plac.flg("rent", "search rentals instead of properties for sale")
 @plac.flg("yield_", "scan for sale and to let, and report the gross rental yield")
 @plac.flg("debug", "Enable debug logging")
@@ -41,6 +44,8 @@ def main(
     store="",
     source="",
     exclude_source="",
+    port=DEFAULT_PORT,
+    serve_=False,
     rent=False,
     yield_=False,
     debug=False,
@@ -54,6 +59,11 @@ def main(
         level=logging.DEBUG if debug else logging.INFO,
         format="%(levelname)s %(name)s: %(message)s",
     )
+
+    if serve_:
+        if not store:
+            sys.exit("--serve needs --store to say which archive to explore")
+        return serve(store, port=port)
 
     scanner = ImmoScanner()
 

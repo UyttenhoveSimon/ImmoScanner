@@ -104,6 +104,23 @@ class TestRouting:
         assert "gross_yield_percent: 4.50" in capsys.readouterr().out
 
 
+class TestExplorer:
+    def test_serving_browses_an_archive_instead_of_scanning(self, monkeypatch):
+        served = []
+        monkeypatch.setattr(
+            console, "serve", lambda path, port: served.append((path, port))
+        )
+
+        console.main("Belgium", store="a.db", serve_=True, port=9001)
+
+        assert served == [("a.db", 9001)]
+        assert StubScanner.calls == []  # nothing was scanned
+
+    def test_serving_needs_to_be_told_which_archive(self):
+        with pytest.raises(SystemExit):
+            console.main("Belgium", serve_=True)
+
+
 class TestSourceFilter:
     def test_the_lists_reach_the_scanner(self):
         console.main("Belgium", postal_code="5000", source="homegate, immoscout24")

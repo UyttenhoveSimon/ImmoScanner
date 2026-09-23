@@ -52,6 +52,7 @@ exclude_also = ['if __name__ == "__main__":']
 
 [tool.hatch.build.targets.wheel]
 packages = ["ImmoScanner"]
+artifacts = ["ImmoScanner/Showrooms/page.html"]
 
 [build-system]
 requires = ["hatchling"]

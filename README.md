@@ -33,6 +33,8 @@ uv run immoscanner Belgium --url "https://www.immoweb.be/fr/recherche/maison/a-v
 | `--source NAMES` | keep only these originating portals, comma separated |
 | `--exclude-source NAMES` | drop these originating portals, comma separated |
 | `--output FILE.json` | write the de-duplicated listings |
+| `--serve --store FILE.db` | browse an archive in the browser instead of scanning |
+| `--port N` | port the explorer listens on (default 8765) |
 | `--url URL` | scan one portal's own search url, paginating it |
 | `--debug` | per-card logging |
 
@@ -121,6 +123,24 @@ $ uv run immoscanner Switzerland --postal-code 1003 --type apartment --rent --so
 `price_min` and `price_max`. `latitude` and `longitude` are present only for the
 portals that geocode.
 
+### Exploring an archive
+
+Scan a few places into one archive, then browse it:
+
+```bash
+uv run immoscanner Belgium --postal-code 1410 --store be.db
+uv run immoscanner Belgium --postal-code 1420 --store be.db
+uv run immoscanner Belgium --postal-code 1400 --store be.db
+uv run immoscanner Belgium --serve --store be.db
+```
+
+A local page at `http://127.0.0.1:8765` compares every search the archive
+holds — listings, median price, median price per m², quartiles — then lets you
+pick one and read its listings, sorted by price per m² and filterable by
+originating portal, and see which prices have moved since the first scan.
+
+It is read-only, listens on the loopback only, and needs nothing installed.
+
 ### As a library
 
 ```python
@@ -150,6 +170,7 @@ Workers/            one class per portal, on a shared fetch-and-walk base
 Means/              what is searched for (Research) and what comes back (Result)
 Intellectuals/      statistics over a set of results
 Archives/           sqlite archive of every listing ever seen
+Showrooms/          a local, read-only web view onto an archive
 ```
 
 A scan runs as follows.
@@ -262,6 +283,17 @@ what was cut, or what sold. `--store` keeps every listing and every price it has
 ever shown in sqlite, keyed by portal and id and scoped by search, and each run
 reports the difference.
 
+**The explorer brings no dependencies.** The archive is sqlite, the audience is
+whoever is sitting at the machine, and the whole page is one file — so it is
+`http.server`, a handful of json views and inline svg rather than a web
+framework and a charting library. Comparing cities is a question the archive
+can already answer: medians are computed in Python, since sqlite has no median
+and an archive holds thousands of rows, not millions.
+
+Pandas or duckdb are the right tools for exploring this data further, and both
+read the archive directly — neither has to become a dependency of the scanner
+to be useful on its output.
+
 **lxml everywhere.** Several portals, geonames included, serve unclosed tags
 that `html.parser` cannot recover from — it swallowed a whole geonames table
 into its first row, which is how postal code lookups used to return a
@@ -311,6 +343,7 @@ for good. The live suite is the canary, and CI runs it every Monday.
 | `test_scanner.py` | de-duplication, statistics, source filtering |
 | `test_store.py` | the archive and its diff |
 | `test_console.py` | the cli: routing, printing, writing |
+| `test_showroom.py` | the explorer's views and the server that exposes them |
 | `test_live_portals.py` | the live canary (`-m live`) |
 
 Nothing reaches the network except the canary: geonames answers from a
