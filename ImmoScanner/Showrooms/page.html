@@ -33,6 +33,8 @@
            white-space: nowrap; }
   th:first-child, td:first-child { text-align: left; white-space: normal; }
   th { color: var(--dim); font-weight: 600; font-size: 12px; }
+  th.sortable { cursor: pointer; user-select: none; }
+  th.sortable:hover { color: var(--ink); }
   tbody tr:last-child td { border-bottom: 0; }
   tbody tr.pick { cursor: pointer; }
   tbody tr.pick:hover { background: color-mix(in srgb, var(--accent) 9%, transparent); }
@@ -58,13 +60,14 @@
 <body>
 <main>
   <h1>ImmoScanner</h1>
-  <p class="lede">Every search kept in this archive, and what changed in it.</p>
+  <p class="lede">Every search kept in this archive, and what changed in it.
+    Click a column heading to sort by it.</p>
 
   <h2>Cities</h2>
   <section>
     <form class="row" id="add">
       <select id="country"></select>
-      <input id="place" placeholder="postal code, e.g. 1300" size="18" required>
+      <input id="place" placeholder="city or postal code, e.g. Nivelles" size="24" required>
       <select id="kind"></select>
       <label class="muted"><input type="checkbox" id="torent"> to let</label>
       <button id="go">Scan it</button>
@@ -88,12 +91,6 @@
   <h2>Listings</h2>
   <section>
     <div class="row">
-      <select id="sort">
-        <option value="price_per_m2">by price per m²</option>
-        <option value="price">by price</option>
-        <option value="surface">by surface</option>
-        <option value="seen">by last seen</option>
-      </select>
       <input id="source" placeholder="originating portal, e.g. homegate" size="26">
       <span class="muted" id="scope"></span>
     </div>
@@ -105,111 +102,155 @@
 </main>
 
 <script>
-const money = n => n ? Math.round(n).toLocaleString() : "—";
+const money = n => n ? Math.round(n).toLocaleString() : "\u2014";
+const pct = n => n.toFixed(2) + "%";
 const get = (path, params) =>
   fetch(path + "?" + new URLSearchParams(params)).then(r => r.json());
 
 let scope = null;
+const sorts = {};           // one sort state per table, remembered across reloads
 
-const table = (node, head, rows, empty) => {
-  if (!rows.length) { node.innerHTML = `<tr><td class="empty" colspan="${head.length}">${empty}</td></tr>`; return; }
-  node.innerHTML =
-    "<thead><tr>" + head.map(h => `<th>${h}</th>`).join("") + "</tr></thead>" +
-    "<tbody>" + rows.join("") + "</tbody>";
+const compare = (a, b) => {
+  if (a === b) return 0;
+  if (a === null || a === undefined || a === "") return 1;   // blanks sink
+  if (b === null || b === undefined || b === "") return -1;
+  return typeof a === "number" && typeof b === "number"
+    ? a - b : String(a).localeCompare(String(b));
 };
 
-const city = key => key.split("/").slice(0, 2).join(" ");
+/* Renders a table whose headers sort it. `columns` give the value to sort on
+   and the cell to show, so ordering never depends on how a cell is formatted. */
+function render(id, columns, rows, empty) {
+  const node = document.getElementById(id);
+  const state = sorts[id] || (sorts[id] = { index: null, dir: 1 });
+
+  if (!rows.length) {
+    node.innerHTML = `<tr><td class="empty" colspan="${columns.length}">${empty}</td></tr>`;
+    return;
+  }
+
+  if (state.index !== null) {
+    const of = columns[state.index].get;
+    rows = [...rows].sort((a, b) => compare(of(a), of(b)) * state.dir);
+  }
+
+  const head = columns.map((column, index) => {
+    const arrow = state.index === index ? (state.dir > 0 ? " \u2191" : " \u2193") : "";
+    return `<th data-i="${index}" class="${column.get ? "sortable" : ""}">${column.label}${arrow}</th>`;
+  }).join("");
+
+  node.innerHTML = `<thead><tr>${head}</tr></thead><tbody>` +
+    rows.map(row => "<tr>" + columns.map(c => c.cell(row)).join("") + "</tr>").join("") +
+    "</tbody>";
+
+  node.querySelectorAll("th[data-i]").forEach(th => {
+    const index = Number(th.dataset.i);
+    if (!columns[index].get) return;
+    th.onclick = () => {
+      state.dir = state.index === index ? -state.dir : -1;
+      state.index = index;
+      render(id, columns, rows, empty);
+    };
+  });
+}
+
+const bar = (value, top) =>
+  `<td style="width:120px"><div class="bar" style="width:${(value / top * 100).toFixed(1)}%"></div></td>`;
 
 async function loadSearches() {
   const searches = await get("/api/searches", {});
   const top = Math.max(...searches.map(s => s.median_price_per_m2), 1);
 
-  table(document.getElementById("searches"),
-    ["search", "listings", "median", "per m²", "", "Q1", "Q3"],
-    searches.map(s => `
-      <tr class="pick${s.search_key === scope ? " on" : ""}" data-key="${s.search_key}">
-        <td>${city(s.search_key)}<div class="muted">${s.search_key}</div></td>
-        <td>${s.listings}</td>
-        <td>${money(s.median_price)}</td>
-        <td><strong>${money(s.median_price_per_m2)}</strong></td>
-        <td style="width:150px"><div class="bar" style="width:${(s.median_price_per_m2 / top * 100).toFixed(1)}%"></div></td>
-        <td class="muted">${money(s.first_quartile)}</td>
-        <td class="muted">${money(s.third_quartile)}</td>
-      </tr>`),
-    "Nothing archived yet — run a scan with --store.");
+  render("searches", [
+    { label: "place", get: s => s.city || s.search_key,
+      cell: s => `<td>${s.city || s.search_key}<div class="muted">${s.search_key}</div></td>` },
+    { label: "listings", get: s => s.listings, cell: s => `<td>${s.listings}</td>` },
+    { label: "median", get: s => s.median_price, cell: s => `<td>${money(s.median_price)}</td>` },
+    { label: "per m\u00b2", get: s => s.median_price_per_m2,
+      cell: s => `<td><strong>${money(s.median_price_per_m2)}</strong></td>` },
+    { label: "", cell: s => bar(s.median_price_per_m2, top) },
+    { label: "Q1", get: s => s.first_quartile, cell: s => `<td class="muted">${money(s.first_quartile)}</td>` },
+    { label: "Q3", get: s => s.third_quartile, cell: s => `<td class="muted">${money(s.third_quartile)}</td>` },
+  ], searches, "Nothing archived yet \u2014 scan a place above.");
 
-  document.querySelectorAll("#searches tr.pick").forEach(row =>
-    row.onclick = () => { scope = row.dataset.key; loadSearches(); loadListings(); loadMovements(); });
+  document.querySelectorAll("#searches tbody tr").forEach((row, index) => {
+    row.classList.add("pick");
+    row.onclick = () => {
+      scope = row.querySelector(".muted").textContent;
+      highlight();
+      loadListings(); loadMovements();
+    };
+  });
+  highlight();
 
   if (scope === null && searches.length) {
     scope = searches[0].search_key;
-    loadSearches(); loadListings(); loadMovements();
+    highlight(); loadListings(); loadMovements();
   }
 }
+
+const highlight = () =>
+  document.querySelectorAll("#searches tbody tr").forEach(row =>
+    row.classList.toggle("on", row.querySelector(".muted")?.textContent === scope));
 
 async function loadYields() {
   const rows = await get("/api/yields", {});
   const topPerM2 = Math.max(...rows.map(r => r.gross_yield), 0.01);
   const topMedian = Math.max(...rows.map(r => r.gross_yield_on_medians), 0.01);
-  // the two methods disagree, so each names its own winner
   const bestPerM2 = rows.reduce((a, b) => b.gross_yield > a.gross_yield ? b : a, rows[0] || {});
-  const bestMedian = rows.reduce((a, b) => b.gross_yield_on_medians > a.gross_yield_on_medians ? b : a, rows[0] || {});
+  const bestMedian = rows.reduce((a, b) =>
+    b.gross_yield_on_medians > a.gross_yield_on_medians ? b : a, rows[0] || {});
 
-  const cell = (value, top, winner) => `
-    <td class="${winner ? "best" : ""}">${value.toFixed(2)}%</td>
-    <td style="width:110px"><div class="bar${winner ? "" : " pale"}"
-        style="width:${(value / top * 100).toFixed(1)}%"></div></td>`;
-
-  table(document.getElementById("yields"),
-    ["place", "per m²", "", "on medians", "", "€/m² to buy", "€/m² to let", "median price", "median rent"],
-    rows.map(r => `
-      <tr>
-        <td>${r.place}<div class="muted">${r.country} · ${r.type} · ${r.for_sale} for sale, ${r.to_let} to let</div></td>
-        ${cell(r.gross_yield, topPerM2, r === bestPerM2)}
-        ${cell(r.gross_yield_on_medians, topMedian, r === bestMedian)}
-        <td>${money(r.price_per_m2)}</td>
-        <td>${r.rent_per_m2.toFixed(2)}</td>
-        <td class="muted">${money(r.median_price)}</td>
-        <td class="muted">${money(r.median_rent)}</td>
-      </tr>`),
-    "Scan a place both to buy and to let, and its yield shows up here.");
+  render("yields", [
+    { label: "place", get: r => r.city,
+      cell: r => `<td>${r.city}<div class="muted">${r.country} \u00b7 ${r.type} \u00b7 ${r.for_sale} for sale, ${r.to_let} to let</div></td>` },
+    { label: "per m\u00b2", get: r => r.gross_yield,
+      cell: r => `<td class="${r === bestPerM2 ? "best" : ""}">${pct(r.gross_yield)}</td>` },
+    { label: "", cell: r => `<td style="width:110px"><div class="bar${r === bestPerM2 ? "" : " pale"}" style="width:${(r.gross_yield / topPerM2 * 100).toFixed(1)}%"></div></td>` },
+    { label: "on medians", get: r => r.gross_yield_on_medians,
+      cell: r => `<td class="${r === bestMedian ? "best" : ""}">${pct(r.gross_yield_on_medians)}</td>` },
+    { label: "", cell: r => `<td style="width:110px"><div class="bar${r === bestMedian ? "" : " pale"}" style="width:${(r.gross_yield_on_medians / topMedian * 100).toFixed(1)}%"></div></td>` },
+    { label: "\u20ac/m\u00b2 to buy", get: r => r.price_per_m2, cell: r => `<td>${money(r.price_per_m2)}</td>` },
+    { label: "\u20ac/m\u00b2 to let", get: r => r.rent_per_m2, cell: r => `<td>${r.rent_per_m2.toFixed(2)}</td>` },
+    { label: "median price", get: r => r.median_price, cell: r => `<td class="muted">${money(r.median_price)}</td>` },
+    { label: "median rent", get: r => r.median_rent, cell: r => `<td class="muted">${money(r.median_rent)}</td>` },
+  ], rows, "Scan a place both to buy and to let, and its yield shows up here.");
 }
 
 async function loadListings() {
-  document.getElementById("scope").textContent = scope ? city(scope) : "";
+  const searches = await get("/api/searches", {});
+  const named = searches.find(s => s.search_key === scope);
+  document.getElementById("scope").textContent = named ? (named.city || scope) : "";
+
   const rows = await get("/api/listings", {
-    search: scope || "", sort: document.getElementById("sort").value,
+    search: scope || "", sort: "price",
     source: document.getElementById("source").value, limit: 300 });
 
-  table(document.getElementById("listings"),
-    ["property", "city", "price", "m²", "per m²", "bed", "from"],
-    rows.map(r => `
-      <tr>
-        <td><a href="${r.url}" target="_blank" rel="noreferrer">${(r.description || r.type || r.listing_id).slice(0, 78)}</a></td>
-        <td>${r.postal_code || ""} ${r.city || ""}</td>
-        <td>${money(r.price)}</td>
-        <td>${r.livable_square_meters || "—"}</td>
-        <td>${r.price && r.livable_square_meters ? money(r.price / r.livable_square_meters) : "—"}</td>
-        <td>${r.bedrooms_number || "—"}</td>
-        <td class="muted">${r.source || r.platform}</td>
-      </tr>`),
-    "No listing matches.");
+  render("listings", [
+    { label: "property", get: r => r.description || "",
+      cell: r => `<td><a href="${r.url}" target="_blank" rel="noreferrer">${(r.description || r.type || r.listing_id).slice(0, 78)}</a></td>` },
+    { label: "city", get: r => r.city, cell: r => `<td>${r.postal_code || ""} ${r.city || ""}</td>` },
+    { label: "price", get: r => r.price, cell: r => `<td>${money(r.price)}</td>` },
+    { label: "m\u00b2", get: r => r.livable_square_meters, cell: r => `<td>${r.livable_square_meters || "\u2014"}</td>` },
+    { label: "per m\u00b2", get: r => r.price && r.livable_square_meters ? r.price / r.livable_square_meters : null,
+      cell: r => `<td>${r.price && r.livable_square_meters ? money(r.price / r.livable_square_meters) : "\u2014"}</td>` },
+    { label: "bed", get: r => r.bedrooms_number, cell: r => `<td>${r.bedrooms_number || "\u2014"}</td>` },
+    { label: "from", get: r => r.source || r.platform, cell: r => `<td class="muted">${r.source || r.platform}</td>` },
+  ], rows, "No listing matches.");
 }
 
 async function loadMovements() {
   const rows = await get("/api/movements", { search: scope || "" });
-  table(document.getElementById("movements"),
-    ["property", "city", "was", "now", "change"],
-    rows.map(r => {
-      const delta = r.price - r.first_price;
-      return `<tr>
-        <td><a href="${r.url}" target="_blank" rel="noreferrer">${r.listing_id}</a></td>
-        <td>${r.city || ""}</td>
-        <td class="muted">${money(r.first_price)}</td>
-        <td>${money(r.price)}</td>
-        <td class="${delta < 0 ? "down" : "up"}">${delta < 0 ? "" : "+"}${money(delta)}</td>
-      </tr>`; }),
-    "No price has moved since the first scan of this search.");
+  render("movements", [
+    { label: "property", get: r => r.listing_id,
+      cell: r => `<td><a href="${r.url}" target="_blank" rel="noreferrer">${r.listing_id}</a></td>` },
+    { label: "city", get: r => r.city, cell: r => `<td>${r.city || ""}</td>` },
+    { label: "was", get: r => r.first_price, cell: r => `<td class="muted">${money(r.first_price)}</td>` },
+    { label: "now", get: r => r.price, cell: r => `<td>${money(r.price)}</td>` },
+    { label: "change", get: r => r.price - r.first_price,
+      cell: r => { const d = r.price - r.first_price;
+        return `<td class="${d < 0 ? "down" : "up"}">${d < 0 ? "" : "+"}${money(d)}</td>`; } },
+  ], rows, "No price has moved since the first scan of this search.");
 }
 
 async function loadOptions() {
@@ -228,7 +269,7 @@ async function poll() {
 
   if (status.state === "running") {
     progress.className = "muted";
-    progress.textContent = `scanning ${status.asked}…`;
+    progress.textContent = `scanning ${status.asked}\u2026`;
     button.disabled = true;
     return setTimeout(poll, 1200);
   }
@@ -236,7 +277,7 @@ async function poll() {
   button.disabled = false;
   if (status.state === "done") {
     progress.className = "muted";
-    progress.textContent = `${status.asked}: ${status.listings} listings — ${status.summary}`;
+    progress.textContent = `${status.asked}: ${status.listings} listings \u2014 ${status.summary}`;
     scope = status.search_key;
     loadSearches(); loadYields(); loadListings(); loadMovements();
   } else if (status.state === "failed") {
@@ -248,7 +289,7 @@ async function poll() {
 document.getElementById("add").onsubmit = async event => {
   event.preventDefault();
   progress.className = "muted";
-  progress.textContent = "asking…";
+  progress.textContent = "asking\u2026";
   button.disabled = true;
 
   const answer = await fetch("/api/scans", {
@@ -256,7 +297,7 @@ document.getElementById("add").onsubmit = async event => {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       country: document.getElementById("country").value,
-      postal_code: document.getElementById("place").value,
+      place: document.getElementById("place").value,
       type: document.getElementById("kind").value,
       rent_or_buy: document.getElementById("torent").checked ? "rent" : "buy",
     }),
@@ -271,7 +312,6 @@ document.getElementById("add").onsubmit = async event => {
   poll();
 };
 
-document.getElementById("sort").onchange = loadListings;
 document.getElementById("source").oninput = loadListings;
 loadOptions();
 loadSearches();

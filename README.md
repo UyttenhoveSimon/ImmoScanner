@@ -136,8 +136,13 @@ uv run immoscanner Belgium --serve --store be.db
 
 A local page at `http://127.0.0.1:8765` compares every search the archive
 holds — listings, median price, median price per m², quartiles — then lets you
-pick one and read its listings, sorted by price per m² and filterable by
-originating portal, and see which prices have moved since the first scan.
+pick one and read its listings, filterable by originating portal, and see which
+prices have moved since the first scan. Every table sorts on any column: click
+its heading, click again to reverse it.
+
+Places are named, not numbered. A search is keyed by postal code, but its
+listings carry the locality, so the archive says "Nivelles" without asking
+anyone — and the form takes either a name or a code.
 
 Scan a place both to buy and to let, and it also gets a gross rental yield,
 compared across every place the archive holds.
