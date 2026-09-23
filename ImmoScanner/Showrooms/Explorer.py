@@ -70,6 +70,49 @@ class Explorer:
             "median_price_per_m2": statistics.median(ratios) if ratios else 0,
         }
 
+    def yields(self):
+        """Pair each buy search with its rent counterpart and compare the two.
+
+        The headline number is built from the medians per square metre, not
+        from the median prices. Rental stock skews small and sale stock skews
+        large, so dividing one median by the other compares a studio's rent
+        with a family house's price; per square metre, the size mix cancels.
+        The cruder figure is reported alongside, since it is the one people
+        quote.
+        """
+        scopes = {}
+        for search in self.searches():
+            country, place, type, deal = search["search_key"].split("/")
+            scopes.setdefault((country, place, type), {})[deal] = search
+
+        compared = []
+        for (country, place, type), sides in scopes.items():
+            buying, renting = sides.get("buy"), sides.get("rent")
+            if not (buying and renting):
+                continue
+
+            compared.append(
+                {
+                    "country": country,
+                    "place": place,
+                    "type": type,
+                    "for_sale": buying["listings"],
+                    "to_let": renting["listings"],
+                    "median_price": buying["median_price"],
+                    "median_rent": renting["median_price"],
+                    "price_per_m2": buying["median_price_per_m2"],
+                    "rent_per_m2": renting["median_price_per_m2"],
+                    "gross_yield": yearly_yield(
+                        renting["median_price_per_m2"], buying["median_price_per_m2"]
+                    ),
+                    "gross_yield_on_medians": yearly_yield(
+                        renting["median_price"], buying["median_price"]
+                    ),
+                }
+            )
+
+        return sorted(compared, key=lambda row: row["gross_yield"], reverse=True)
+
     def listings(self, search_key=None, source=None, sort="price", limit=DEFAULT_LIMIT):
         where, parameters = [], []
         if search_key:
@@ -123,6 +166,13 @@ def bounded(limit):
     except (TypeError, ValueError):
         return DEFAULT_LIMIT
     return max(1, min(limit, MAX_LIMIT))
+
+
+def yearly_yield(monthly_rent, price):
+    """Gross yearly yield in percent, from a monthly rent and a price."""
+    if not price:
+        return 0
+    return (monthly_rent * 12) / price * 100
 
 
 def quantile(values, fraction):

@@ -10,7 +10,13 @@ import pytest
 import ImmoScanner.Showrooms.Server as server_module
 from ImmoScanner.Archives.Store import Store
 from ImmoScanner.Means.RealEstateResearchResult import RealEstateResearchResult
-from ImmoScanner.Showrooms.Explorer import MAX_LIMIT, Explorer, bounded, quantile
+from ImmoScanner.Showrooms.Explorer import (
+    MAX_LIMIT,
+    Explorer,
+    bounded,
+    quantile,
+    yearly_yield,
+)
 from ImmoScanner.Showrooms.Server import PAGE, answer, build_server, serve
 
 NAMUR = "Belgium/5000/any/buy"
@@ -85,6 +91,65 @@ class TestSearches:
         Store(path).close()
         with Explorer(path) as explorer:
             assert explorer.searches() == []
+
+
+class TestYields:
+    @pytest.fixture
+    def both_sides(self, tmp_path):
+        """One place scanned to buy and to let, another only to buy."""
+        path = tmp_path / "y.db"
+        with Store(path) as store:
+            # 100 m2 at 300k, and 50 m2 at 750/month -> 3000 and 15 per m2
+            store.record("Belgium/1400/any/buy", [listing("s", 300000, 100)])
+            store.record("Belgium/1400/any/rent", [listing("r", 750, 50)])
+            store.record("Belgium/1410/any/buy", [listing("o", 400000, 100)])
+        return path
+
+    def test_only_places_with_both_sides_are_compared(self, both_sides):
+        with Explorer(both_sides) as explorer:
+            assert [row["place"] for row in explorer.yields()] == ["1400"]
+
+    def test_the_yield_is_built_from_the_prices_per_square_metre(self, both_sides):
+        with Explorer(both_sides) as explorer:
+            row = explorer.yields()[0]
+
+        assert row["price_per_m2"] == 3000
+        assert row["rent_per_m2"] == 15
+        assert row["gross_yield"] == pytest.approx(15 * 12 / 3000 * 100)
+
+    def test_the_cruder_figure_is_reported_alongside(self, both_sides):
+        """Comparing the two medians directly compares different size mixes."""
+        with Explorer(both_sides) as explorer:
+            row = explorer.yields()[0]
+
+        assert row["gross_yield_on_medians"] == pytest.approx(750 * 12 / 300000 * 100)
+        assert row["gross_yield"] != row["gross_yield_on_medians"]
+
+    def test_the_best_yield_comes_first(self, tmp_path):
+        path = tmp_path / "y.db"
+        with Store(path) as store:
+            store.record("Belgium/1400/any/buy", [listing("a", 200000, 100)])
+            store.record("Belgium/1400/any/rent", [listing("b", 1000, 100)])
+            store.record("Belgium/1410/any/buy", [listing("c", 400000, 100)])
+            store.record("Belgium/1410/any/rent", [listing("d", 1000, 100)])
+
+        with Explorer(path) as explorer:
+            assert [row["place"] for row in explorer.yields()] == ["1400", "1410"]
+
+    def test_buying_and_letting_are_counted_separately(self, both_sides):
+        with Explorer(both_sides) as explorer:
+            row = explorer.yields()[0]
+        assert (row["for_sale"], row["to_let"]) == (1, 1)
+
+    def test_an_archive_with_no_rentals_compares_nothing(self, archive):
+        with Explorer(archive) as explorer:
+            assert explorer.yields() == []
+
+    def test_a_market_that_sells_for_nothing_has_no_yield(self):
+        assert yearly_yield(1000, 0) == 0
+
+    def test_a_yield_is_a_yearly_percentage(self):
+        assert yearly_yield(1000, 240000) == pytest.approx(5.0)
 
 
 class TestListings:
@@ -184,6 +249,7 @@ class TestRouting:
                 explorer, "/api/history", {"platform": "immoweb.be", "id": "1"}
             )
             assert answer(explorer, "/api/movements", {"search": NAMUR})
+            assert answer(explorer, "/api/yields", {}) == []
 
     def test_an_unknown_path_has_no_view(self, archive):
         with Explorer(archive) as explorer:

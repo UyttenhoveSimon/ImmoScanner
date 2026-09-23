@@ -42,6 +42,9 @@ def answer(explorer, path, query):
     if path == "/api/movements":
         return explorer.movements(query.get("search", ""))
 
+    if path == "/api/yields":
+        return explorer.yields()
+
     if path == "/api/options":
         # What a scan may be asked for, straight from the code that knows.
         return {

@@ -139,6 +139,9 @@ holds — listings, median price, median price per m², quartiles — then lets 
 pick one and read its listings, sorted by price per m² and filterable by
 originating portal, and see which prices have moved since the first scan.
 
+Scan a place both to buy and to let, and it also gets a gross rental yield,
+compared across every place the archive holds.
+
 The form at the top adds a place without going back to the shell: give it a
 postal code, and the scan runs in the background while the page polls it. One
 scan runs at a time — a second ask while one is under way is refused rather
@@ -260,6 +263,13 @@ display, but nothing depends on spelling it the way a portal happens to.
 `any`/`house`/`apartment`; each worker maps those onto its own url scheme
 (`a-vendre`, `acheter`, `DealType: 20`). Callers never have to know that
 immoweb spells "all types" `maison-et-appartement`.
+
+**A yield per square metre, not per listing.** The classic gross yield divides a
+median rent by a median price, but rental stock skews small and sale stock
+skews large, so that compares a studio's rent with a family house's price. The
+explorer builds it from the medians *per square metre*, where the size mix
+cancels. The cruder figure sits beside it, since it is the one people quote —
+and on real data the two do not even rank the same places in the same order.
 
 **Two de-duplication keys.** The same flat is listed on several portals under
 different ids. Listings are matched on `(postal code, price, surface, bedrooms)`,
