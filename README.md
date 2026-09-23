@@ -264,12 +264,15 @@ display, but nothing depends on spelling it the way a portal happens to.
 (`a-vendre`, `acheter`, `DealType: 20`). Callers never have to know that
 immoweb spells "all types" `maison-et-appartement`.
 
-**A yield per square metre, not per listing.** The classic gross yield divides a
-median rent by a median price, but rental stock skews small and sale stock
-skews large, so that compares a studio's rent with a family house's price. The
-explorer builds it from the medians *per square metre*, where the size mix
-cancels. The cruder figure sits beside it, since it is the one people quote —
-and on real data the two do not even rank the same places in the same order.
+**Two gross yields, side by side.** The classic one divides a median rent by a
+median price, but rental stock skews small and sale stock skews large, so it
+compares a studio's rent with a family house's price. The other divides the
+medians *per square metre*, where the size mix cancels.
+
+Neither is a footnote to the other: on four Walloon communes they disagree
+about which one leads — 5.79% for Nivelles per square metre against 4.13% for
+Wavre on medians. The explorer shows both with the same weight, each marking
+its own winner, and the medians they are built from in the columns beside them.
 
 **Two de-duplication keys.** The same flat is listed on several portals under
 different ids. Listings are matched on `(postal code, price, surface, bedrooms)`,
