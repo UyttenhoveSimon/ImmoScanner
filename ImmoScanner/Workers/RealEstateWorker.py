@@ -116,19 +116,26 @@ class RealEstateWorker(Worker):
         """Fetch ``url``, over HTTP when the portal serves the list that way.
 
         A portal that answers an incomplete page once will answer incomplete
-        pages for the rest of the run, so the worker stops trying HTTP after
-        the first miss rather than paying for a wasted GET on every page.
+        pages for the rest of the run, so a client that misses is abandoned
+        rather than retried on every page.
         """
-        if self.http_first:
+        while self.http_client is not None:
             html = self.fetch_over_http(url)
             if html is not None and self.looks_complete(html):
+                self.http_proven = True
                 return html
 
-            self.http_first = False
+            if self.http_proven:
+                # This client has already read a real page from this portal, so
+                # a miss now means the results ran out - portals answer 404 for
+                # a page past the last one - not that the client is blind.
+                return html or ""
+
             logger.info(
-                f"{self.domain_name}: plain http came back incomplete, "
-                "switching to the browser engine"
+                f"{self.domain_name}: {self.http_client} came back incomplete, "
+                "climbing to the next client"
             )
+            self.drop_http_client()
 
         return self.fetch_in_browser(url, wait_for, self.RENDER_TIMEOUT_MS)
 

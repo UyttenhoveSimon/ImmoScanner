@@ -5,6 +5,13 @@ import time
 import requests
 from rustwright.sync_api import sync_playwright
 
+try:
+    # Optional: speaks a real browser's TLS and HTTP/2 handshake, which some
+    # portals require even though they serve the page to anyone who does.
+    from curl_cffi import requests as curl_requests
+except ImportError:  # pragma: no cover - the ladder simply loses a rung
+    curl_requests = None
+
 logger = logging.getLogger(__name__)
 
 # A plain desktop Chrome signature. Rustwright drives Chromium over raw CDP and
@@ -18,14 +25,22 @@ DEFAULT_VIEWPORT = {"width": 1440, "height": 900}
 DEFAULT_TIMEOUT_MS = 45_000
 HTTP_TIMEOUT = 25
 
+#: http clients to try, cheapest first, before falling back to the browser
+HTTP_CLIENTS = ("requests", "curl_cffi")
+#: the generic profile tracks the current Chrome; a pinned one ages out and
+#: starts being refused (chrome131 already is, where "chrome" still passes)
+CURL_IMPERSONATE = "chrome"
+
 
 class Worker:
     """Fetches pages for one portal, over plain HTTP when that is enough.
 
-    Several portals server-render their result lists, which a single GET reads
-    an order of magnitude faster than a browser can. A browser session is only
-    started when HTTP comes back incomplete, and it then stays up for the rest
-    of the worker's life; ``close()`` releases it.
+    Fetching climbs a ladder, cheapest rung first: a plain GET, then the same
+    GET behind a browser's TLS handshake, then a real browser. Most portals
+    server-render their result lists and never leave the first rung. A rung is
+    abandoned for good the first time it comes back short, so a portal that
+    needs the top of the ladder pays for one wasted attempt per rung, not one
+    per page.
     """
 
     def __init__(
@@ -33,14 +48,20 @@ class Worker:
         headless=True,
         locale="fr-BE",
         timezone_id="Europe/Brussels",
-        http_first=True,
+        http_clients=HTTP_CLIENTS,
     ):
         self.domain_name = ""
         self.headless = headless
         self.locale = locale
         self.timezone_id = timezone_id
-        self.http_first = http_first
+        self.http_clients = [
+            name
+            for name in http_clients
+            if name != "curl_cffi" or curl_requests is not None
+        ]
         self.session = None
+        #: set once a client has read a real result page from this portal
+        self.http_proven = False
         self.playwright = None
         self.browser = None
         self.context = None
@@ -108,20 +129,51 @@ class Worker:
         self.session = None
         self.playwright = self.browser = self.context = self.page = None
 
-    def fetch_over_http(self, url):
-        """Return the page body, or ``None`` when the portal refuses a plain GET."""
-        if self.session is None:
+    @property
+    def http_client(self):
+        """Name of the rung currently in use, or ``None`` once all are spent."""
+        return self.http_clients[0] if self.http_clients else None
+
+    def open_session(self):
+        if self.session is not None:
+            return self.session
+        if self.http_client is None:
+            return None
+
+        if self.http_client == "curl_cffi":
+            self.session = curl_requests.Session(impersonate=CURL_IMPERSONATE)
+        else:
             self.session = requests.Session()
-            self.session.headers.update(self.http_headers())
+        self.session.headers.update(self.http_headers())
+        return self.session
+
+    def drop_http_client(self):
+        """Give up on the current rung and move to the next one."""
+        if self.session is not None:
+            try:
+                self.session.close()
+            except Exception as error:
+                logger.debug(f"failed to close the http session: {error}")
+            self.session = None
+        if self.http_clients:
+            self.http_clients.pop(0)
+
+    def fetch_over_http(self, url):
+        """Return the page body, or ``None`` when this rung cannot read it."""
+        session = self.open_session()
+        if session is None:
+            return None
 
         try:
-            response = self.session.get(url, timeout=HTTP_TIMEOUT)
-        except requests.RequestException as error:
-            logger.debug(f"{self.domain_name}: http fetch failed ({error})")
+            response = session.get(url, timeout=HTTP_TIMEOUT)
+        except Exception as error:  # every client raises its own transport errors
+            logger.debug(f"{self.domain_name}: {self.http_client} failed ({error})")
             return None
 
         if response.status_code != 200:
-            logger.debug(f"{self.domain_name}: http fetch got {response.status_code}")
+            logger.debug(
+                f"{self.domain_name}: {self.http_client} got {response.status_code}"
+            )
             return None
 
         return response.text

@@ -17,6 +17,7 @@ dependencies = [
     "lxml>=5.3",
     "requests>=2.32",
     "tldextract>=5.1",
+    "curl-cffi>=0.16.3",
 ]
 
 [project.optional-dependencies]
