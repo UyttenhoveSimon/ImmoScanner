@@ -1,0 +1,23 @@
+name: portal canary
+
+# The portals change without warning: immovlan moved domain and redesigned its
+# cards, immoweb hydrates its pagination client-side, comparis became a Next.js
+# app. Each break is silent - a scan just returns fewer listings, or none. This
+# job hits the real sites on a schedule so the breakage is reported, not
+# discovered months later in the numbers.
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync --locked --dev
+      - run: uv run python -m rustwright install chromium
+      - run: uv run pytest -m live -q
