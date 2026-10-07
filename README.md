@@ -35,7 +35,7 @@
 - 💰 **Gross rental yield**: compares sale prices with rents in the same area
 - 🗂️ **History**: save each scan and see what is new, cheaper, more expensive or gone
 - 🧹 **No double counting**: a flat listed on three websites counts once
-- 🌐 **Web explorer**: compare places side by side in your browser
+- 🌐 **Web explorer**: compare places and browse listings in your browser, in four languages
 - 🤝 **Polite**: limits how many pages it reads and pauses between them
 
 ## 🚀 Quick start
@@ -199,12 +199,16 @@ uv run immoscanner Belgium --serve --store be.db
 
 Then go to **http://127.0.0.1:8765**. From there you can:
 
-- 📈 **Compare places**: number of listings, median price, median price per m², quartiles.
-- 📋 **Open one place** to see its listings, filter them by website, and see which prices changed since the first scan.
+- 📈 **Compare places** on the *Places* page: listings for sale and to let, median price, price per m², median rent and yield, one row per town.
+- 🧭 **Jump to any place** from the sidebar, or type part of its name or postal code to find it.
+- 🏠 **Open a place** to see its key figures (median, price per m², typical price range, yield), switch between *For sale* and *To let*, and browse its listings. Listings are marked **new** or **gone** compared with the previous scan, and you can filter them by words or website.
+- 📉 **See price changes**: the *Price changes* tab lists every listing whose price moved since the first scan.
+- 🔍 **Click a listing** to see its details, a chart of its price over time, and a link to the original ad.
+- 💰 **Compare rental yields** on the *Rental yield* page, for every place scanned both for sale and to let.
 - ↕️ **Sort any table** by clicking a column heading. Click again to reverse the order.
-- 🏷️ **See real town names**: scans are saved by postal code, but the page shows the town name (e.g. "Nivelles"). The search form accepts either.
-- 💰 **Compare rental yields**: scan a place both for sale and for rent, and its yield appears next to the other places'.
-- ➕ **Add a place** with the form at the top. The scan runs in the background and the page updates when it is done. Only one scan runs at a time: if one is already running, a new request is turned down, not queued.
+- 🔖 **Bookmark any view**: each place has its own address, and the browser's back button works.
+- 🌍 **Pick your language**: English, French, Dutch or German, from the menu at the top.
+- ➕ **Add a place** with the *+ Scan a place* button. The scan runs in the background and the page opens the place when it is done. Only one scan runs at a time: if one is already running, a new request is turned down, not queued.
 
 ## 🐍 As a library
 
