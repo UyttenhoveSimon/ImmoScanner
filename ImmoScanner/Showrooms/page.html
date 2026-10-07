@@ -530,6 +530,8 @@ function viewYield(view) {
     { label: "", cell: y => bar(y.gross_yield_on_medians, top2, y !== b2) },
     { label: t("col.pricePerM2"), n: 1, get: y => y.price_per_m2, cell: y => `<td class="n">${money(y.price_per_m2, currencyOf(y.country))}</td>` },
     { label: t("col.rentPerM2"), n: 1, get: y => y.rent_per_m2, cell: y => `<td class="n">${dec(y.rent_per_m2)} ${currencyOf(y.country)}</td>` },
+    { label: t("col.medianPrice"), n: 1, get: y => y.median_price, cell: y => `<td class="n dash">${money(y.median_price, currencyOf(y.country))}</td>` },
+    { label: t("col.medianRent"), n: 1, get: y => y.median_rent, cell: y => `<td class="n dash">${money(y.median_rent, currencyOf(y.country))}</td>` },
   ], yields, t("yield.empty"),
   y => location.hash = placeHash([y.country, y.place, y.type].join("/"), "buy"));
 }
