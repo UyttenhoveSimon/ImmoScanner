@@ -7,361 +7,776 @@
 <style>
   :root {
     color-scheme: light dark;
-    --ink: #16181d; --dim: #6b7280; --line: #e3e6ea;
-    --ground: #f7f8fa; --card: #ffffff; --accent: #2f6f4f; --warm: #a8553a;
+    --ground: #f4f5f7; --card: #ffffff; --sunk: #eef0f3;
+    --ink: #111827; --dim: #4b5563; --faint: #6b7280; --line: #e2e5ea;
+    --accent: #0f6b4f; --accent-ink: #ffffff; --accent-soft: #e3f1ea;
+    --down: #0f6b4f; --up: #b42318;
+    --shadow: 0 1px 2px rgb(17 24 39 / .06), 0 4px 16px rgb(17 24 39 / .05);
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --ink: #e8eaed; --dim: #9aa2ae; --line: #2a2e36;
-      --ground: #15171b; --card: #1d2026; --accent: #6fbf95; --warm: #d98b6d;
+      --ground: #0e1014; --card: #161a20; --sunk: #1d222a;
+      --ink: #eef1f5; --dim: #b4bcc8; --faint: #8b95a3; --line: #262c35;
+      --accent: #4cc292; --accent-ink: #06261a; --accent-soft: #15302a;
+      --down: #4cc292; --up: #f28b7d;
+      --shadow: 0 1px 2px rgb(0 0 0 / .4);
     }
   }
   * { box-sizing: border-box; }
+  html, body { margin: 0; }
   body {
-    margin: 0; padding: 24px 16px 64px; background: var(--ground); color: var(--ink);
-    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--ground); color: var(--ink);
+    font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
-  main { max-width: 1100px; margin: 0 auto; }
-  h1 { font-size: 20px; margin: 0 0 2px; letter-spacing: -0.01em; }
-  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em;
-       color: var(--dim); margin: 32px 0 10px; font-weight: 600; }
-  .lede { color: var(--dim); margin: 0 0 8px; }
-  section { background: var(--card); border: 1px solid var(--line);
-            border-radius: 10px; padding: 16px; }
+  .num, td.n, th.n { font-variant-numeric: tabular-nums; text-align: right; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  button, input, select { font: inherit; color: inherit; }
+
+  /* frame */
+  .top {
+    position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 24px;
+    padding: 0 20px; height: 56px; background: var(--card); border-bottom: 1px solid var(--line);
+  }
+  .brand { font-weight: 700; font-size: 17px; letter-spacing: -0.01em; color: var(--ink); }
+  .brand span { color: var(--accent); }
+  .brand:hover { text-decoration: none; }
+  .tabs { display: flex; gap: 4px; }
+  .tabs a { color: var(--dim); font-weight: 550; padding: 6px 12px; border-radius: 8px; }
+  .tabs a:hover { background: var(--sunk); text-decoration: none; color: var(--ink); }
+  .tabs a.on { background: var(--accent-soft); color: var(--accent); }
+  .spacer { flex: 1; }
+  .layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: calc(100vh - 56px); }
+  aside {
+    border-right: 1px solid var(--line); background: var(--card); padding: 16px 12px;
+    position: sticky; top: 56px; height: calc(100vh - 56px); overflow-y: auto;
+  }
+  main { padding: 28px 32px 64px; max-width: 1180px; width: 100%; }
+
+  /* sidebar */
+  .find { width: 100%; margin-bottom: 6px; }
+  .group { font-size: 12px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase;
+           color: var(--faint); margin: 16px 10px 6px; }
+  .place {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+    padding: 7px 10px; border-radius: 8px; color: var(--ink);
+  }
+  .place:hover { background: var(--sunk); text-decoration: none; }
+  .place.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .place small { color: var(--faint); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+  /* type */
+  h1 { font-size: 28px; line-height: 1.2; letter-spacing: -0.02em; margin: 0 0 4px; }
+  h2 { font-size: 17px; margin: 0; letter-spacing: -0.01em; }
+  .sub { color: var(--dim); margin: 0 0 24px; }
+  .crumb { color: var(--faint); font-size: 13px; margin-bottom: 6px; }
+
+  /* surfaces */
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); }
+  .card-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+               padding: 12px 16px; border-bottom: 1px solid var(--line); }
+  .scroll { overflow-x: auto; }
+  .note { color: var(--dim); font-size: 14px; padding: 16px 18px 4px; margin: 0; max-width: 78ch; }
+
+  /* tables */
   table { width: 100%; border-collapse: collapse; }
-  th, td { text-align: right; padding: 7px 10px; border-bottom: 1px solid var(--line);
-           white-space: nowrap; }
-  th:first-child, td:first-child { text-align: left; white-space: normal; }
-  th { color: var(--dim); font-weight: 600; font-size: 12px; }
+  th, td { padding: 11px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; text-align: left; }
+  th { font-size: 12px; font-weight: 650; color: var(--faint); letter-spacing: .03em; text-transform: uppercase; }
   th.sortable { cursor: pointer; user-select: none; }
   th.sortable:hover { color: var(--ink); }
   tbody tr:last-child td { border-bottom: 0; }
-  tbody tr.pick { cursor: pointer; }
-  tbody tr.pick:hover { background: color-mix(in srgb, var(--accent) 9%, transparent); }
-  tbody tr.on { background: color-mix(in srgb, var(--accent) 16%, transparent); }
-  a { color: var(--accent); }
-  .bar { height: 9px; border-radius: 5px; background: var(--accent); min-width: 2px; }
-  .bar.pale { background: color-mix(in srgb, var(--accent) 45%, transparent); }
-  .scroll { overflow-x: auto; }
-  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+  tbody tr.go { cursor: pointer; }
+  tbody tr.go:hover { background: var(--sunk); }
+  td .second { display: block; color: var(--faint); font-size: 13px; }
+  td.wrap { white-space: normal; min-width: 220px; }
+  .dash { color: var(--faint); }
+  .empty { color: var(--dim); padding: 32px 18px; text-align: center; }
+
+  /* bits */
+  .bar { height: 8px; border-radius: 4px; background: var(--accent); min-width: 2px; }
+  .bar.pale { background: color-mix(in srgb, var(--accent) 35%, transparent); }
+  .tag { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 999px;
+         background: var(--sunk); color: var(--dim); }
+  .tag.new { background: var(--accent-soft); color: var(--accent); }
+  .tag.gone { text-decoration: line-through; }
+  .down { color: var(--down); font-weight: 600; } .up { color: var(--up); font-weight: 600; }
+  .best { color: var(--accent); font-weight: 700; }
+
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .tile { padding: 16px 18px; }
+  .tile .k { font-size: 13px; color: var(--dim); }
+  .tile .v { font-size: 26px; font-weight: 650; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .tile .h { font-size: 13px; color: var(--faint); }
+
+  .seg { display: inline-flex; background: var(--sunk); border-radius: 10px; padding: 3px; gap: 2px; }
+  .seg a, .seg button { border: 0; background: none; padding: 6px 14px; border-radius: 8px;
+                        color: var(--dim); font-weight: 600; cursor: pointer; }
+  .seg a:hover, .seg button:hover { color: var(--ink); text-decoration: none; }
+  .seg .on { background: var(--card); color: var(--ink); box-shadow: var(--shadow); }
+  .seg .off { opacity: .45; pointer-events: none; }
+
+  input, select { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 8px 11px; }
   input:disabled { opacity: .5; }
-  input, select, button { font: inherit; color: inherit; background: var(--ground);
-                  border: 1px solid var(--line); border-radius: 7px; padding: 6px 9px; }
-  button { background: var(--accent); color: var(--card); border-color: transparent;
-           font-weight: 600; cursor: pointer; }
-  button[disabled] { opacity: .55; cursor: default; }
-  label { display: flex; align-items: center; gap: 5px; }
-  .fail { color: var(--warm); }
-  .muted { color: var(--dim); }
-  .down { color: var(--accent); } .up { color: var(--warm); }
-  .best { font-weight: 700; color: var(--accent); }
-  .empty { color: var(--dim); padding: 22px 0; text-align: center; }
+  input:focus, select:focus, button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .primary { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 8px;
+             padding: 8px 14px; font-weight: 650; cursor: pointer; }
+  .primary[disabled] { opacity: .55; cursor: default; }
+  .ghost { background: none; border: 1px solid var(--line); border-radius: 8px; padding: 7px 12px;
+           cursor: pointer; color: var(--dim); }
+
+  /* scan dialog and listing drawer */
+  dialog { border: 1px solid var(--line); border-radius: 14px; padding: 0; background: var(--card);
+           color: var(--ink); box-shadow: 0 20px 60px rgb(0 0 0 / .25); width: min(460px, calc(100vw - 32px)); }
+  dialog::backdrop { background: rgb(15 17 21 / .45); }
+  .dlg { padding: 22px; display: grid; gap: 14px; }
+  .dlg label { display: grid; gap: 5px; font-size: 13px; color: var(--dim); font-weight: 600; }
+  .dlg .actions { display: flex; justify-content: flex-end; gap: 8px; }
+  #progress { font-size: 14px; color: var(--dim); }
+  #progress.fail { color: var(--up); }
+  .status { font-size: 13px; color: var(--faint); }
+
+  .drawer { position: fixed; inset: 0 0 0 auto; width: min(420px, 100vw); z-index: 10;
+            background: var(--card); border-left: 1px solid var(--line); box-shadow: -10px 0 40px rgb(0 0 0 / .15);
+            padding: 22px; overflow-y: auto; transform: translateX(105%); transition: transform .2s ease; }
+  .drawer.open { transform: none; }
+  .facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; margin: 16px 0; }
+  .facts dt { color: var(--faint); } .facts dd { margin: 0; font-variant-numeric: tabular-nums; }
+  .hist td { padding: 7px 0; }
+
+  .lang { padding: 6px 8px; font-size: 14px; color: var(--dim); }
+
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+    aside { position: static; height: auto; max-height: 220px; border-right: 0; border-bottom: 1px solid var(--line); }
+    main { padding: 20px 16px 48px; }
+    .top { gap: 12px; padding: 0 16px; }
+    .tabs a { padding: 6px 8px; }
+    .status { display: none; }
+    h1 { font-size: 23px; }
+  }
 </style>
 </head>
 <body>
-<main>
-  <h1>ImmoScanner</h1>
-  <p class="lede">Every search kept in this archive, and what changed in it.
-    Click a column heading to sort by it.</p>
+<header class="top">
+  <a class="brand" href="#/">Immo<span>Scanner</span></a>
+  <nav class="tabs">
+    <a href="#/" data-tab="places" data-t="nav.places"></a>
+    <a href="#/yield" data-tab="yield" data-t="nav.yield"></a>
+  </nav>
+  <span class="spacer"></span>
+  <span class="status" id="status"></span>
+  <select class="lang" id="lang" aria-label="Language"></select>
+  <button class="primary" id="open-scan" data-t="scan.open"></button>
+</header>
 
-  <h2>Cities</h2>
-  <section>
-    <form class="row" id="add">
-      <select id="country"></select>
-      <input id="place" placeholder="city or postal code, e.g. Nivelles" size="24">
-      <select id="region"></select>
-      <select id="kind"></select>
-      <label class="muted"><input type="checkbox" id="torent"> to let</label>
-      <button id="go">Scan it</button>
-      <span id="progress" class="muted"></span>
-    </form>
-    <div class="scroll"><table id="searches"></table></div>
-  </section>
+<div class="layout">
+  <aside>
+    <input class="find" id="find" data-t-placeholder="side.find">
+    <nav id="side"></nav>
+  </aside>
+  <main id="view"></main>
+</div>
 
-  <h2>Rental yield</h2>
-  <section>
-    <p class="lede" style="margin-top:0">Gross yearly yield, both ways.
-      <strong>Per m²</strong> divides the median rent per square metre by the
-      median price per square metre. <strong>On medians</strong> divides one
-      median by the other, the way the figure is usually quoted — rental stock
-      skews small and sale stock skews large, so it compares a studio's rent
-      with a house's price. They rank places differently; the best of each is
-      marked.</p>
-    <div class="scroll"><table id="yields"></table></div>
-  </section>
+<div class="drawer" id="drawer" aria-hidden="true"></div>
 
-  <h2>Listings</h2>
-  <section>
-    <div class="row">
-      <input id="source" placeholder="originating portal, e.g. homegate" size="26">
-      <span class="muted" id="scope"></span>
+<dialog id="scan">
+  <form class="dlg" id="add">
+    <h2 data-t="scan.title"></h2>
+    <label><span data-t="scan.country"></span> <select id="country"></select></label>
+    <label><span data-t="scan.town"></span> <input id="place"></label>
+    <label><span data-t="scan.region"></span> <select id="region"></select></label>
+    <label><span data-t="scan.type"></span> <select id="kind"></select></label>
+    <div><div class="seg" role="radiogroup">
+      <button type="button" class="on" data-deal="buy" data-t="deal.buy"></button>
+      <button type="button" data-deal="rent" data-t="deal.rent"></button>
+    </div></div>
+    <div id="progress"></div>
+    <div class="actions">
+      <button type="button" class="ghost" id="close-scan" data-t="close"></button>
+      <button class="primary" id="go" data-t="scan.start"></button>
     </div>
-    <div class="scroll"><table id="listings"></table></div>
-  </section>
-
-  <h2>Price movements</h2>
-  <section><div class="scroll"><table id="movements"></table></div></section>
-</main>
+  </form>
+</dialog>
 
 <script>
-const money = n => n ? Math.round(n).toLocaleString() : "\u2014";
-const pct = n => n.toFixed(2) + "%";
-const get = (path, params) =>
-  fetch(path + "?" + new URLSearchParams(params)).then(r => r.json());
+/* ---------- languages ---------- */
+const LANGUAGES = { en: "English", fr: "Français", nl: "Nederlands", de: "Deutsch" };
 
-let scope = null;
-const KINDS = { any: "all types", house: "houses", apartment: "apartments" };
-const DEALS = { buy: "for sale", rent: "to let" };
-
-/* "Belgium/1300/any/buy" as a person would say it: "1300 · Belgium · all types · for sale".
-   A province or a canton is already the row's name, so it is not repeated. */
-const describe = key => {
-  const [country, place, kind, deal] = key.split("/");
-  if (deal === undefined) return key;
-  const parts = /^\d+$/.test(place) ? [place, country] : [country];
-  return [...parts, KINDS[kind] || kind, DEALS[deal] || deal].join(" \u00b7 ");
+const STRINGS = {
+  en: {
+    "nav.places": "Places", "nav.yield": "Rental yield", "scan.open": "+ Scan a place",
+    "status.last": "Last scan {d}", "status.scanning": "Scanning {p}…",
+    "side.find": "Find a place…", "side.region": "region", "side.none": "No place matches.",
+    "places.title": "Places", "places.sub": "{n} places and {m} listings in this archive. Click a place to see its listings.",
+    "places.empty": "Nothing archived yet. Use <b>+ Scan a place</b> to start.",
+    "col.place": "Place", "col.forSale": "For sale", "col.medianPrice": "Median price", "col.pricePerM2": "Price / m²",
+    "col.toLet": "To let", "col.medianRent": "Median rent", "col.yield": "Yield", "col.perM2": "Per m²",
+    "col.onMedians": "On medians", "col.rentPerM2": "Rent / m²", "col.property": "Property", "col.price": "Price",
+    "col.beds": "Beds", "col.firstSeen": "First seen", "col.was": "Was", "col.now": "Now", "col.change": "Change",
+    "region": "Region",
+    "yield.title": "Rental yield", "yield.sub": "Gross yearly yield for every place scanned both for sale and to let.",
+    "yield.note": "<b>Per m²</b> compares rent and price per square metre, so a small flat to let isn't compared with a big house for sale. <b>On medians</b> divides the median rent by the median price, the way the figure is usually quoted. The two can rank places differently; the best of each is highlighted.",
+    "yield.row": "{s} for sale, {r} to let", "yield.empty": "Scan a place both for sale and to let, and its yield shows up here.",
+    "place.notFound": "Not found", "place.notFoundSub": "This place isn't in the archive.", "place.back": "Back to places",
+    "place.wholeRegion": "Whole region", "place.postal": "Postal code {c}", "place.lastScanned": "last scanned {d}",
+    "deal.buy": "For sale", "deal.rent": "To let",
+    "kind.any": "All types", "kind.house": "Houses", "kind.apartment": "Apartments",
+    "type.House": "House", "type.Apartment": "Apartment",
+    "tile.medianPrice": "Median price", "tile.medianRent": "Median rent", "tile.average": "average {v}",
+    "tile.perM2": "Median per m²", "tile.perMonth": "per month", "tile.asking": "asking price",
+    "tile.range": "Typical range", "tile.rangePrices": "half of all prices fall here", "tile.rangeRents": "half of all rents fall here",
+    "tile.yield": "Gross yield", "tile.onMedians": "{v} on medians",
+    "tab.listings": "Listings", "tab.moves": "Price changes", "filter": "Filter by words or website…", "loading": "Loading…",
+    "tag.new": "new", "tag.gone": "gone",
+    "moves.empty": "No price has changed since the first scan.", "listings.empty": "No listing matches.",
+    "close": "Close", "d.price": "Price", "d.place": "Place", "d.surface": "Surface", "d.bedrooms": "Bedrooms",
+    "d.type": "Type", "d.seen": "Seen", "d.open": "Open the original listing ↗", "d.history": "Price history",
+    "scan.title": "Scan a place", "scan.country": "Country", "scan.town": "Town or postal code",
+    "scan.townHint": "e.g. Nivelles or 1400", "scan.wholeRegion": "the whole region", "scan.region": "…or a whole region",
+    "scan.regionNone": "— none —", "scan.type": "Property type", "scan.start": "Start scan",
+    "scan.asking": "Asking…", "scan.needPlace": "Name a town, or pick a region.", "scan.done": "{p}: {n} listings — {s}",
+  },
+  fr: {
+    "nav.places": "Lieux", "nav.yield": "Rendement locatif", "scan.open": "+ Scanner un lieu",
+    "status.last": "Dernier scan le {d}", "status.scanning": "Scan de {p}…",
+    "side.find": "Chercher un lieu…", "side.region": "région", "side.none": "Aucun lieu trouvé.",
+    "places.title": "Lieux", "places.sub": "{n} lieux et {m} annonces dans cette archive. Cliquez sur un lieu pour voir ses annonces.",
+    "places.empty": "Rien d'archivé pour l'instant. Cliquez sur <b>+ Scanner un lieu</b> pour commencer.",
+    "col.place": "Lieu", "col.forSale": "À vendre", "col.medianPrice": "Prix médian", "col.pricePerM2": "Prix / m²",
+    "col.toLet": "À louer", "col.medianRent": "Loyer médian", "col.yield": "Rendement", "col.perM2": "Au m²",
+    "col.onMedians": "Sur médianes", "col.rentPerM2": "Loyer / m²", "col.property": "Bien", "col.price": "Prix",
+    "col.beds": "Ch.", "col.firstSeen": "Vu le", "col.was": "Avant", "col.now": "Maintenant", "col.change": "Écart",
+    "region": "Région",
+    "yield.title": "Rendement locatif", "yield.sub": "Rendement brut annuel de chaque lieu scanné à la vente et à la location.",
+    "yield.note": "<b>Au m²</b> compare le loyer et le prix au mètre carré : un petit appartement à louer n'est pas comparé à une grande maison à vendre. <b>Sur médianes</b> divise le loyer médian par le prix médian, comme on le cite d'habitude. Les deux peuvent classer les lieux différemment ; le meilleur de chacun est mis en avant.",
+    "yield.row": "{s} à vendre, {r} à louer", "yield.empty": "Scannez un lieu à la vente et à la location pour voir son rendement ici.",
+    "place.notFound": "Introuvable", "place.notFoundSub": "Ce lieu n'est pas dans l'archive.", "place.back": "Retour aux lieux",
+    "place.wholeRegion": "Région entière", "place.postal": "Code postal {c}", "place.lastScanned": "dernier scan le {d}",
+    "deal.buy": "À vendre", "deal.rent": "À louer",
+    "kind.any": "Tous types", "kind.house": "Maisons", "kind.apartment": "Appartements",
+    "type.House": "Maison", "type.Apartment": "Appartement",
+    "tile.medianPrice": "Prix médian", "tile.medianRent": "Loyer médian", "tile.average": "moyenne {v}",
+    "tile.perM2": "Médiane au m²", "tile.perMonth": "par mois", "tile.asking": "prix demandé",
+    "tile.range": "Fourchette typique", "tile.rangePrices": "la moitié des prix se situe ici", "tile.rangeRents": "la moitié des loyers se situe ici",
+    "tile.yield": "Rendement brut", "tile.onMedians": "{v} sur médianes",
+    "tab.listings": "Annonces", "tab.moves": "Changements de prix", "filter": "Filtrer par mot ou site…", "loading": "Chargement…",
+    "tag.new": "nouveau", "tag.gone": "retiré",
+    "moves.empty": "Aucun prix n'a changé depuis le premier scan.", "listings.empty": "Aucune annonce ne correspond.",
+    "close": "Fermer", "d.price": "Prix", "d.place": "Lieu", "d.surface": "Surface", "d.bedrooms": "Chambres",
+    "d.type": "Type", "d.seen": "Vu", "d.open": "Voir l'annonce d'origine ↗", "d.history": "Historique des prix",
+    "scan.title": "Scanner un lieu", "scan.country": "Pays", "scan.town": "Ville ou code postal",
+    "scan.townHint": "ex. Nivelles ou 1400", "scan.wholeRegion": "toute la région", "scan.region": "…ou une région entière",
+    "scan.regionNone": "— aucune —", "scan.type": "Type de bien", "scan.start": "Lancer le scan",
+    "scan.asking": "Envoi…", "scan.needPlace": "Indiquez une ville, ou choisissez une région.", "scan.done": "{p} : {n} annonces — {s}",
+  },
+  nl: {
+    "nav.places": "Plaatsen", "nav.yield": "Huurrendement", "scan.open": "+ Plaats scannen",
+    "status.last": "Laatste scan {d}", "status.scanning": "{p} wordt gescand…",
+    "side.find": "Plaats zoeken…", "side.region": "regio", "side.none": "Geen plaats gevonden.",
+    "places.title": "Plaatsen", "places.sub": "{n} plaatsen en {m} zoekertjes in dit archief. Klik op een plaats om de zoekertjes te zien.",
+    "places.empty": "Nog niets gearchiveerd. Klik op <b>+ Plaats scannen</b> om te beginnen.",
+    "col.place": "Plaats", "col.forSale": "Te koop", "col.medianPrice": "Mediaanprijs", "col.pricePerM2": "Prijs / m²",
+    "col.toLet": "Te huur", "col.medianRent": "Mediaanhuur", "col.yield": "Rendement", "col.perM2": "Per m²",
+    "col.onMedians": "Op medianen", "col.rentPerM2": "Huur / m²", "col.property": "Woning", "col.price": "Prijs",
+    "col.beds": "Slpk.", "col.firstSeen": "Eerst gezien", "col.was": "Was", "col.now": "Nu", "col.change": "Verschil",
+    "region": "Regio",
+    "yield.title": "Huurrendement", "yield.sub": "Bruto jaarrendement voor elke plaats die zowel te koop als te huur gescand is.",
+    "yield.note": "<b>Per m²</b> vergelijkt huur en prijs per vierkante meter, zodat een klein huurappartement niet met een groot huis te koop wordt vergeleken. <b>Op medianen</b> deelt de mediaanhuur door de mediaanprijs, zoals het cijfer meestal wordt geciteerd. Beide kunnen plaatsen anders rangschikken; de beste van elk wordt gemarkeerd.",
+    "yield.row": "{s} te koop, {r} te huur", "yield.empty": "Scan een plaats zowel te koop als te huur, en het rendement verschijnt hier.",
+    "place.notFound": "Niet gevonden", "place.notFoundSub": "Deze plaats staat niet in het archief.", "place.back": "Terug naar plaatsen",
+    "place.wholeRegion": "Hele regio", "place.postal": "Postcode {c}", "place.lastScanned": "laatst gescand op {d}",
+    "deal.buy": "Te koop", "deal.rent": "Te huur",
+    "kind.any": "Alle types", "kind.house": "Huizen", "kind.apartment": "Appartementen",
+    "type.House": "Huis", "type.Apartment": "Appartement",
+    "tile.medianPrice": "Mediaanprijs", "tile.medianRent": "Mediaanhuur", "tile.average": "gemiddeld {v}",
+    "tile.perM2": "Mediaan per m²", "tile.perMonth": "per maand", "tile.asking": "vraagprijs",
+    "tile.range": "Gangbare marge", "tile.rangePrices": "de helft van de prijzen valt hierbinnen", "tile.rangeRents": "de helft van de huurprijzen valt hierbinnen",
+    "tile.yield": "Bruto rendement", "tile.onMedians": "{v} op medianen",
+    "tab.listings": "Zoekertjes", "tab.moves": "Prijswijzigingen", "filter": "Filter op woorden of website…", "loading": "Laden…",
+    "tag.new": "nieuw", "tag.gone": "weg",
+    "moves.empty": "Geen enkele prijs is veranderd sinds de eerste scan.", "listings.empty": "Geen zoekertje gevonden.",
+    "close": "Sluiten", "d.price": "Prijs", "d.place": "Plaats", "d.surface": "Oppervlakte", "d.bedrooms": "Slaapkamers",
+    "d.type": "Type", "d.seen": "Gezien", "d.open": "Open het originele zoekertje ↗", "d.history": "Prijsverloop",
+    "scan.title": "Plaats scannen", "scan.country": "Land", "scan.town": "Gemeente of postcode",
+    "scan.townHint": "bv. Nivelles of 1400", "scan.wholeRegion": "de hele regio", "scan.region": "…of een hele regio",
+    "scan.regionNone": "— geen —", "scan.type": "Type woning", "scan.start": "Scan starten",
+    "scan.asking": "Bezig…", "scan.needPlace": "Geef een gemeente op, of kies een regio.", "scan.done": "{p}: {n} zoekertjes — {s}",
+  },
+  de: {
+    "nav.places": "Orte", "nav.yield": "Mietrendite", "scan.open": "+ Ort scannen",
+    "status.last": "Letzter Scan {d}", "status.scanning": "{p} wird gescannt…",
+    "side.find": "Ort suchen…", "side.region": "Region", "side.none": "Kein Ort gefunden.",
+    "places.title": "Orte", "places.sub": "{n} Orte und {m} Inserate in diesem Archiv. Klicken Sie auf einen Ort, um seine Inserate zu sehen.",
+    "places.empty": "Noch nichts archiviert. Mit <b>+ Ort scannen</b> geht es los.",
+    "col.place": "Ort", "col.forSale": "Zu kaufen", "col.medianPrice": "Medianpreis", "col.pricePerM2": "Preis / m²",
+    "col.toLet": "Zu mieten", "col.medianRent": "Medianmiete", "col.yield": "Rendite", "col.perM2": "Pro m²",
+    "col.onMedians": "Auf Medianen", "col.rentPerM2": "Miete / m²", "col.property": "Objekt", "col.price": "Preis",
+    "col.beds": "Zi.", "col.firstSeen": "Zuerst gesehen", "col.was": "Vorher", "col.now": "Jetzt", "col.change": "Änderung",
+    "region": "Region",
+    "yield.title": "Mietrendite", "yield.sub": "Jährliche Bruttorendite für jeden Ort, der zum Kauf und zur Miete gescannt wurde.",
+    "yield.note": "<b>Pro m²</b> vergleicht Miete und Preis pro Quadratmeter, damit eine kleine Mietwohnung nicht mit einem grossen Haus zum Kauf verglichen wird. <b>Auf Medianen</b> teilt die Medianmiete durch den Medianpreis, so wie die Zahl meist angegeben wird. Beide können Orte unterschiedlich einstufen; der beste jeder Art ist hervorgehoben.",
+    "yield.row": "{s} zu kaufen, {r} zu mieten", "yield.empty": "Scannen Sie einen Ort zum Kauf und zur Miete, dann erscheint hier seine Rendite.",
+    "place.notFound": "Nicht gefunden", "place.notFoundSub": "Dieser Ort ist nicht im Archiv.", "place.back": "Zurück zu den Orten",
+    "place.wholeRegion": "Ganze Region", "place.postal": "PLZ {c}", "place.lastScanned": "zuletzt gescannt am {d}",
+    "deal.buy": "Zu kaufen", "deal.rent": "Zu mieten",
+    "kind.any": "Alle Arten", "kind.house": "Häuser", "kind.apartment": "Wohnungen",
+    "type.House": "Haus", "type.Apartment": "Wohnung",
+    "tile.medianPrice": "Medianpreis", "tile.medianRent": "Medianmiete", "tile.average": "Durchschnitt {v}",
+    "tile.perM2": "Median pro m²", "tile.perMonth": "pro Monat", "tile.asking": "Angebotspreis",
+    "tile.range": "Übliche Spanne", "tile.rangePrices": "die Hälfte aller Preise liegt hier", "tile.rangeRents": "die Hälfte aller Mieten liegt hier",
+    "tile.yield": "Bruttorendite", "tile.onMedians": "{v} auf Medianen",
+    "tab.listings": "Inserate", "tab.moves": "Preisänderungen", "filter": "Nach Wörtern oder Website filtern…", "loading": "Wird geladen…",
+    "tag.new": "neu", "tag.gone": "weg",
+    "moves.empty": "Seit dem ersten Scan hat sich kein Preis geändert.", "listings.empty": "Kein Inserat gefunden.",
+    "close": "Schliessen", "d.price": "Preis", "d.place": "Ort", "d.surface": "Fläche", "d.bedrooms": "Schlafzimmer",
+    "d.type": "Art", "d.seen": "Gesehen", "d.open": "Originalinserat öffnen ↗", "d.history": "Preisverlauf",
+    "scan.title": "Ort scannen", "scan.country": "Land", "scan.town": "Ort oder PLZ",
+    "scan.townHint": "z. B. Lausanne oder 1003", "scan.wholeRegion": "die ganze Region", "scan.region": "…oder eine ganze Region",
+    "scan.regionNone": "— keine —", "scan.type": "Objektart", "scan.start": "Scan starten",
+    "scan.asking": "Wird gesendet…", "scan.needPlace": "Geben Sie einen Ort an oder wählen Sie eine Region.", "scan.done": "{p}: {n} Inserate — {s}",
+  },
 };
-const attr = text => String(text).replace(/&/g, "&amp;").replace(/"/g, "&quot;");
-const sorts = {};           // one sort state per table, remembered across reloads
 
+const storage = {
+  get: k => { try { return localStorage.getItem(k); } catch { return null; } },
+  set: (k, v) => { try { localStorage.setItem(k, v); } catch {} },
+};
+const guess = (navigator.languages || [navigator.language || "en"]).map(l => l.slice(0, 2)).find(l => STRINGS[l]);
+let lang = STRINGS[storage.get("lang")] ? storage.get("lang") : (guess || "en");
+
+/* Looks a phrase up in the chosen language, falling back on English. */
+const t = (key, vars = {}) =>
+  (STRINGS[lang][key] ?? STRINGS.en[key] ?? key).replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "");
+
+function applyStatic() {
+  document.documentElement.lang = lang;
+  document.querySelectorAll("[data-t]").forEach(n => n.textContent = t(n.dataset.t));
+  document.querySelectorAll("[data-t-placeholder]").forEach(n => n.placeholder = t(n.dataset.tPlaceholder));
+  $("lang").innerHTML = Object.entries(LANGUAGES).map(([code, name]) =>
+    `<option value="${code}" ${code === lang ? "selected" : ""}>${name}</option>`).join("");
+}
+
+/* ---------- helpers ---------- */
+const $ = id => document.getElementById(id);
+const get = (path, params = {}) =>
+  fetch(path + "?" + new URLSearchParams(params)).then(r => r.json());
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const DASH = '<span class="dash">—</span>';
+
+const KIND_KEYS = ["any", "house", "apartment"];
+const kindName = k => KIND_KEYS.includes(k) ? t("kind." + k) : k;
+const COUNTRIES = {
+  fr: { Belgium: "Belgique", Switzerland: "Suisse" },
+  nl: { Belgium: "België", Switzerland: "Zwitserland" },
+  de: { Belgium: "Belgien", Switzerland: "Schweiz" },
+};
+const countryName = c => COUNTRIES[lang]?.[c] ?? c;
+const typeName = k => STRINGS.en["type." + k] ? t("type." + k) : k;
+const currencyOf = country => country === "Switzerland" ? "CHF" : "€";
+
+const num = n => Math.round(n).toLocaleString(lang);
+const dec = n => n.toLocaleString(lang, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const money = (n, cur) => n ? `${num(n)} ${cur}` : DASH;
+const short = n => !n ? "—" : n >= 1e6 ? dec(n / 1e6).replace(/[.,]?0+$/, "") + "M" : n >= 1e4 ? Math.round(n / 1e3) + "k" : num(n);
+const pct = n => n ? dec(n) + "%" : DASH;
+const day = iso => iso ? new Date(iso).toLocaleDateString(lang, { day: "numeric", month: "short", year: "numeric" }) : "";
+const placeHash = (key, deal) => `#/place/${encodeURIComponent(key)}/${deal}`;
+
+/* ---------- data ---------- */
+let searches = [], yields = [], places = [];
+
+/* A place is one country + locality + property type; its sale and rental
+   searches are two sides of it, not two places. */
+function groupPlaces() {
+  const byKey = new Map();
+  for (const s of searches) {
+    const [country, code, type, deal] = s.search_key.split("/");
+    const key = [country, code, type].join("/");
+    if (!byKey.has(key)) byKey.set(key, { key, country, code, type, name: code, sides: {} });
+    const p = byKey.get(key);
+    p.sides[deal] = s;
+    if (s.city) p.name = s.city;
+  }
+  places = [...byKey.values()].sort((a, b) => a.name.localeCompare(b.name));
+  for (const p of places) {
+    p.isRegion = !/^\d+$/.test(p.code);
+    p.yield = yields.find(y => y.country === p.country && y.place === p.code && y.type === p.type);
+    p.lastSeen = Object.values(p.sides).map(s => s.last_seen).sort().pop();
+  }
+}
+
+function showLastScan() {
+  const latest = places.map(p => p.lastSeen).sort().pop();
+  $("status").textContent = latest ? t("status.last", { d: day(latest) }) : "";
+}
+
+async function loadAll() {
+  [searches, yields] = await Promise.all([get("/api/searches"), get("/api/yields")]);
+  groupPlaces();
+  showLastScan();
+  drawSide();
+  route();
+}
+
+/* ---------- sortable tables ---------- */
+const sorts = {};
 const compare = (a, b) => {
   if (a === b) return 0;
-  if (a === null || a === undefined || a === "") return 1;   // blanks sink
-  if (b === null || b === undefined || b === "") return -1;
-  return typeof a === "number" && typeof b === "number"
-    ? a - b : String(a).localeCompare(String(b));
+  if (a == null || a === "") return 1;
+  if (b == null || b === "") return -1;
+  return typeof a === "number" && typeof b === "number" ? a - b : String(a).localeCompare(String(b));
 };
 
-/* Renders a table whose headers sort it. `columns` give the value to sort on
-   and the cell to show, so ordering never depends on how a cell is formatted. */
-function render(id, columns, rows, empty) {
-  const node = document.getElementById(id);
+/* Draws a table whose headings sort it. Each column gives the value to sort
+   on and the cell to show, so ordering never depends on formatting. */
+function table(node, id, columns, rows, empty, onRow) {
   const state = sorts[id] || (sorts[id] = { index: null, dir: 1 });
-
-  if (!rows.length) {
-    node.innerHTML = `<tr><td class="empty" colspan="${columns.length}">${empty}</td></tr>`;
-    return;
-  }
-
+  if (!rows.length) { node.innerHTML = `<div class="empty">${empty}</div>`; return; }
   if (state.index !== null) {
     const of = columns[state.index].get;
     rows = [...rows].sort((a, b) => compare(of(a), of(b)) * state.dir);
   }
-
-  const head = columns.map((column, index) => {
-    const arrow = state.index === index ? (state.dir > 0 ? " \u2191" : " \u2193") : "";
-    return `<th data-i="${index}" class="${column.get ? "sortable" : ""}">${column.label}${arrow}</th>`;
+  const head = columns.map((c, i) => {
+    const arrow = state.index === i ? (state.dir > 0 ? " ↑" : " ↓") : "";
+    return `<th data-i="${i}" class="${c.get ? "sortable" : ""} ${c.n ? "n" : ""}">${c.label}${arrow}</th>`;
   }).join("");
-
-  node.innerHTML = `<thead><tr>${head}</tr></thead><tbody>` +
-    rows.map(row => "<tr>" + columns.map(c => c.cell(row)).join("") + "</tr>").join("") +
-    "</tbody>";
-
+  node.innerHTML = `<div class="scroll"><table><thead><tr>${head}</tr></thead><tbody>` +
+    rows.map((r, i) => `<tr data-r="${i}" class="${onRow ? "go" : ""}">` +
+      columns.map(c => c.cell(r)).join("") + "</tr>").join("") + "</tbody></table></div>";
   node.querySelectorAll("th[data-i]").forEach(th => {
-    const index = Number(th.dataset.i);
-    if (!columns[index].get) return;
+    const i = +th.dataset.i;
+    if (!columns[i].get) return;
     th.onclick = () => {
-      state.dir = state.index === index ? -state.dir : -1;
-      state.index = index;
-      render(id, columns, rows, empty);
+      state.dir = state.index === i ? -state.dir : -1;
+      state.index = i;
+      table(node, id, columns, rows, empty, onRow);
     };
+  });
+  if (onRow) node.querySelectorAll("tbody tr").forEach(tr => tr.onclick = e => {
+    if (!e.target.closest("a")) onRow(rows[+tr.dataset.r]);
   });
 }
 
-const bar = (value, top) =>
-  `<td style="width:120px"><div class="bar" style="width:${(value / top * 100).toFixed(1)}%"></div></td>`;
+const bar = (v, top, pale) =>
+  `<td style="width:110px"><div class="bar${pale ? " pale" : ""}" style="width:${(v / top * 100).toFixed(1)}%"></div></td>`;
 
-async function loadSearches() {
-  const searches = await get("/api/searches", {});
-  const top = Math.max(...searches.map(s => s.median_price_per_m2), 1);
+/* ---------- sidebar ---------- */
+function drawSide() {
+  const q = $("find").value.trim().toLowerCase();
+  const shown = places.filter(p => !q || `${p.name} ${p.code}`.toLowerCase().includes(q));
+  const countries = [...new Set(shown.map(p => p.country))].sort();
+  $("side").innerHTML = countries.map(c => `<div class="group">${esc(countryName(c))}</div>` +
+    shown.filter(p => p.country === c).map(p =>
+      `<a class="place" data-key="${esc(p.key)}" href="${placeHash(p.key, p.sides.buy ? "buy" : "rent")}">` +
+      `<span>${esc(p.name)}${p.type !== "any" ? ` <small>${kindName(p.type)}</small>` : ""}</span>` +
+      `<small>${p.isRegion ? t("side.region") : esc(p.code)}</small></a>`).join("")
+  ).join("") || `<div class="empty">${t("side.none")}</div>`;
+  markSide();
+}
+const markSide = () => document.querySelectorAll(".place").forEach(a =>
+  a.classList.toggle("on", location.hash.startsWith("#/place/") &&
+    decodeURIComponent(location.hash.split("/")[2]) === a.dataset.key));
 
-  render("searches", [
-    { label: "place", get: s => s.city || s.search_key,
-      cell: s => `<td data-key="${attr(s.search_key)}">${s.city || s.search_key}<div class="muted">${describe(s.search_key)}</div></td>` },
-    { label: "listings", get: s => s.listings, cell: s => `<td>${s.listings}</td>` },
-    { label: "median", get: s => s.median_price, cell: s => `<td>${money(s.median_price)}</td>` },
-    { label: "per m\u00b2", get: s => s.median_price_per_m2,
-      cell: s => `<td><strong>${money(s.median_price_per_m2)}</strong></td>` },
-    { label: "", cell: s => bar(s.median_price_per_m2, top) },
-    { label: "Q1", get: s => s.first_quartile, cell: s => `<td class="muted">${money(s.first_quartile)}</td>` },
-    { label: "Q3", get: s => s.third_quartile, cell: s => `<td class="muted">${money(s.third_quartile)}</td>` },
-  ], searches, "Nothing archived yet \u2014 scan a place above.");
-
-  document.querySelectorAll("#searches tbody tr").forEach((row, index) => {
-    row.classList.add("pick");
-    row.onclick = () => {
-      scope = row.querySelector("[data-key]").dataset.key;
-      highlight();
-      loadListings(); loadMovements();
-    };
-  });
-  highlight();
-
-  if (scope === null && searches.length) {
-    scope = searches[0].search_key;
-    highlight(); loadListings(); loadMovements();
+/* ---------- views ---------- */
+function viewPlaces(view) {
+  const total = searches.reduce((n, s) => n + s.listings, 0);
+  view.innerHTML = `<h1>${t("places.title")}</h1>
+    <p class="sub">${t("places.sub", { n: places.length, m: num(total) })}</p>
+    <div class="card" id="tbl"></div>`;
+  if (!places.length) {
+    $("tbl").innerHTML = `<div class="empty">${t("places.empty")}</div>`;
+    return;
   }
+  // Francs and euros don't share a scale, so each currency gets its own bars.
+  const top = {};
+  for (const p of places) {
+    const cur = currencyOf(p.country);
+    top[cur] = Math.max(top[cur] || 1, p.sides.buy?.median_price_per_m2 || 0);
+  }
+  table($("tbl"), "places", [
+    { label: t("col.place"), get: p => p.name,
+      cell: p => `<td><b>${esc(p.name)}</b><span class="second">${p.isRegion ? t("region") : esc(p.code)} · ${esc(countryName(p.country))}${p.type !== "any" ? " · " + kindName(p.type) : ""}</span></td>` },
+    { label: t("col.forSale"), n: 1, get: p => p.sides.buy?.listings, cell: p => `<td class="n">${p.sides.buy ? p.sides.buy.listings : DASH}</td>` },
+    { label: t("col.medianPrice"), n: 1, get: p => p.sides.buy?.median_price,
+      cell: p => `<td class="n">${money(p.sides.buy?.median_price, currencyOf(p.country))}</td>` },
+    { label: t("col.pricePerM2"), n: 1, get: p => p.sides.buy?.median_price_per_m2,
+      cell: p => `<td class="n"><b>${money(p.sides.buy?.median_price_per_m2, currencyOf(p.country))}</b></td>` },
+    { label: "", cell: p => p.sides.buy ? bar(p.sides.buy.median_price_per_m2, top[currencyOf(p.country)]) : "<td></td>" },
+    { label: t("col.toLet"), n: 1, get: p => p.sides.rent?.listings, cell: p => `<td class="n">${p.sides.rent ? p.sides.rent.listings : DASH}</td>` },
+    { label: t("col.medianRent"), n: 1, get: p => p.sides.rent?.median_price,
+      cell: p => `<td class="n">${money(p.sides.rent?.median_price, currencyOf(p.country))}</td>` },
+    { label: t("col.yield"), n: 1, get: p => p.yield?.gross_yield,
+      cell: p => `<td class="n">${p.yield ? `<b>${pct(p.yield.gross_yield)}</b>` : DASH}</td>` },
+  ], places, "", p => location.hash = placeHash(p.key, p.sides.buy ? "buy" : "rent"));
 }
 
-const highlight = () =>
-  document.querySelectorAll("#searches tbody tr").forEach(row =>
-    row.classList.toggle("on", row.querySelector("[data-key]")?.dataset.key === scope));
-
-async function loadYields() {
-  const rows = await get("/api/yields", {});
-  const topPerM2 = Math.max(...rows.map(r => r.gross_yield), 0.01);
-  const topMedian = Math.max(...rows.map(r => r.gross_yield_on_medians), 0.01);
-  const bestPerM2 = rows.reduce((a, b) => b.gross_yield > a.gross_yield ? b : a, rows[0] || {});
-  const bestMedian = rows.reduce((a, b) =>
-    b.gross_yield_on_medians > a.gross_yield_on_medians ? b : a, rows[0] || {});
-
-  render("yields", [
-    { label: "place", get: r => r.city,
-      cell: r => `<td>${r.city}<div class="muted">${r.country} \u00b7 ${KINDS[r.type] || r.type} \u00b7 ${r.for_sale} for sale, ${r.to_let} to let</div></td>` },
-    { label: "per m\u00b2", get: r => r.gross_yield,
-      cell: r => `<td class="${r === bestPerM2 ? "best" : ""}">${pct(r.gross_yield)}</td>` },
-    { label: "", cell: r => `<td style="width:110px"><div class="bar${r === bestPerM2 ? "" : " pale"}" style="width:${(r.gross_yield / topPerM2 * 100).toFixed(1)}%"></div></td>` },
-    { label: "on medians", get: r => r.gross_yield_on_medians,
-      cell: r => `<td class="${r === bestMedian ? "best" : ""}">${pct(r.gross_yield_on_medians)}</td>` },
-    { label: "", cell: r => `<td style="width:110px"><div class="bar${r === bestMedian ? "" : " pale"}" style="width:${(r.gross_yield_on_medians / topMedian * 100).toFixed(1)}%"></div></td>` },
-    { label: "\u20ac/m\u00b2 to buy", get: r => r.price_per_m2, cell: r => `<td>${money(r.price_per_m2)}</td>` },
-    { label: "\u20ac/m\u00b2 to let", get: r => r.rent_per_m2, cell: r => `<td>${r.rent_per_m2.toFixed(2)}</td>` },
-    { label: "median price", get: r => r.median_price, cell: r => `<td class="muted">${money(r.median_price)}</td>` },
-    { label: "median rent", get: r => r.median_rent, cell: r => `<td class="muted">${money(r.median_rent)}</td>` },
-  ], rows, "Scan a place both to buy and to let, and its yield shows up here.");
+function viewYield(view) {
+  view.innerHTML = `<h1>${t("yield.title")}</h1>
+    <p class="sub">${t("yield.sub")}</p>
+    <div class="card"><p class="note">${t("yield.note")}</p><div id="tbl"></div></div>`;
+  const best = k => yields.reduce((a, b) => (!a || b[k] > a[k] ? b : a), null);
+  const b1 = best("gross_yield"), b2 = best("gross_yield_on_medians");
+  const top1 = Math.max(...yields.map(y => y.gross_yield), .01);
+  const top2 = Math.max(...yields.map(y => y.gross_yield_on_medians), .01);
+  table($("tbl"), "yield", [
+    { label: t("col.place"), get: y => y.city,
+      cell: y => `<td><b>${esc(y.city)}</b><span class="second">${esc(countryName(y.country))} · ${t("yield.row", { s: y.for_sale, r: y.to_let })}</span></td>` },
+    { label: t("col.perM2"), n: 1, get: y => y.gross_yield, cell: y => `<td class="n ${y === b1 ? "best" : ""}">${pct(y.gross_yield)}</td>` },
+    { label: "", cell: y => bar(y.gross_yield, top1, y !== b1) },
+    { label: t("col.onMedians"), n: 1, get: y => y.gross_yield_on_medians,
+      cell: y => `<td class="n ${y === b2 ? "best" : ""}">${pct(y.gross_yield_on_medians)}</td>` },
+    { label: "", cell: y => bar(y.gross_yield_on_medians, top2, y !== b2) },
+    { label: t("col.pricePerM2"), n: 1, get: y => y.price_per_m2, cell: y => `<td class="n">${money(y.price_per_m2, currencyOf(y.country))}</td>` },
+    { label: t("col.rentPerM2"), n: 1, get: y => y.rent_per_m2, cell: y => `<td class="n">${dec(y.rent_per_m2)} ${currencyOf(y.country)}</td>` },
+  ], yields, t("yield.empty"),
+  y => location.hash = placeHash([y.country, y.place, y.type].join("/"), "buy"));
 }
 
-async function loadListings() {
-  const searches = await get("/api/searches", {});
-  const named = searches.find(s => s.search_key === scope);
-  document.getElementById("scope").textContent = named ? (named.city || scope) : "";
+let placeTab = "listings";
 
-  const rows = await get("/api/listings", {
-    search: scope || "", sort: "price",
-    source: document.getElementById("source").value, limit: 300 });
+async function viewPlace(view, key, deal) {
+  const p = places.find(x => x.key === key);
+  if (!p) {
+    view.innerHTML = `<h1>${t("place.notFound")}</h1><p class="sub">${t("place.notFoundSub")} <a href="#/">${t("place.back")}</a></p>`;
+    return;
+  }
+  deal = p.sides[deal] ? deal : (p.sides.buy ? "buy" : "rent");
+  const s = p.sides[deal], cur = currencyOf(p.country), renting = deal === "rent";
+  const perM2 = v => !v ? DASH : renting ? `${dec(v)} ${cur}` : money(v, cur);
 
-  render("listings", [
-    { label: "property", get: r => r.description || "",
-      cell: r => `<td><a href="${r.url}" target="_blank" rel="noreferrer">${(r.description || r.type || r.listing_id).slice(0, 78)}</a></td>` },
-    { label: "city", get: r => r.city, cell: r => `<td>${r.postal_code || ""} ${r.city || ""}</td>` },
-    { label: "price", get: r => r.price, cell: r => `<td>${money(r.price)}</td>` },
-    { label: "m\u00b2", get: r => r.livable_square_meters, cell: r => `<td>${r.livable_square_meters || "\u2014"}</td>` },
-    { label: "per m\u00b2", get: r => r.price && r.livable_square_meters ? r.price / r.livable_square_meters : null,
-      cell: r => `<td>${r.price && r.livable_square_meters ? money(r.price / r.livable_square_meters) : "\u2014"}</td>` },
-    { label: "bed", get: r => r.bedrooms_number, cell: r => `<td>${r.bedrooms_number || "\u2014"}</td>` },
-    { label: "from", get: r => r.source || r.platform, cell: r => `<td class="muted">${r.source || r.platform}</td>` },
-  ], rows, "No listing matches.");
+  view.innerHTML = `<div class="crumb"><a href="#/">${t("nav.places")}</a> / ${esc(countryName(p.country))}</div>
+    <h1>${esc(p.name)}</h1>
+    <p class="sub">${p.isRegion ? t("place.wholeRegion") : t("place.postal", { c: esc(p.code) })} · ${kindName(p.type)} · ${t("place.lastScanned", { d: day(s.last_seen) })}</p>
+    <div class="seg" style="margin-bottom:18px">
+      ${["buy", "rent"].map(d => `<a class="${d === deal ? "on" : ""} ${p.sides[d] ? "" : "off"}" href="${placeHash(key, d)}">` +
+        `${t("deal." + d)}${p.sides[d] ? ` <span class="num">${p.sides[d].listings}</span>` : ""}</a>`).join("")}
+    </div>
+    <div class="tiles">
+      <div class="card tile"><div class="k">${t(renting ? "tile.medianRent" : "tile.medianPrice")}</div><div class="v">${money(s.median_price, cur)}</div>
+        <div class="h">${t("tile.average", { v: money(s.mean_price, cur) })}</div></div>
+      <div class="card tile"><div class="k">${t("tile.perM2")}</div><div class="v">${perM2(s.median_price_per_m2)}</div>
+        <div class="h">${t(renting ? "tile.perMonth" : "tile.asking")}</div></div>
+      <div class="card tile"><div class="k">${t("tile.range")}</div><div class="v">${short(s.first_quartile)} – ${short(s.third_quartile)}</div>
+        <div class="h">${t(renting ? "tile.rangeRents" : "tile.rangePrices")}</div></div>
+      ${p.yield ? `<div class="card tile"><div class="k">${t("tile.yield")}</div><div class="v">${pct(p.yield.gross_yield)}</div>
+        <div class="h">${t("tile.onMedians", { v: pct(p.yield.gross_yield_on_medians) })}</div></div>` : ""}
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div class="seg" id="ptabs">
+          <button data-tab="listings">${t("tab.listings")}</button>
+          <button data-tab="moves">${t("tab.moves")} <span class="num" id="nmoves"></span></button>
+        </div>
+        <span class="spacer"></span>
+        <input id="filter" placeholder="${t("filter")}" size="26" aria-label="${t("filter")}">
+      </div>
+      <div id="pbody"><div class="empty">${t("loading")}</div></div>
+    </div>`;
+
+  const [rows, moves] = await Promise.all([
+    get("/api/listings", { search: s.search_key, sort: "price", limit: 1000 }),
+    get("/api/movements", { search: s.search_key }),
+  ]);
+  if (!$("pbody")) return;  // the reader moved on while this loaded
+  $("nmoves").textContent = moves.length || "";
+
+  const stamps = rows.flatMap(r => [r.first_seen, r.last_seen]).sort();
+  const earliest = stamps[0], latest = stamps[stamps.length - 1];
+  const statusOf = r => r.last_seen < latest ? "gone" : (r.first_seen === latest && latest !== earliest ? "new" : "");
+  const open = r => openListing(r.platform, r.listing_id, rows, cur);
+
+  const draw = () => {
+    const q = $("filter").value.trim().toLowerCase();
+    document.querySelectorAll("#ptabs button").forEach(b => b.classList.toggle("on", b.dataset.tab === placeTab));
+    $("filter").style.visibility = placeTab === "listings" ? "visible" : "hidden";
+
+    if (placeTab === "moves") {
+      const titled = moves.map(m => ({ ...m, title: rows.find(r => r.listing_id === m.listing_id && r.platform === m.platform)?.description || m.listing_id }));
+      return table($("pbody"), "moves", [
+        { label: t("col.property"), get: r => r.title, cell: r => `<td class="wrap">${esc(r.title)}<span class="second">${esc(r.city)}</span></td>` },
+        { label: t("col.was"), n: 1, get: r => r.first_price, cell: r => `<td class="n dash">${money(r.first_price, cur)}</td>` },
+        { label: t("col.now"), n: 1, get: r => r.price, cell: r => `<td class="n">${money(r.price, cur)}</td>` },
+        { label: t("col.change"), n: 1, get: r => r.price - r.first_price, cell: r => {
+            const d = r.price - r.first_price, rel = d / r.first_price * 100;
+            return `<td class="n ${d < 0 ? "down" : "up"}">${d < 0 ? "−" : "+"}${num(Math.abs(d))} <span class="dash">(${rel.toLocaleString(lang, { maximumFractionDigits: 1 })}%)</span></td>`; } },
+      ], titled, t("moves.empty"), open);
+    }
+
+    const shown = rows.filter(r => !q || `${r.description} ${r.source || r.platform} ${r.type} ${typeName(r.type)}`.toLowerCase().includes(q));
+    table($("pbody"), "listings", [
+      { label: t("col.property"), get: r => r.description,
+        cell: r => `<td class="wrap">${esc(r.description || typeName(r.type) || r.listing_id)}<span class="second">${esc(r.source || r.platform)}</span></td>` },
+      { label: "", get: statusOf, cell: r => { const st = statusOf(r); return `<td>${st ? `<span class="tag ${st}">${t("tag." + st)}</span>` : ""}</td>`; } },
+      { label: t("col.price"), n: 1, get: r => r.price, cell: r => `<td class="n"><b>${money(r.price, cur)}</b></td>` },
+      { label: "m²", n: 1, get: r => r.livable_square_meters, cell: r => `<td class="n">${r.livable_square_meters || DASH}</td>` },
+      { label: t("col.perM2"), n: 1, get: r => r.price && r.livable_square_meters ? r.price / r.livable_square_meters : null,
+        cell: r => `<td class="n">${r.price && r.livable_square_meters ? (renting ? dec(r.price / r.livable_square_meters) : num(r.price / r.livable_square_meters)) : DASH}</td>` },
+      { label: t("col.beds"), n: 1, get: r => r.bedrooms_number, cell: r => `<td class="n">${r.bedrooms_number || DASH}</td>` },
+      { label: t("col.firstSeen"), get: r => r.first_seen, cell: r => `<td class="dash">${day(r.first_seen)}</td>` },
+    ], shown, t("listings.empty"), open);
+  };
+  document.querySelectorAll("#ptabs button").forEach(b => b.onclick = () => { placeTab = b.dataset.tab; draw(); });
+  $("filter").oninput = draw;
+  draw();
 }
 
-async function loadMovements() {
-  const rows = await get("/api/movements", { search: scope || "" });
-  render("movements", [
-    { label: "property", get: r => r.listing_id,
-      cell: r => `<td><a href="${r.url}" target="_blank" rel="noreferrer">${r.listing_id}</a></td>` },
-    { label: "city", get: r => r.city, cell: r => `<td>${r.city || ""}</td>` },
-    { label: "was", get: r => r.first_price, cell: r => `<td class="muted">${money(r.first_price)}</td>` },
-    { label: "now", get: r => r.price, cell: r => `<td>${money(r.price)}</td>` },
-    { label: "change", get: r => r.price - r.first_price,
-      cell: r => { const d = r.price - r.first_price;
-        return `<td class="${d < 0 ? "down" : "up"}">${d < 0 ? "" : "+"}${money(d)}</td>`; } },
-  ], rows, "No price has moved since the first scan of this search.");
+/* ---------- listing drawer ---------- */
+async function openListing(platform, id, rows, cur) {
+  const r = rows.find(x => x.platform === platform && x.listing_id === id) || {};
+  const history = await get("/api/history", { platform, id });
+  const d = $("drawer");
+  d.innerHTML = `<button class="ghost" id="close-drawer" style="float:right">${t("close")}</button>
+    <div class="crumb">${esc(r.source || r.platform)}</div>
+    <h2 style="font-size:20px;margin-right:90px">${esc(r.description || id)}</h2>
+    <dl class="facts">
+      <dt>${t("d.price")}</dt><dd><b>${money(r.price, cur)}</b></dd>
+      <dt>${t("d.place")}</dt><dd>${esc(r.postal_code)} ${esc(r.city)}</dd>
+      <dt>${t("d.surface")}</dt><dd>${r.livable_square_meters ? r.livable_square_meters + " m²" : DASH}</dd>
+      <dt>${t("d.bedrooms")}</dt><dd>${r.bedrooms_number || DASH}</dd>
+      <dt>${t("d.type")}</dt><dd>${r.type ? esc(typeName(r.type)) : DASH}</dd>
+      <dt>${t("d.seen")}</dt><dd>${day(r.first_seen)} → ${day(r.last_seen)}</dd>
+    </dl>
+    ${r.url ? `<p><a href="${esc(r.url)}" target="_blank" rel="noreferrer">${t("d.open")}</a></p>` : ""}
+    <h2 style="margin-top:22px">${t("d.history")}</h2>
+    ${sparkline(history)}
+    <table class="hist">${history.map((h, i) => {
+      const prev = history[i - 1]?.price, diff = prev ? h.price - prev : 0;
+      return `<tr><td>${day(h.seen_at)}</td><td class="n">${money(h.price, cur)}</td>
+        <td class="n ${diff < 0 ? "down" : diff > 0 ? "up" : "dash"}">${diff ? (diff < 0 ? "−" : "+") + num(Math.abs(diff)) : "—"}</td></tr>`;
+    }).join("")}</table>`;
+  d.classList.add("open");
+  d.setAttribute("aria-hidden", "false");
+  $("close-drawer").onclick = closeDrawer;
+}
+const closeDrawer = () => { $("drawer").classList.remove("open"); $("drawer").setAttribute("aria-hidden", "true"); };
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeDrawer(); });
+
+function sparkline(history) {
+  const ps = history.map(h => h.price).filter(Boolean);
+  if (ps.length < 2) return "";
+  const lo = Math.min(...ps), hi = Math.max(...ps), w = 360, h = 70, pad = 6;
+  const y = v => hi === lo ? h / 2 : pad + (hi - v) / (hi - lo) * (h - 2 * pad);
+  const step = (w - 2 * pad) / (ps.length - 1);
+  let path = `M${pad},${y(ps[0])}`;
+  ps.forEach((v, i) => { if (i) path += ` H${pad + i * step} V${y(v)}`; });
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" style="margin:10px 0">
+    <path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>
+    ${ps.map((v, i) => `<circle cx="${pad + i * step}" cy="${y(v)}" r="3.5" fill="var(--accent)"/>`).join("")}</svg>`;
 }
 
-let regionsByCountry = {};
+/* ---------- routing: #/  #/yield  #/place/<country/code/type>/<buy|rent> ---------- */
+function route() {
+  closeDrawer();
+  const parts = location.hash.replace(/^#\/?/, "").split("/");
+  const view = $("view");
+  document.querySelectorAll(".tabs a").forEach(a => a.classList.toggle("on",
+    parts[0] !== "place" && a.dataset.tab === (parts[0] === "yield" ? "yield" : "places")));
+  if (parts[0] === "place") viewPlace(view, decodeURIComponent(parts[1] || ""), parts[2]);
+  else if (parts[0] === "yield") viewYield(view);
+  else viewPlaces(view);
+  markSide();
+  window.scrollTo(0, 0);
+}
+
+/* ---------- scanning ---------- */
+let options = { countries: [], types: [], regions: {} }, scanDeal = "buy";
 
 async function loadOptions() {
-  const options = await get("/api/options", {});
-  const fill = (id, values) => document.getElementById(id).innerHTML =
-    values.map(v => `<option value="${v}">${v}</option>`).join("");
-  fill("country", options.countries);
-  fill("kind", options.types);
-  regionsByCountry = options.regions || {};
+  options = await get("/api/options");
+  fillOptions();
+}
+
+function fillOptions() {
+  const fill = (id, values, label = v => v) => {
+    const keep = $(id).value;
+    $(id).innerHTML = values.map(v => `<option value="${esc(v)}">${esc(label(v))}</option>`).join("");
+    if (values.includes(keep)) $(id).value = keep;
+  };
+  fill("country", options.countries || [], countryName);
+  fill("kind", options.types || [], kindName);
   showRegions();
 }
 
-/* A region replaces the place rather than narrowing it, so choosing one
-   disables the free-text field instead of quietly ignoring it. */
+/* A region replaces the town rather than narrowing it, so picking one
+   disables the town field instead of quietly ignoring it. */
 function showRegions() {
-  const country = document.getElementById("country").value;
-  const select = document.getElementById("region");
-  select.innerHTML = '<option value="">a single place\u2026</option>' +
-    (regionsByCountry[country] || []).map(r => `<option value="${r}">${r}</option>`).join("");
+  const keep = $("region").value;
+  const regions = (options.regions || {})[$("country").value] || [];
+  $("region").innerHTML = `<option value="">${t("scan.regionNone")}</option>` +
+    regions.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join("");
+  if (regions.includes(keep)) $("region").value = keep;
   pickedRegion();
 }
-
 function pickedRegion() {
-  const place = document.getElementById("place");
-  place.disabled = !!document.getElementById("region").value;
-  place.placeholder = place.disabled
-    ? "the whole region" : "city or postal code, e.g. Nivelles";
+  $("place").disabled = !!$("region").value;
+  $("place").placeholder = t($("place").disabled ? "scan.wholeRegion" : "scan.townHint");
 }
 
-document.getElementById("country").onchange = showRegions;
-document.getElementById("region").onchange = pickedRegion;
-
-const progress = document.getElementById("progress");
-const button = document.getElementById("go");
+const say = (text, fail) => { $("progress").textContent = text; $("progress").className = fail ? "fail" : ""; };
 
 async function poll() {
-  const status = await get("/api/scans", {});
-
+  const status = await get("/api/scans");
   if (status.state === "running") {
-    progress.className = "muted";
-    progress.textContent = `scanning ${status.asked}\u2026`;
-    button.disabled = true;
+    say(t("status.scanning", { p: status.asked }));
+    $("status").textContent = t("status.scanning", { p: status.asked });
+    $("go").disabled = true;
     return setTimeout(poll, 1200);
   }
-
-  button.disabled = false;
+  $("go").disabled = false;
   if (status.state === "done") {
-    progress.className = "muted";
-    progress.textContent = `${status.asked}: ${status.listings} listings \u2014 ${status.summary}`;
-    scope = status.search_key;
-    loadSearches(); loadYields(); loadListings(); loadMovements();
+    say(t("scan.done", { p: status.asked, n: status.listings, s: status.summary }));
+    await loadAll();
+    const [country, code, type, deal] = (status.search_key || "").split("/");
+    if (deal) location.hash = placeHash([country, code, type].join("/"), deal);
   } else if (status.state === "failed") {
-    progress.className = "fail";
-    progress.textContent = status.error;
+    say(status.error, true);
   }
 }
 
-document.getElementById("add").onsubmit = async event => {
+/* ---------- wiring ---------- */
+window.addEventListener("hashchange", route);
+$("find").oninput = drawSide;
+$("country").onchange = showRegions;
+$("region").onchange = pickedRegion;
+document.querySelectorAll("#scan [data-deal]").forEach(b => b.onclick = () => {
+  scanDeal = b.dataset.deal;
+  document.querySelectorAll("#scan [data-deal]").forEach(x => x.classList.toggle("on", x === b));
+});
+$("open-scan").onclick = () => $("scan").showModal();
+$("close-scan").onclick = () => $("scan").close();
+
+$("lang").onchange = () => {
+  lang = $("lang").value;
+  storage.set("lang", lang);
+  applyStatic();
+  fillOptions();
+  showLastScan();
+  drawSide();
+  route();
+};
+
+$("add").onsubmit = async event => {
   event.preventDefault();
-  progress.className = "muted";
-  progress.textContent = "asking\u2026";
-  button.disabled = true;
-
-  if (!document.getElementById("region").value && !document.getElementById("place").value) {
-    progress.className = "fail";
-    progress.textContent = "name a place, or pick a region";
-    button.disabled = false;
-    return;
-  }
-
+  if (!$("region").value && !$("place").value) return say(t("scan.needPlace"), true);
+  say(t("scan.asking"));
+  $("go").disabled = true;
   const answer = await fetch("/api/scans", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      country: document.getElementById("country").value,
-      place: document.getElementById("place").value,
-      region: document.getElementById("region").value,
-      type: document.getElementById("kind").value,
-      rent_or_buy: document.getElementById("torent").checked ? "rent" : "buy",
+      country: $("country").value, place: $("place").value, region: $("region").value,
+      type: $("kind").value, rent_or_buy: scanDeal,
     }),
   });
-
-  if (!answer.ok) {
-    progress.className = "fail";
-    progress.textContent = await answer.text();
-    button.disabled = false;
-    return;
-  }
+  if (!answer.ok) { say(await answer.text(), true); $("go").disabled = false; return; }
   poll();
 };
 
-document.getElementById("source").oninput = loadListings;
+applyStatic();
 loadOptions();
-loadSearches();
-loadYields();
+loadAll();
 poll();
 </script>
 </body>
