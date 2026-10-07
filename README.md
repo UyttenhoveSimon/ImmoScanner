@@ -194,7 +194,10 @@ Then go to **http://127.0.0.1:8765**. From there you can:
 - ➕ **Add a place** with the form at the top. The scan runs in the background and the page updates when it is done. Only one scan runs at a time: if one is already running, a new request is turned down, not queued.
 
 > [!IMPORTANT]
-> The explorer is only reachable from your own computer. It never modifies the archive while showing it, and the form only accepts the options the scanner itself defines.
+> **Is it safe?** Yes:
+> - **Only you can open it.** The page works on your own computer, not from other devices on your network.
+> - **Browsing doesn't change your data.** Only a scan you start from the form adds to your file.
+> - **The form can't do anything unexpected.** It offers the same choices as the command line, and nothing else.
 
 ## 🐍 As a library
 
