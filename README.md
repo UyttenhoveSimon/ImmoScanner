@@ -24,6 +24,8 @@
 
 <p align="center">
   <img src="docs/explorer.png" alt="The ImmoScanner explorer comparing towns in Walloon Brabant" width="900">
+  <br>
+  <em>The explorer, comparing towns side by side. <a href="#try-it-without-scanning">Try it with demo data</a> in two commands.</em>
 </p>
 
 ## ✨ Features
@@ -43,6 +45,17 @@ uv sync
 uv run python -m rustwright install chromium
 uv run immoscanner Belgium --city Namur
 ```
+
+### Try it without scanning
+
+Build a demo archive of made-up listings (seven towns, four weekly scans), then open it in your browser:
+
+```bash
+uv run python scripts/demo_archive.py
+uv run immoscanner Belgium --serve --store demo.db
+```
+
+Then go to **http://127.0.0.1:8765**.
 
 > [!TIP]
 > To use a specific Chromium build, set the `IMMOSCANNER_BROWSER_PATH` environment variable.
