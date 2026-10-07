@@ -110,6 +110,18 @@ const get = (path, params) =>
   fetch(path + "?" + new URLSearchParams(params)).then(r => r.json());
 
 let scope = null;
+const KINDS = { any: "all types", house: "houses", apartment: "apartments" };
+const DEALS = { buy: "for sale", rent: "to let" };
+
+/* "Belgium/1300/any/buy" as a person would say it: "1300 · Belgium · all types · for sale".
+   A province or a canton is already the row's name, so it is not repeated. */
+const describe = key => {
+  const [country, place, kind, deal] = key.split("/");
+  if (deal === undefined) return key;
+  const parts = /^\d+$/.test(place) ? [place, country] : [country];
+  return [...parts, KINDS[kind] || kind, DEALS[deal] || deal].join(" \u00b7 ");
+};
+const attr = text => String(text).replace(/&/g, "&amp;").replace(/"/g, "&quot;");
 const sorts = {};           // one sort state per table, remembered across reloads
 
 const compare = (a, b) => {
@@ -165,7 +177,7 @@ async function loadSearches() {
 
   render("searches", [
     { label: "place", get: s => s.city || s.search_key,
-      cell: s => `<td>${s.city || s.search_key}<div class="muted">${s.search_key}</div></td>` },
+      cell: s => `<td data-key="${attr(s.search_key)}">${s.city || s.search_key}<div class="muted">${describe(s.search_key)}</div></td>` },
     { label: "listings", get: s => s.listings, cell: s => `<td>${s.listings}</td>` },
     { label: "median", get: s => s.median_price, cell: s => `<td>${money(s.median_price)}</td>` },
     { label: "per m\u00b2", get: s => s.median_price_per_m2,
@@ -178,7 +190,7 @@ async function loadSearches() {
   document.querySelectorAll("#searches tbody tr").forEach((row, index) => {
     row.classList.add("pick");
     row.onclick = () => {
-      scope = row.querySelector(".muted").textContent;
+      scope = row.querySelector("[data-key]").dataset.key;
       highlight();
       loadListings(); loadMovements();
     };
@@ -193,7 +205,7 @@ async function loadSearches() {
 
 const highlight = () =>
   document.querySelectorAll("#searches tbody tr").forEach(row =>
-    row.classList.toggle("on", row.querySelector(".muted")?.textContent === scope));
+    row.classList.toggle("on", row.querySelector("[data-key]")?.dataset.key === scope));
 
 async function loadYields() {
   const rows = await get("/api/yields", {});
@@ -205,7 +217,7 @@ async function loadYields() {
 
   render("yields", [
     { label: "place", get: r => r.city,
-      cell: r => `<td>${r.city}<div class="muted">${r.country} \u00b7 ${r.type} \u00b7 ${r.for_sale} for sale, ${r.to_let} to let</div></td>` },
+      cell: r => `<td>${r.city}<div class="muted">${r.country} \u00b7 ${KINDS[r.type] || r.type} \u00b7 ${r.for_sale} for sale, ${r.to_let} to let</div></td>` },
     { label: "per m\u00b2", get: r => r.gross_yield,
       cell: r => `<td class="${r === bestPerM2 ? "best" : ""}">${pct(r.gross_yield)}</td>` },
     { label: "", cell: r => `<td style="width:110px"><div class="bar${r === bestPerM2 ? "" : " pale"}" style="width:${(r.gross_yield / topPerM2 * 100).toFixed(1)}%"></div></td>` },
