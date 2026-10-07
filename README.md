@@ -31,7 +31,7 @@
 ## ✨ Features
 
 - 🔎 **Search by city, postal code, region or URL** in Belgium 🇧🇪 and Switzerland 🇨🇭
-- 📊 **Price statistics**: mean, median, median per m², quartiles
+- 📊 **Price statistics**: mean, median, median per m², typical price range
 - 💰 **Gross rental yield**: compares sale prices with rents in the same area
 - 🗂️ **History**: save each scan and see what is new, cheaper, more expensive or gone
 - 🧹 **No double counting**: a flat listed on three websites counts once
