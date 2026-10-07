@@ -1,7 +1,38 @@
-# ImmoScanner
+<div align="center">
 
-Scans real estate portals for a city or postal code, reports price statistics,
-and tells you what changed since the last run.
+# 🏠 ImmoScanner
+
+**Scan real estate portals for any town, province or canton — get price statistics and see what changed since your last run.**
+
+[![Tests](https://github.com/UyttenhoveSimon/ImmoScanner/actions/workflows/tests.yml/badge.svg)](https://github.com/UyttenhoveSimon/ImmoScanner/actions/workflows/tests.yml)
+[![Live canary](https://github.com/UyttenhoveSimon/ImmoScanner/actions/workflows/canary.yml/badge.svg)](https://github.com/UyttenhoveSimon/ImmoScanner/actions/workflows/canary.yml)
+![Python](https://img.shields.io/badge/python-3.10%E2%80%933.15-blue)
+![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen)
+![License](https://img.shields.io/badge/license-MIT-green)
+
+[Quick start](#-quick-start) •
+[Usage](#-usage) •
+[Explorer](#-exploring-an-archive) •
+[Architecture](#-architecture) •
+[Design choices](#-design-choices) •
+[Portals](#-supported-portals) •
+[Tests](#-tests)
+
+</div>
+
+---
+
+## ✨ Features
+
+- 🔎 **Search by city, postal code, region or URL** — Belgium 🇧🇪 and Switzerland 🇨🇭
+- 📊 **Price statistics** — mean, median, median per m², quartiles
+- 💰 **Gross rental yield** — scans for sale *and* to let, side by side
+- 🗂️ **Archive & diff** — every run reports what is new, repriced or gone
+- 🧹 **Cross-portal de-duplication** — the same flat listed three times counts once
+- 🌐 **Local web explorer** — compare places, sort any column, start new scans
+- 🤝 **Polite by default** — page cap, delay between pages, no anti-bot evasion
+
+## 🚀 Quick start
 
 ```bash
 uv sync
@@ -9,10 +40,12 @@ uv run python -m rustwright install chromium
 uv run immoscanner Belgium --city Namur
 ```
 
-## Use
+> [!TIP]
+> Set `IMMOSCANNER_BROWSER_PATH` to point the engine at a specific Chromium build.
 
-The first positional argument is the country; give it a city, a postal code, or
-a portal search url.
+## 📖 Usage
+
+The first argument is the **country**; then give it a city, a postal code, a region or a portal search URL.
 
 ```bash
 uv run immoscanner Belgium --city Namur
@@ -24,28 +57,31 @@ uv run immoscanner Belgium --city Namur --store namur.db
 uv run immoscanner Belgium --url "https://www.immoweb.be/fr/recherche/maison/a-vendre/namur/5000?countries=BE"
 ```
 
-| flag | effect |
+### Options
+
+| Flag | Effect |
 | --- | --- |
+| **Where** | |
 | `--city NAME` / `--postal-code CODE` | either one is enough; the other is looked up |
 | `--region NAME` | a whole province or canton instead of one locality |
-| `--max-pages N` | result pages to walk per portal (default 20) |
+| `--url URL` | scan one portal's own search URL, paginating it |
+| **What** | |
 | `--type any\|house\|apartment` | property type, mapped onto each portal's own vocabulary |
 | `--rent` | rentals instead of properties for sale |
 | `--yield` | scan for sale *and* to let, and report the gross rental yield |
-| `--store FILE.db` | archive the run and report what is new, repriced or gone |
 | `--source NAMES` | keep only these originating portals, comma separated |
 | `--exclude-source NAMES` | drop these originating portals, comma separated |
+| `--max-pages N` | result pages to walk per portal (default `20`) |
+| **Output** | |
+| `--store FILE.db` | archive the run and report what is new, repriced or gone |
 | `--output FILE.json` | write the de-duplicated listings |
 | `--serve --store FILE.db` | browse an archive in the browser instead of scanning |
-| `--port N` | port the explorer listens on (default 8765) |
-| `--url URL` | scan one portal's own search url, paginating it |
+| `--port N` | port the explorer listens on (default `8765`) |
 | `--debug` | per-card logging |
-
-`IMMOSCANNER_BROWSER_PATH` points the engine at a specific Chromium build.
 
 ### What a run prints
 
-```
+```console
 $ uv run immoscanner Belgium --postal-code 5000 --type house --store namur.db
 INFO ImmoScanner.ImmoScanner: searching Namur (5000) in Belgium
 INFO ImmoScanner.Workers.RealEstateWorker: immovlan.be: 30 listings
@@ -61,21 +97,20 @@ since the last run: 117 new, 0 repriced, 0 gone, 0 unchanged
   ...
 ```
 
-`159 listings, 117 unique` is what the portals returned against what survived
-de-duplication. `listings` and `projects` split the unique set into comparable
-properties and new-build developments; only the former feed the statistics.
+- `159 listings, 117 unique` — what the portals returned vs. what survived de-duplication.
+- `listings` / `projects` — the unique set split into comparable properties and new-build developments; only the former feed the statistics.
 
-Run it again later against the same archive and only the difference shows:
+**Run it again** against the same archive and only the difference shows:
 
-```
+```console
 since the last run: 0 new, 2 repriced, 1 gone, 114 unchanged
   down    395,000 -> 379,000 € https://www.immoweb.be/fr/annonce/...
   gone    289000.0 Namur https://immovlan.be/fr/detail/...
 ```
 
-`--yield` scans the area twice and adds the rental side:
+**`--yield`** scans the area twice and adds the rental side:
 
-```
+```console
 $ uv run immoscanner Switzerland --postal-code 1003 --type apartment --yield
 median_price_per_m2: 11,033
 rental_median_price: 2,500
@@ -83,9 +118,23 @@ rental_median_price_per_m2: 33.36
 gross_yield_percent: 2.04
 ```
 
-### What `--output` writes
+### Filtering by source
 
-One json object per de-duplicated listing:
+`source` is filled when the portal is an aggregator: comparis names the site it took the listing from, which is what `--source` and `--exclude-source` match on (case-insensitive substring; a portal that publishes its own listings is its own origin).
+
+Filtering happens **before** de-duplication, so asking for one origin picks that copy rather than whichever copy happened to survive.
+
+```console
+$ uv run immoscanner Switzerland --postal-code 1003 --type apartment --rent --source homegate
+102 listings, 13 from the asked sources, 11 unique
+```
+
+### JSON output
+
+`--output` writes one JSON object per de-duplicated listing.
+
+<details>
+<summary>Example listing</summary>
 
 ```json
 {
@@ -112,21 +161,13 @@ One json object per de-duplicated listing:
 }
 ```
 
-`source` is filled when the portal is an aggregator: comparis names the site it
-took the listing from, which is what `--source` and `--exclude-source` match on
-(case-insensitive substring; a portal that publishes its own listings is its own
-origin). Filtering happens before de-duplication, so asking for one origin picks
-that copy rather than whichever copy happened to survive.
+</details>
 
-```
-$ uv run immoscanner Switzerland --postal-code 1003 --type apartment --rent --source homegate
-102 listings, 13 from the asked sources, 11 unique
-```
- `price` is `0` on a development, which instead carries
-`price_min` and `price_max`. `latitude` and `longitude` are present only for the
-portals that geocode.
+> [!NOTE]
+> `price` is `0` on a development, which instead carries `price_min` and `price_max`.
+> `latitude` and `longitude` are present only for the portals that geocode.
 
-### Exploring an archive
+## 🗺️ Exploring an archive
 
 Scan a few places into one archive, then browse it:
 
@@ -137,29 +178,19 @@ uv run immoscanner Belgium --postal-code 1400 --store be.db
 uv run immoscanner Belgium --serve --store be.db
 ```
 
-A local page at `http://127.0.0.1:8765` compares every search the archive
-holds — listings, median price, median price per m², quartiles — then lets you
-pick one and read its listings, filterable by originating portal, and see which
-prices have moved since the first scan. Every table sorts on any column: click
-its heading, click again to reverse it.
+Then open **http://127.0.0.1:8765**:
 
-Places are named, not numbered. A search is keyed by postal code, but its
-listings carry the locality, so the archive says "Nivelles" without asking
-anyone — and the form takes either a name or a code.
+- 📈 **Compare** every search the archive holds — listings, median price, median price per m², quartiles.
+- 📋 **Drill into** one search: read its listings, filter by originating portal, see which prices moved since the first scan.
+- ↕️ **Sort** any table on any column — click its heading, click again to reverse.
+- 🏷️ **Named places** — a search is keyed by postal code, but its listings carry the locality, so the archive says "Nivelles" without asking anyone. The form takes either a name or a code.
+- 💰 **Yield** — scan a place both to buy and to let, and it gets a gross rental yield, compared across every place in the archive.
+- ➕ **Add a place** from the form at the top: give it a postal code and the scan runs in the background while the page polls it. One scan runs at a time — a second ask is refused rather than queued, since a scan already runs its portals in parallel.
 
-Scan a place both to buy and to let, and it also gets a gross rental yield,
-compared across every place the archive holds.
+> [!IMPORTANT]
+> The explorer listens on the loopback only, opens the archive read-only for reading, and what the form may ask for comes from the code that defines it rather than from a list repeated in the page.
 
-The form at the top adds a place without going back to the shell: give it a
-postal code, and the scan runs in the background while the page polls it. One
-scan runs at a time — a second ask while one is under way is refused rather
-than queued, since a scan already runs its portals in parallel.
-
-It listens on the loopback only, opens the archive read-only for reading, and
-what the form may ask for comes from the code that defines it rather than from
-a list repeated in the page.
-
-### As a library
+## 🐍 As a library
 
 ```python
 from ImmoScanner.ImmoScanner import ImmoScanner
@@ -172,13 +203,11 @@ listings = scanner.duplicate_finder(results)
 insights = scanner.get_insights(listings)
 ```
 
-### Being a good guest
+## 🤝 Being a good guest
 
-A scan walks at most 20 pages per portal and pauses 800 ms between them
-(`MAX_PAGES`, `PAGE_DELAY_MS` on `RealEstateWorker`). Portals are scanned in
-parallel with each other, never within one portal.
+A scan walks at most **20 pages per portal** and pauses **800 ms** between them (`MAX_PAGES`, `PAGE_DELAY_MS` on `RealEstateWorker`). Portals are scanned in parallel with each other, never within one portal.
 
-## Architecture
+## 🏗️ Architecture
 
 ```
 Console.py          the cli (plac); prints statistics and the archive report
@@ -191,188 +220,182 @@ Archives/           sqlite archive of every listing ever seen
 Showrooms/          a local web view onto an archive, and the scans it starts
 ```
 
-A scan runs as follows.
+**How a scan runs:**
 
 1. `CountryFactory` builds the country, which owns the list of workers.
 2. Whichever of city and postal code is missing is filled in from geonames.
-3. Each worker is handed its own `RealEstateResearch` and runs in its own
-   thread.
-4. `RealEstateWorker.get_findings` walks the result pages and turns each card
-   into a `RealEstateResearchResult`.
+3. Each worker is handed its own `RealEstateResearch` and runs in its own thread.
+4. `RealEstateWorker.get_findings` walks the result pages and turns each card into a `RealEstateResearchResult`.
 5. The per-portal lists are flattened and de-duplicated into one set.
 6. Statistics are computed, the archive is compared, the report is printed.
 
 ### Writing a worker
 
-`RealEstateWorker.get_findings` is the whole page walk; a portal class fills in
-the parts that differ:
+`RealEstateWorker.get_findings` is the whole page walk; a portal class fills in the parts that differ:
 
-| hook | role |
+| Hook | Role |
 | --- | --- |
-| `url_builder(research, page)` | the search url for one page |
+| `url_builder(research, page)` | the search URL for one page |
 | `CARD_SELECTOR` | the result cards on that page |
 | `extract_findings(card)` | one card to one result |
 | `total_results(soup)` | how many listings the portal claims, when it says |
 | `PROBE_SELECTOR` | proof that a plain GET returned the real list |
-| `WAIT_FOR` | what to await before reading the dom, on the browser path |
+| `WAIT_FOR` | what to await before reading the DOM, on the browser path |
 | `fetch_page(research, page)` | override only when the list is not in the markup |
 
-Register the class in the country under `Countries/`, and capture a search page
-into `tests/fixtures/` so its extractors are covered offline.
+Then register the class in the country under `Countries/`, and capture a search page into `tests/fixtures/` so its extractors are covered offline.
 
-## Technical choices
+## 🧠 Design choices
 
-**rustwright instead of playwright.** [rustwright](https://github.com/Skyvern-AI/rustwright)
-is a Rust rewrite of Playwright with a drop-in `sync_api`, so the switch was one
-import. It drives Chromium over raw CDP with no Node driver subprocess in the
-path, and it reuses whatever Chromium is already installed instead of demanding
-its own pinned download.
+Click a topic to expand it.
 
-**A fetch ladder, cheapest rung first.** A plain `requests` GET; then the same
-GET through [curl_cffi](https://github.com/lexiforest/curl_cffi), which speaks a
-real browser's TLS and HTTP/2 handshake; then a real browser. immoweb and
-immovlan server-render their result lists and never leave the first rung, where
-a page costs well under a second against several for a browser. comparis
-refuses a plain GET whatever the headers say — the rejection is on the TLS
-fingerprint, not on the request — and is read from the second rung, which took
-its scans from 15 s to 6 s.
+<details>
+<summary><b>rustwright instead of playwright</b></summary>
 
-A rung is abandoned for good the first time it comes back short, so a portal
-that needs a higher rung pays one wasted attempt per rung rather than one per
-page. Once a rung has read a real page, it keeps it: portals answer 404 for a
-page past the last one, and reading that as a broken client would restart the
-whole scan in a browser.
+[rustwright](https://github.com/Skyvern-AI/rustwright) is a Rust rewrite of Playwright with a drop-in `sync_api`, so the switch was one import. It drives Chromium over raw CDP with no Node driver subprocess in the path, and it reuses whatever Chromium is already installed instead of demanding its own pinned download.
 
-**Structured payloads over css selectors.** Both Belgian and Swiss portals ship
-their listings as JSON inside the page, and that JSON holds fields the rendered
-markup does not: surfaces, bedroom counts, coordinates. immoweb puts the whole
-listing on its card's Vue component, comparis serves `__NEXT_DATA__`. Class
-names churn with every redesign; these payloads are the portal's own data model
-and move far less. immoweb's attribute disappears when Vue hydrates the page, so
-the browser path keeps a markup reader as a fallback.
+</details>
 
-**Walking pages, not counting them.** immoweb renders its pagination and its
-result total client-side, so a plain GET never sees either. The walk stops on
-the first empty page, or earlier when the portal announces a total it has
-already collected — counting distinct ids, since immoweb repeats a sponsored
-card on every page. A page past the last one stops the walk instead of
-discarding everything collected so far.
+<details>
+<summary><b>A fetch ladder, cheapest rung first</b></summary>
 
-**Localities, spelled each portal's own way.** The two portals want opposite
-things, and getting either wrong loses listings in silence.
+1. A plain `requests` GET;
+2. the same GET through [curl_cffi](https://github.com/lexiforest/curl_cffi), which speaks a real browser's TLS and HTTP/2 handshake;
+3. a real browser.
 
-immoweb keys off the postal code and ignores the city segment — except that an
-apostrophe in it breaks the route outright: "Braine-L'Alleud" returned a
-generic page with **no listing at all**, where the postal code alone returns
-288. So immoweb is searched on `1420`, with no name.
+immoweb and immovlan server-render their result lists and never leave the first rung, where a page costs well under a second against several for a browser. comparis refuses a plain GET whatever the headers say — the rejection is on the TLS fingerprint, not on the request — and is read from the second rung, which took its scans from 15 s to 6 s.
 
-immovlan needs both. A postal code on its own resolves to whichever locality it
-covers first: `1400` means Monstreux and its two listings, not Nivelles and its
-hundred. So it gets `1400-nivelles`, with the name slugified — an unrecognised
-spelling makes it drop the filter and answer with the whole country, which it
-now warns about rather than reporting as a town with 32 000 properties.
+A rung is abandoned for good the first time it comes back short, so a portal that needs a higher rung pays one wasted attempt per rung rather than one per page. Once a rung has read a real page, it keeps it: portals answer 404 for a page past the last one, and reading that as a broken client would restart the whole scan in a browser.
 
-**Regions are each portal's own idea of one.** A province or a canton is a
-search in its own right, not a bag of postal codes, and all three portals have
-one — spelled three different ways. immoweb takes a path segment followed by
-its kind (`/brabant-wallon/province`), immovlan a parameter
-(`?provinces=brabant-wallon`), and comparis its single free-text location field
-filled with `Canton Vaud`, the spelling its own canton pages emit. A bare
-`Vaud` there would mean the *town* of that name.
+</details>
 
-Each country declares its regions in French and the workers translate, which is
-where the exceptions live: comparis does not recognise "Schwytz", only
-"Schwyz". All 11 provinces and all 26 cantons were checked against the live
-portals before being written down.
+<details>
+<summary><b>Structured payloads over CSS selectors</b></summary>
 
-**A page cap, and a loud one.** A search walks at most `--max-pages` pages per
-portal, 20 by default — about 600 listings on immoweb, 400 on immovlan. A town
-never reaches it; a province always does, since Brabant wallon alone holds
-3 000 listings. What comes back then is the portal's own first pages in its own
-relevance order, which is a biased sample and not a slice of the market, so the
-scan says so in as many words rather than letting a median be drawn from it in
-silence.
+Both Belgian and Swiss portals ship their listings as JSON inside the page, and that JSON holds fields the rendered markup does not: surfaces, bedroom counts, coordinates. immoweb puts the whole listing on its card's Vue component, comparis serves `__NEXT_DATA__`. Class names churn with every redesign; these payloads are the portal's own data model and move far less. immoweb's attribute disappears when Vue hydrates the page, so the browser path keeps a markup reader as a fallback.
 
-**A portal-neutral vocabulary.** A search is expressed as `buy`/`rent` and
-`any`/`house`/`apartment`; each worker maps those onto its own url scheme
-(`a-vendre`, `acheter`, `DealType: 20`). Callers never have to know that
-immoweb spells "all types" `maison-et-appartement`.
+</details>
 
-**Two gross yields, side by side.** The classic one divides a median rent by a
-median price, but rental stock skews small and sale stock skews large, so it
-compares a studio's rent with a family house's price. The other divides the
-medians *per square metre*, where the size mix cancels.
+<details>
+<summary><b>Walking pages, not counting them</b></summary>
 
-Neither is a footnote to the other: on four Walloon communes they disagree
-about which one leads — 5.79% for Nivelles per square metre against 4.13% for
-Wavre on medians. The explorer shows both with the same weight, each marking
-its own winner, and the medians they are built from in the columns beside them.
+immoweb renders its pagination and its result total client-side, so a plain GET never sees either. The walk stops on the first empty page, or earlier when the portal announces a total it has already collected — counting distinct ids, since immoweb repeats a sponsored card on every page. A page past the last one stops the walk instead of discarding everything collected so far.
 
-**Two de-duplication keys.** The same flat is listed on several portals under
-different ids. Listings are matched on `(postal code, price, surface, bedrooms)`,
-which every portal supplies, *and* on `(latitude, longitude, price)` rounded to
-four decimals — about eleven metres — for the portals that geocode. Either
-match is enough, so a pair that disagrees by one square metre still collapses.
+</details>
 
-Coordinates come from immoweb's embedded json and from comparis's `Coordinate`
-object; immovlan publishes a locality and never a point, and immoweb omits the
-position on sponsored cards and on listings whose address the seller hid, so
-roughly half of a Belgian scan has no coordinates at all. Those fall back on
-the coarse key, which is why it is the one every portal must satisfy.
+<details>
+<summary><b>Localities, spelled each portal's own way</b></summary>
 
-The geographic key earns its keep most on comparis, where the same property
-arrives from several aggregated sources under different ids. Its known loss:
-two identical flats in one building, same price and same surface, are
-indistinguishable from one listing published twice, and collapse into one. The
-duplicate is much the commoner case, so that trade is deliberate — and pinned
-by a test that says so.
+The two portals want opposite things, and getting either wrong loses listings in silence.
 
-**Developments are not properties.** A new-build is advertised as a price range
-over a whole building. Averaging that into a median would describe nothing, so
-these carry `is_project`, `price_min` and `price_max`, stay out of the
-statistics, and are still reported rather than silently dropped.
+- **immoweb** keys off the postal code and ignores the city segment — except that an apostrophe in it breaks the route outright: "Braine-L'Alleud" returned a generic page with **no listing at all**, where the postal code alone returns 288. So immoweb is searched on `1420`, with no name.
+- **immovlan** needs both. A postal code on its own resolves to whichever locality it covers first: `1400` means Monstreux and its two listings, not Nivelles and its hundred. So it gets `1400-nivelles`, with the name slugified — an unrecognised spelling makes it drop the filter and answer with the whole country, which it now warns about rather than reporting as a town with 32 000 properties.
 
-**Archive rather than snapshot.** A scan on its own cannot tell you what is new,
-what was cut, or what sold. `--store` keeps every listing and every price it has
-ever shown in sqlite, keyed by portal and id and scoped by search, and each run
-reports the difference.
+</details>
 
-**The explorer brings no dependencies.** The archive is sqlite, the audience is
-whoever is sitting at the machine, and the whole page is one file — so it is
-`http.server`, a handful of json views and inline svg rather than a web
-framework and a charting library. Comparing cities is a question the archive
-can already answer: medians are computed in Python, since sqlite has no median
-and an archive holds thousands of rows, not millions.
+<details>
+<summary><b>Regions are each portal's own idea of one</b></summary>
 
-Pandas or duckdb are the right tools for exploring this data further, and both
-read the archive directly — neither has to become a dependency of the scanner
-to be useful on its output.
+A province or a canton is a search in its own right, not a bag of postal codes, and all three portals have one — spelled three different ways:
 
-**lxml everywhere.** Several portals, geonames included, serve unclosed tags
-that `html.parser` cannot recover from — it swallowed a whole geonames table
-into its first row, which is how postal code lookups used to return a
-neighbouring village.
+| Portal | Region syntax |
+| --- | --- |
+| immoweb | path segment + kind: `/brabant-wallon/province` |
+| immovlan | parameter: `?provinces=brabant-wallon` |
+| comparis | free-text location: `Canton Vaud` (a bare `Vaud` would mean the *town*) |
 
-**Anti-bot walls are reported, not worked around.** A captcha interstitial
-raises `BotWallError` instead of parsing as an empty result set, so a blocked
-portal never passes for a market with nothing for sale.
+Each country declares its regions in French and the workers translate, which is where the exceptions live: comparis does not recognise "Schwytz", only "Schwyz". All 11 provinces and all 26 cantons were checked against the live portals before being written down.
 
-## Portal status
+</details>
+
+<details>
+<summary><b>A page cap, and a loud one</b></summary>
+
+A search walks at most `--max-pages` pages per portal, 20 by default — about 600 listings on immoweb, 400 on immovlan. A town never reaches it; a province always does, since Brabant wallon alone holds 3 000 listings. What comes back then is the portal's own first pages in its own relevance order, which is a biased sample and not a slice of the market, so the scan says so in as many words rather than letting a median be drawn from it in silence.
+
+</details>
+
+<details>
+<summary><b>A portal-neutral vocabulary</b></summary>
+
+A search is expressed as `buy`/`rent` and `any`/`house`/`apartment`; each worker maps those onto its own URL scheme (`a-vendre`, `acheter`, `DealType: 20`). Callers never have to know that immoweb spells "all types" `maison-et-appartement`.
+
+</details>
+
+<details>
+<summary><b>Two gross yields, side by side</b></summary>
+
+The classic one divides a median rent by a median price, but rental stock skews small and sale stock skews large, so it compares a studio's rent with a family house's price. The other divides the medians *per square metre*, where the size mix cancels.
+
+Neither is a footnote to the other: on four Walloon communes they disagree about which one leads — 5.79% for Nivelles per square metre against 4.13% for Wavre on medians. The explorer shows both with the same weight, each marking its own winner, and the medians they are built from in the columns beside them.
+
+</details>
+
+<details>
+<summary><b>Two de-duplication keys</b></summary>
+
+The same flat is listed on several portals under different ids. Listings are matched on:
+
+- `(postal code, price, surface, bedrooms)` — which every portal supplies, **and**
+- `(latitude, longitude, price)` rounded to four decimals (about eleven metres) — for the portals that geocode.
+
+Either match is enough, so a pair that disagrees by one square metre still collapses.
+
+Coordinates come from immoweb's embedded JSON and from comparis's `Coordinate` object; immovlan publishes a locality and never a point, and immoweb omits the position on sponsored cards and on listings whose address the seller hid, so roughly half of a Belgian scan has no coordinates at all. Those fall back on the coarse key, which is why it is the one every portal must satisfy.
+
+The geographic key earns its keep most on comparis, where the same property arrives from several aggregated sources under different ids. Its known loss: two identical flats in one building, same price and same surface, are indistinguishable from one listing published twice, and collapse into one. The duplicate is much the commoner case, so that trade is deliberate — and pinned by a test that says so.
+
+</details>
+
+<details>
+<summary><b>Developments are not properties</b></summary>
+
+A new-build is advertised as a price range over a whole building. Averaging that into a median would describe nothing, so these carry `is_project`, `price_min` and `price_max`, stay out of the statistics, and are still reported rather than silently dropped.
+
+</details>
+
+<details>
+<summary><b>Archive rather than snapshot</b></summary>
+
+A scan on its own cannot tell you what is new, what was cut, or what sold. `--store` keeps every listing and every price it has ever shown in sqlite, keyed by portal and id and scoped by search, and each run reports the difference.
+
+</details>
+
+<details>
+<summary><b>The explorer brings no dependencies</b></summary>
+
+The archive is sqlite, the audience is whoever is sitting at the machine, and the whole page is one file — so it is `http.server`, a handful of JSON views and inline SVG rather than a web framework and a charting library. Comparing cities is a question the archive can already answer: medians are computed in Python, since sqlite has no median and an archive holds thousands of rows, not millions.
+
+Pandas or duckdb are the right tools for exploring this data further, and both read the archive directly — neither has to become a dependency of the scanner to be useful on its output.
+
+</details>
+
+<details>
+<summary><b>lxml everywhere</b></summary>
+
+Several portals, geonames included, serve unclosed tags that `html.parser` cannot recover from — it swallowed a whole geonames table into its first row, which is how postal code lookups used to return a neighbouring village.
+
+</details>
+
+<details>
+<summary><b>Anti-bot walls are reported, not worked around</b></summary>
+
+A captcha interstitial raises `BotWallError` instead of parsing as an empty result set, so a blocked portal never passes for a market with nothing for sale.
+
+</details>
+
+## 🌍 Supported portals
 
 | Portal | Country | Read from | Fetched with | Geocoded |
-| --- | --- | --- | --- | --- |
-| immoweb.be | BE | json embedded in the server-rendered cards | plain http | partly |
-| immovlan.be | BE | schema.org microdata on the cards | plain http | no |
-| comparis.ch | CH | the `__NEXT_DATA__` payload | curl_cffi | yes |
+| --- | :---: | --- | --- | :---: |
+| immoweb.be | 🇧🇪 | JSON embedded in the server-rendered cards | plain HTTP | partly |
+| immovlan.be | 🇧🇪 | schema.org microdata on the cards | plain HTTP | ❌ |
+| comparis.ch | 🇨🇭 | the `__NEXT_DATA__` payload | curl_cffi | ✅ |
 
-immovlan moved off `immo.vlan.be`, which now answers 503 at the Akamai edge.
+- immovlan moved off `immo.vlan.be`, which now answers 503 at the Akamai edge.
+- **homegate.ch** and **immoscout24.ch** sit behind DataDome on every entry point, their APIs included, so they have no worker. Their listings still come through: comparis aggregates both, and every result names its originating portal in `source`.
 
-homegate.ch and immoscout24.ch sit behind DataDome on every entry point, their
-APIs included, so they have no worker. Their listings still come through:
-comparis aggregates both, and every result names its originating portal in
-`source`.
-
-## Tests
+## 🧪 Tests
 
 ```bash
 uv run pytest                     # offline, against pages captured in tests/fixtures
@@ -380,28 +403,32 @@ uv run pytest --cov               # 99% of the package, gated at 95% in CI
 uv run pytest -m live             # hits the real portals; weekly in CI as a canary
 ```
 
-A portal redesign is silent — a scan just returns less, and the numbers drift.
-The offline suite asserts on the exact selectors and payload keys the workers
-depend on, so a break is a failure; recapture the fixture when a portal changes
-for good. The live suite is the canary, and CI runs it every Monday.
+A portal redesign is silent — a scan just returns less, and the numbers drift. The offline suite asserts on the exact selectors and payload keys the workers depend on, so a break is a failure; recapture the fixture when a portal changes for good. The live suite is the canary, and CI runs it every Monday.
 
-| file | covers |
+Nothing reaches the network except the canary: geonames answers from a captured page, portals from captured search pages, and both the HTTP clients and the browser from fakes.
+
+<details>
+<summary>Test files and what they cover</summary>
+
+| File | Covers |
 | --- | --- |
 | `test_workers.py` | extraction, against captured search pages |
 | `test_fallbacks.py` | what each extractor falls back on, and the base defaults |
 | `test_fetching.py` | the fetch ladder and the page walk, fully stubbed |
-| `test_worker.py` | http sessions, the browser session, and their release |
+| `test_worker.py` | HTTP sessions, the browser session, and their release |
 | `test_geolocation.py` | coordinate parsing, and what the geographic key merges |
 | `test_countries.py` | geonames lookups, and the country to portal wiring |
-| `test_pipeline.py` | a whole scan: fan-out, failures, search urls |
+| `test_pipeline.py` | a whole scan: fan-out, failures, search URLs |
 | `test_scanner.py` | de-duplication, statistics, source filtering |
 | `test_store.py` | the archive and its diff |
-| `test_console.py` | the cli: routing, printing, writing |
+| `test_console.py` | the CLI: routing, printing, writing |
 | `test_regions.py` | provinces and cantons, and how each portal spells them |
 | `test_showroom.py` | the explorer's views and the server that exposes them |
 | `test_runner.py` | scans asked for from the page, and their endpoint |
 | `test_live_portals.py` | the live canary (`-m live`) |
 
-Nothing reaches the network except the canary: geonames answers from a
-captured page, portals from captured search pages, and both the http clients
-and the browser from fakes.
+</details>
+
+## 📄 License
+
+[MIT](pyproject.toml)
