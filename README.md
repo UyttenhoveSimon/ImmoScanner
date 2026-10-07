@@ -22,6 +22,10 @@
 
 ---
 
+<p align="center">
+  <img src="docs/explorer.png" alt="The ImmoScanner explorer comparing towns in Walloon Brabant" width="900">
+</p>
+
 ## ✨ Features
 
 - 🔎 **Search by city, postal code, region or URL** in Belgium 🇧🇪 and Switzerland 🇨🇭
