@@ -46,6 +46,9 @@ uv run python -m rustwright install chromium
 uv run immoscanner Belgium --city Namur
 ```
 
+> [!TIP]
+> To use a specific Chromium build, set the `IMMOSCANNER_BROWSER_PATH` environment variable.
+
 ### Try it without scanning
 
 Build a demo archive of made-up listings (seven towns, four weekly scans), then open it in your browser:
@@ -56,9 +59,6 @@ uv run immoscanner Belgium --serve --store demo.db
 ```
 
 Then go to **http://127.0.0.1:8765**.
-
-> [!TIP]
-> To use a specific Chromium build, set the `IMMOSCANNER_BROWSER_PATH` environment variable.
 
 ## 📖 Usage
 
