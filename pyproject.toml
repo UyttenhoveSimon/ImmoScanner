@@ -3,7 +3,7 @@ name = "immoscanner"
 version = "0.2.0"
 description = "Allows scanning of real estates websites"
 authors = [{ name = "Simon Uyttenhove" }]
-license = "MIT"
+license = "Apache-2.0"
 readme = "README.md"
 requires-python = ">=3.10,<3.16"
 dependencies = [

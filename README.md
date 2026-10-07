@@ -8,7 +8,7 @@
 [![Live canary](https://github.com/UyttenhoveSimon/ImmoScanner/actions/workflows/canary.yml/badge.svg)](https://github.com/UyttenhoveSimon/ImmoScanner/actions/workflows/canary.yml)
 ![Python](https://img.shields.io/badge/python-3.10%E2%80%933.15-blue)
 ![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen)
-![License](https://img.shields.io/badge/license-MIT-green)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
 
 [Quick start](#-quick-start) •
 [Usage](#-usage) •
@@ -431,4 +431,4 @@ Nothing reaches the network except the canary: geonames answers from a captured 
 
 ## 📄 License
 
-[MIT](pyproject.toml)
+[Apache 2.0](LICENSE). If you redistribute ImmoScanner, keep the [NOTICE](NOTICE) file with it.
