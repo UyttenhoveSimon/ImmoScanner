@@ -35,7 +35,7 @@
 - 💰 **Gross rental yield**: compares sale prices with rents in the same area
 - 🗂️ **History**: save each scan and see what is new, cheaper, more expensive or gone
 - 🧹 **No double counting**: a flat listed on three websites counts once
-- 🌐 **Web explorer**: compare places and browse listings in your browser, in four languages
+- 🌐 **Web explorer**: compare places, browse listings and see prices on a map, in four languages
 - 🤝 **Polite**: limits how many pages it reads and pauses between them
 
 ## 🚀 Quick start
@@ -205,6 +205,7 @@ Then go to **http://127.0.0.1:8765**. From there you can:
 - 📉 **See price changes**: the *Price changes* tab lists every listing whose price moved since the first scan.
 - 🔍 **Click a listing** to see its details, a chart of its price over time, and a link to the original ad.
 - 💰 **Compare rental yields** on the *Rental yield* page, for every place scanned both for sale and to let.
+- 🗺️ **See prices on a map** on the *Map* page: one circle per locality, coloured by median price per m² and sized by the number of listings, for sale or to let. A region scan is split into its towns. Hover a circle for its figures; click it to open the place.
 - ↕️ **Sort any table** by clicking a column heading. Click again to reverse the order.
 - 🔖 **Bookmark any view**: each place has its own address, and the browser's back button works.
 - 🌍 **Pick your language**: English, French, Dutch or German, from the menu at the top.
@@ -395,6 +396,8 @@ A single scan can't tell you what is new, what got cheaper, or what sold. With `
 <summary><b>An explorer with no extra dependencies</b></summary>
 
 The archive is a SQLite file and the explorer is only meant for you, on your own computer. So it is built with Python's built-in web server, a single HTML page and hand-drawn SVG charts, with no web framework or charting library.
+
+The map is the one exception: it uses [Leaflet](https://leafletjs.com) and OpenStreetMap tiles, loaded from the internet only when the *Map* page is opened. The rest of the explorer still works offline.
 
 Medians are calculated in Python, because SQLite has no median function and an archive has thousands of rows, not millions.
 

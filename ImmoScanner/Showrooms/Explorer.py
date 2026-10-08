@@ -5,6 +5,7 @@ tested - without a socket. Every query is parameterised; nothing the browser
 sends ever reaches sqlite as sql.
 """
 
+import collections
 import sqlite3
 import statistics
 
@@ -18,7 +19,6 @@ SORTS = {
 }
 DEFAULT_LIMIT = 200
 MAX_LIMIT = 2000
-
 
 class Explorer:
     def __init__(self, path):
@@ -141,6 +141,56 @@ class Explorer:
 
         return sorted(compared, key=lambda row: row["gross_yield"], reverse=True)
 
+    def localities(self, country, rent_or_buy):
+        """Every locality of a country's sale or rental listings, to be mapped.
+
+        A region scan spans dozens of towns, so places are regrouped here by
+        postal code rather than by search. A locality sits at the median of its
+        listings' coordinates, which one misplaced pin cannot drag away; the
+        listings without coordinates still count towards its prices.
+        """
+        grouped = {}
+        for row in self.rows(
+            "SELECT search_key, postal_code, city, latitude, longitude, price, "
+            "livable_square_meters AS surface FROM listings WHERE search_key LIKE ?",
+            (f"{country}/%/%/{rent_or_buy}",),
+        ):
+            # LIKE treats "_" and "%" in the country as wildcards; the exact
+            # parts settle it.
+            parts = row["search_key"].split("/")
+            if len(parts) != 4 or parts[0] != country or parts[3] != rent_or_buy:
+                continue
+            code = row["postal_code"] or row["city"]
+            if code:
+                grouped.setdefault(code, []).append(row)
+
+        mapped = []
+        for code, rows in grouped.items():
+            located = [r for r in rows if r["latitude"] and r["longitude"]]
+            if not located:
+                continue
+            prices = [r["price"] for r in rows if r["price"]]
+            ratios = [
+                r["price"] / r["surface"] for r in rows if r["price"] and r["surface"]
+            ]
+            mapped.append(
+                {
+                    "postal_code": rows[0]["postal_code"] or "",
+                    "city": most_common(r["city"] for r in rows) or code,
+                    "search_key": most_common(r["search_key"] for r in rows),
+                    "latitude": statistics.median(
+                        float(r["latitude"]) for r in located
+                    ),
+                    "longitude": statistics.median(
+                        float(r["longitude"]) for r in located
+                    ),
+                    "listings": len(rows),
+                    "median_price": statistics.median(prices) if prices else 0,
+                    "median_price_per_m2": statistics.median(ratios) if ratios else 0,
+                }
+            )
+        return sorted(mapped, key=lambda locality: locality["city"])
+
     def listings(self, search_key=None, source=None, sort="price", limit=DEFAULT_LIMIT):
         where, parameters = [], []
         if search_key:
@@ -201,6 +251,12 @@ def yearly_yield(monthly_rent, price):
     if not price:
         return 0
     return (monthly_rent * 12) / price * 100
+
+
+def most_common(values):
+    """The most frequent non-empty value, or "" when there is none."""
+    counted = collections.Counter(value for value in values if value)
+    return counted.most_common(1)[0][0] if counted else ""
 
 
 def quantile(values, fraction):

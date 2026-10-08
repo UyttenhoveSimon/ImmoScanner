@@ -152,6 +152,73 @@ class TestYields:
         assert yearly_yield(1000, 240000) == pytest.approx(5.0)
 
 
+def located(listing_id, price, postal_code, city, latitude, longitude, area=100):
+    item = listing(listing_id, price, area, city=city)
+    item.postal_code, item.latitude, item.longitude = postal_code, latitude, longitude
+    return item
+
+
+class TestLocalities:
+    @pytest.fixture
+    def region(self, tmp_path):
+        """A region scan spanning two towns, and a rental search beside it."""
+        path = tmp_path / "region.db"
+        with Store(path) as store:
+            store.record(
+                "Belgium/Brabant wallon/any/buy",
+                [
+                    located("1", 300000, "1400", "Nivelles", 50.60, 4.32),
+                    located("2", 500000, "1400", "Nivelles", 50.62, 4.34, area=200),
+                    located("3", 400000, "1400", "Nivelles", None, None),
+                    located("4", 600000, "1410", "Waterloo", 50.71, 4.40),
+                ],
+            )
+            store.record(
+                "Belgium/1400/any/rent",
+                [located("5", 1000, "1400", "Nivelles", 50.60, 4.32)],
+            )
+            store.record(
+                "Belgium/1300/any/buy",
+                [located("6", 350000, "1300", "Wavre", None, None)],
+            )
+        return path
+
+    def test_a_region_is_split_into_its_towns(self, region):
+        with Explorer(region) as explorer:
+            towns = explorer.localities("Belgium", "buy")
+        assert [town["city"] for town in towns] == ["Nivelles", "Waterloo"]
+
+    def test_a_town_sits_at_the_median_of_its_pins(self, region):
+        with Explorer(region) as explorer:
+            nivelles = explorer.localities("Belgium", "buy")[0]
+        assert (nivelles["latitude"], nivelles["longitude"]) == pytest.approx(
+            (50.61, 4.33)
+        )
+
+    def test_listings_without_a_pin_still_count_towards_the_prices(self, region):
+        with Explorer(region) as explorer:
+            nivelles = explorer.localities("Belgium", "buy")[0]
+        assert nivelles["listings"] == 3
+        assert nivelles["median_price"] == 400000
+        assert nivelles["median_price_per_m2"] == 3000
+
+    def test_sales_and_rentals_are_mapped_apart(self, region):
+        with Explorer(region) as explorer:
+            rented = explorer.localities("Belgium", "rent")
+        assert [(town["city"], town["median_price"]) for town in rented] == [
+            ("Nivelles", 1000)
+        ]
+
+    def test_a_town_with_no_pin_at_all_is_left_off(self, region):
+        with Explorer(region) as explorer:
+            towns = explorer.localities("Belgium", "buy")
+        assert "Wavre" not in [town["city"] for town in towns]
+
+    def test_another_country_is_not_mixed_in(self, region):
+        with Explorer(region) as explorer:
+            assert explorer.localities("Switzerland", "buy") == []
+
+
 class TestListings:
     def test_a_search_narrows_the_rows(self, archive):
         with Explorer(archive) as explorer:
@@ -250,6 +317,7 @@ class TestRouting:
             )
             assert answer(explorer, "/api/movements", {"search": NAMUR})
             assert answer(explorer, "/api/yields", {}) == []
+            assert answer(explorer, "/api/localities", {"country": "Belgium"}) == []
 
     def test_an_unknown_path_has_no_view(self, archive):
         with Explorer(archive) as explorer:

@@ -146,6 +146,26 @@
 
   .lang { padding: 6px 8px; font-size: 14px; color: var(--dim); }
 
+  /* map */
+  .controls { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+  #map { height: min(600px, calc(100vh - 300px)); min-height: 360px; border-radius: 12px 12px 0 0; background: var(--sunk); }
+  .leaflet-container { font: inherit; }
+  .leaflet-container .leaflet-tooltip { background: var(--card); color: var(--ink); border: 1px solid var(--line);
+                     border-radius: 8px; box-shadow: var(--shadow); padding: 8px 10px; font-size: 13px; }
+  .leaflet-container .leaflet-tooltip-top:before { border-top-color: var(--card); }
+  .leaflet-control-attribution { font-size: 11px; }
+  /* A grey basemap, so the only colour on the map is the price. */
+  .leaflet-tile-pane { filter: grayscale(1) contrast(.85) brightness(1.04); }
+  @media (prefers-color-scheme: dark) {
+    /* OpenStreetMap only draws light tiles; turned over, they sit in the dark page. */
+    .leaflet-tile-pane { filter: grayscale(1) invert(1) brightness(.8) contrast(.85); }
+  }
+  .legend { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 12px 16px;
+            border-top: 1px solid var(--line); font-size: 13px; color: var(--dim); }
+  .legend b { color: var(--ink); font-weight: 600; }
+  .key { display: inline-flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; }
+  .key i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+
   @media (max-width: 860px) {
     .layout { grid-template-columns: 1fr; }
     aside { position: static; height: auto; max-height: 220px; border-right: 0; border-bottom: 1px solid var(--line); }
@@ -163,6 +183,7 @@
   <nav class="tabs">
     <a href="#/" data-tab="places" data-t="nav.places"></a>
     <a href="#/yield" data-tab="yield" data-t="nav.yield"></a>
+    <a href="#/map" data-tab="map" data-t="nav.map"></a>
   </nav>
   <span class="spacer"></span>
   <span class="status" id="status"></span>
@@ -236,6 +257,10 @@ const STRINGS = {
     "scan.townHint": "e.g. Nivelles or 1400", "scan.wholeRegion": "the whole region", "scan.region": "…or a whole region",
     "scan.regionNone": "— none —", "scan.type": "Property type", "scan.start": "Start scan",
     "scan.asking": "Asking…", "scan.needPlace": "Name a town, or pick a region.", "scan.done": "{p}: {n} listings — {s}",
+    "nav.map": "Map", "map.title": "Map", "map.sub": "The median price per m² of every locality scanned. A bigger circle holds more listings; click one to open it.",
+    "map.legendBuy": "Median price per m²", "map.legendRent": "Median rent per m², per month", "map.listings": "{n} listings",
+    "map.noSurface": "no surface given", "map.empty": "No listing here has a position on the map yet.",
+    "map.offline": "The map could not be loaded; it needs an internet connection.",
   },
   fr: {
     "nav.places": "Lieux", "nav.yield": "Rendement locatif", "scan.open": "+ Scanner un lieu",
@@ -269,6 +294,10 @@ const STRINGS = {
     "scan.townHint": "ex. Nivelles ou 1400", "scan.wholeRegion": "toute la région", "scan.region": "…ou une région entière",
     "scan.regionNone": "— aucune —", "scan.type": "Type de bien", "scan.start": "Lancer le scan",
     "scan.asking": "Envoi…", "scan.needPlace": "Indiquez une ville, ou choisissez une région.", "scan.done": "{p} : {n} annonces — {s}",
+    "nav.map": "Carte", "map.title": "Carte", "map.sub": "Le prix médian au m² de chaque localité scannée. Plus le cercle est grand, plus il y a d'annonces ; cliquez dessus pour l'ouvrir.",
+    "map.legendBuy": "Prix médian au m²", "map.legendRent": "Loyer médian au m², par mois", "map.listings": "{n} annonces",
+    "map.noSurface": "surface inconnue", "map.empty": "Aucune annonce ici n'a encore de position sur la carte.",
+    "map.offline": "La carte n'a pas pu se charger ; il faut une connexion internet.",
   },
   nl: {
     "nav.places": "Plaatsen", "nav.yield": "Huurrendement", "scan.open": "+ Plaats scannen",
@@ -302,6 +331,10 @@ const STRINGS = {
     "scan.townHint": "bv. Nivelles of 1400", "scan.wholeRegion": "de hele regio", "scan.region": "…of een hele regio",
     "scan.regionNone": "— geen —", "scan.type": "Type woning", "scan.start": "Scan starten",
     "scan.asking": "Bezig…", "scan.needPlace": "Geef een gemeente op, of kies een regio.", "scan.done": "{p}: {n} zoekertjes — {s}",
+    "nav.map": "Kaart", "map.title": "Kaart", "map.sub": "De mediaanprijs per m² van elke gescande plaats. Hoe groter de cirkel, hoe meer zoekertjes; klik erop om hem te openen.",
+    "map.legendBuy": "Mediaanprijs per m²", "map.legendRent": "Mediaanhuur per m², per maand", "map.listings": "{n} zoekertjes",
+    "map.noSurface": "oppervlakte onbekend", "map.empty": "Nog geen zoekertje hier heeft een plaats op de kaart.",
+    "map.offline": "De kaart kon niet laden; daarvoor is een internetverbinding nodig.",
   },
   de: {
     "nav.places": "Orte", "nav.yield": "Mietrendite", "scan.open": "+ Ort scannen",
@@ -335,6 +368,10 @@ const STRINGS = {
     "scan.townHint": "z. B. Lausanne oder 1003", "scan.wholeRegion": "die ganze Region", "scan.region": "…oder eine ganze Region",
     "scan.regionNone": "— keine —", "scan.type": "Objektart", "scan.start": "Scan starten",
     "scan.asking": "Wird gesendet…", "scan.needPlace": "Geben Sie einen Ort an oder wählen Sie eine Region.", "scan.done": "{p}: {n} Inserate — {s}",
+    "nav.map": "Karte", "map.title": "Karte", "map.sub": "Der Medianpreis pro m² jedes gescannten Orts. Je grösser der Kreis, desto mehr Inserate; zum Öffnen anklicken.",
+    "map.legendBuy": "Medianpreis pro m²", "map.legendRent": "Medianmiete pro m², pro Monat", "map.listings": "{n} Inserate",
+    "map.noSurface": "Fläche unbekannt", "map.empty": "Noch kein Inserat hier hat eine Position auf der Karte.",
+    "map.offline": "Die Karte konnte nicht geladen werden; dafür braucht es eine Internetverbindung.",
   },
 };
 
@@ -536,6 +573,128 @@ function viewYield(view) {
   y => location.hash = placeHash([y.country, y.place, y.type].join("/"), "buy"));
 }
 
+/* ---------- map ---------- */
+const LEAFLET = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/";
+let leaflet, map;
+
+/* Leaflet is only fetched once the map is opened, so the rest of the
+   explorer keeps working offline. */
+function loadLeaflet() {
+  return leaflet || (leaflet = new Promise((resolve, reject) => {
+    const css = document.createElement("link");
+    css.rel = "stylesheet";
+    css.href = LEAFLET + "leaflet.min.css";
+    css.integrity = "sha512-h9FcoyWjHcOcmEVkxOfTLnmZFWIH0iZhZT1H2TbOq55xssQGEJHEaIm+PgoUaZbRvQTNTluNOEfb1ZRy6D3BOw==";
+    css.crossOrigin = "anonymous";
+    const js = document.createElement("script");
+    js.src = LEAFLET + "leaflet.min.js";
+    js.integrity = "sha512-puJW3E/qXDqYp9IfhAI54BJEaWIfloJ7JWs7OeD5i6ruC9JZL1gERT1wjtwXFlh7CjE7ZJ+/vcRZRkIYIb6p4g==";
+    js.crossOrigin = "anonymous";
+    js.onload = () => resolve(window.L);
+    js.onerror = () => { leaflet = null; reject(new Error("leaflet")); };
+    document.head.append(css, js);
+  }));
+}
+
+/* One hue, cheap to dear: darker on a light map, brighter on a dark one. */
+const RAMP = {
+  light: ["#b7d3f6", "#86b6ef", "#3987e5", "#1c5cab", "#0d366b"],
+  dark: ["#184f95", "#256abf", "#3987e5", "#86b6ef", "#cde2fb"],
+};
+const UNPRICED = "#9ca3af";
+
+/* Splits the prices into up to five bins of as many localities each, so
+   a single dear town cannot wash every other one out to the same tint. */
+function bins(values) {
+  const sorted = [...values].sort((a, b) => a - b);
+  const k = Math.min(5, new Set(sorted).size);
+  const cuts = [];
+  for (let i = 1; i < k; i++) cuts.push(sorted[Math.floor(i * sorted.length / k)]);
+  const binOf = v => cuts.filter(c => v >= c).length;
+  const ranges = Array.from({ length: k }, (_, b) => {
+    const inside = sorted.filter(v => binOf(v) === b);
+    return inside.length ? [inside[0], inside[inside.length - 1]] : null;
+  });
+  return { binOf, ranges };
+}
+
+async function viewMap(view, country, deal) {
+  const countries = [...new Set(places.map(p => p.country))].sort();
+  country = countries.includes(country) ? country : countries[0];
+  deal = deal === "rent" ? "rent" : "buy";
+  const hash = (c, d) => `#/map/${encodeURIComponent(c)}/${d}`;
+
+  view.innerHTML = `<h1>${t("map.title")}</h1>
+    <p class="sub">${t("map.sub")}</p>
+    <div class="controls">
+      ${countries.length > 1 ? `<div class="seg">${countries.map(c =>
+        `<a class="${c === country ? "on" : ""}" href="${hash(c, deal)}">${esc(countryName(c))}</a>`).join("")}</div>` : ""}
+      <div class="seg">${["buy", "rent"].map(d =>
+        `<a class="${d === deal ? "on" : ""}" href="${hash(country, d)}">${t("deal." + d)}</a>`).join("")}</div>
+    </div>
+    <div class="card"><div id="map"></div><div class="legend" id="legend"></div></div>`;
+  if (!countries.length) {
+    view.querySelector(".card").innerHTML = `<div class="empty">${t("places.empty")}</div>`;
+    return;
+  }
+
+  let L, towns;
+  try {
+    [L, towns] = await Promise.all([loadLeaflet(), get("/api/localities", { country, rent_or_buy: deal })]);
+  } catch {
+    if ($("map")) $("map").parentNode.innerHTML = `<div class="empty">${t("map.offline")}</div>`;
+    return;
+  }
+  if (!$("map")) return;  // the reader moved on while this loaded
+
+  const cur = currencyOf(country), renting = deal === "rent";
+  const perM2 = v => renting ? `${dec(v)} ${cur}` : money(v, cur);
+  const theme = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  if (map) try { map.remove(); } catch {}
+  map = L.map("map", { scrollWheelZoom: false });
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 19,
+  }).addTo(map);
+
+  if (!towns.length) {
+    map.fitBounds(country === "Switzerland" ? [[45.8, 5.95], [47.8, 10.5]] : [[49.5, 2.55], [51.5, 6.4]]);
+    $("legend").textContent = t("map.empty");
+    return;
+  }
+
+  const priced = towns.filter(x => x.median_price_per_m2);
+  const { binOf, ranges } = bins(priced.map(x => x.median_price_per_m2));
+  // Fewer bins than tints still span the whole ramp, cheapest to dearest.
+  const ramp = ranges.length < 2 ? [RAMP[theme][2]]
+    : ranges.map((_, b) => RAMP[theme][Math.round(b * 4 / (ranges.length - 1))]);
+  const most = Math.max(...towns.map(x => x.listings));
+  const ring = getComputedStyle(document.documentElement).getPropertyValue("--card").trim();
+
+  // Biggest drawn first, so a big town never hides its smaller neighbours.
+  for (const town of [...towns].sort((a, b) => b.listings - a.listings)) {
+    const v = town.median_price_per_m2;
+    const marker = L.circleMarker([town.latitude, town.longitude], {
+      radius: 6 + 14 * Math.sqrt(town.listings / most),
+      color: ring, weight: 2,
+      fillColor: v ? ramp[binOf(v)] : UNPRICED, fillOpacity: v ? .9 : .5,
+    }).addTo(map);
+    marker.bindTooltip(`<b>${esc(town.city)}</b> <span class="dash">${esc(town.postal_code)}</span><br>` +
+      `${v ? `<b>${perM2(v)}</b> / m²` : t("map.noSurface")}<br>` +
+      `<span class="dash">${t(renting ? "tile.medianRent" : "tile.medianPrice")} ${money(town.median_price, cur)} · ` +
+      `${t("map.listings", { n: town.listings })}</span>`, { direction: "top", offset: [0, -6] });
+    const key = town.search_key.split("/").slice(0, 3).join("/");
+    marker.on("click", () => location.hash = placeHash(key, deal));
+  }
+  map.fitBounds(towns.map(x => [x.latitude, x.longitude]), { padding: [30, 30], maxZoom: 12 });
+
+  $("legend").innerHTML = `<b>${t(renting ? "map.legendRent" : "map.legendBuy")}</b>` +
+    ranges.map((r, b) => r ? `<span class="key"><i style="background:${ramp[b]}"></i>` +
+      `${r[0] === r[1] ? perM2(r[0]) : `${perM2(r[0])} – ${perM2(r[1])}`}</span>` : "").join("") +
+    (priced.length < towns.length
+      ? `<span class="key"><i style="background:${UNPRICED};opacity:.5"></i>${t("map.noSurface")}</span>` : "");
+}
+
 let placeTab = "listings";
 
 async function viewPlace(view, key, deal) {
@@ -668,15 +827,16 @@ function sparkline(history) {
     ${ps.map((v, i) => `<circle cx="${pad + i * step}" cy="${y(v)}" r="3.5" fill="var(--accent)"/>`).join("")}</svg>`;
 }
 
-/* ---------- routing: #/  #/yield  #/place/<country/code/type>/<buy|rent> ---------- */
+/* ---------- routing: #/  #/yield  #/map/<country>/<buy|rent>  #/place/<country/code/type>/<buy|rent> ---------- */
 function route() {
   closeDrawer();
   const parts = location.hash.replace(/^#\/?/, "").split("/");
   const view = $("view");
   document.querySelectorAll(".tabs a").forEach(a => a.classList.toggle("on",
-    parts[0] !== "place" && a.dataset.tab === (parts[0] === "yield" ? "yield" : "places")));
+    parts[0] !== "place" && a.dataset.tab === (["yield", "map"].includes(parts[0]) ? parts[0] : "places")));
   if (parts[0] === "place") viewPlace(view, decodeURIComponent(parts[1] || ""), parts[2]);
   else if (parts[0] === "yield") viewYield(view);
+  else if (parts[0] === "map") viewMap(view, decodeURIComponent(parts[1] || ""), parts[2]);
   else viewPlaces(view);
   markSide();
   window.scrollTo(0, 0);
