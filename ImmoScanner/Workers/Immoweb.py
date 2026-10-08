@@ -146,6 +146,7 @@ class Immoweb(RealEstateWorker):
         real_estate_item.livable_square_meters = (
             property_.get("netHabitableSurface") or 0
         )
+        real_estate_item.land_square_meters = property_.get("landSurface") or 0
         real_estate_item.bedrooms_number = property_.get("bedroomCount") or 0
         real_estate_item.rooms_number = property_.get("roomCount") or 0
         real_estate_item.postal_code = location.get("postalCode") or ""

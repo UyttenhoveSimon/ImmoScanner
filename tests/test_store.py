@@ -1,3 +1,5 @@
+import sqlite3
+
 from ImmoScanner.Archives.Store import Store
 from ImmoScanner.Means.RealEstateResearchResult import RealEstateResearchResult
 
@@ -60,3 +62,30 @@ def test_another_search_is_not_treated_as_a_withdrawal(tmp_path):
         report = store.record("Belgium/1000/house/buy", [listing("9", 500000)])
 
     assert report.gone == []
+
+
+def test_the_plot_is_archived(tmp_path):
+    result = listing("1", 300000)
+    result.land_square_meters = 800
+    with Store(tmp_path / "a.db") as store:
+        store.record(SEARCH, [result])
+        row = store.connection.execute(
+            "SELECT land_square_meters FROM listings"
+        ).fetchone()
+    assert row[0] == 800
+
+
+def test_an_archive_from_before_plots_were_kept_is_brought_up_to_date(tmp_path):
+    path = tmp_path / "old.db"
+    with sqlite3.connect(path) as old:
+        old.execute(
+            "CREATE TABLE listings (platform TEXT NOT NULL, listing_id TEXT NOT NULL, "
+            "search_key TEXT NOT NULL, url TEXT, description TEXT, type TEXT, "
+            "source TEXT, postal_code TEXT, city TEXT, currency TEXT, price REAL, "
+            "livable_square_meters INTEGER, bedrooms_number INTEGER, rooms_number REAL, "
+            "latitude REAL, longitude REAL, first_seen TEXT NOT NULL, "
+            "last_seen TEXT NOT NULL, PRIMARY KEY (platform, listing_id))"
+        )
+    with Store(path) as store:
+        report = store.record(SEARCH, [listing("1", 300000)])
+    assert len(report.new) == 1

@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS listings (
     currency TEXT,
     price REAL,
     livable_square_meters INTEGER,
+    land_square_meters INTEGER,
     bedrooms_number INTEGER,
     rooms_number REAL,
     latitude REAL,
@@ -49,6 +50,7 @@ COLUMNS = (
     "currency",
     "price",
     "livable_square_meters",
+    "land_square_meters",
     "bedrooms_number",
     "rooms_number",
     "latitude",
@@ -84,7 +86,19 @@ class Store:
         self.connection = sqlite3.connect(path)
         self.connection.row_factory = sqlite3.Row
         self.connection.executescript(SCHEMA)
+        self.migrate()
         self.connection.commit()
+
+    def migrate(self):
+        """Adds the columns an archive written by an older version lacks."""
+        present = {
+            row["name"]
+            for row in self.connection.execute("PRAGMA table_info(listings)")
+        }
+        if "land_square_meters" not in present:
+            self.connection.execute(
+                "ALTER TABLE listings ADD COLUMN land_square_meters INTEGER"
+            )
 
     def __enter__(self):
         return self

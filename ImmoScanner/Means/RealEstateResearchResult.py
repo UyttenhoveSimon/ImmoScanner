@@ -12,6 +12,8 @@ class RealEstateResearchResult(ResearchResult):
         self.city = ""
         self.type = ""
         self.livable_square_meters = 0
+        #: the plot, where the portal publishes one; 0 means unknown
+        self.land_square_meters = 0
         self.bedrooms_number = 0
         self.rooms_number = 0
         self.latitude = None

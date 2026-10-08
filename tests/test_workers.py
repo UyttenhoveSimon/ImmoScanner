@@ -56,6 +56,14 @@ class TestImmoweb:
             for result in results
         )
 
+    def test_reads_the_plot_where_there_is_one(self, immoweb, soup_of):
+        cards = soup_of("immoweb_search.html").select(immoweb.CARD_SELECTOR)
+        plots = {
+            r.id: r.land_square_meters for r in map(immoweb.extract_findings, cards)
+        }
+        assert plots["21841479"] == 1215
+        assert plots["21803099"] == 0
+
     def test_keeps_new_build_projects_out_of_the_statistics(self, immoweb, soup_of):
         """A development is advertised as "230 000 € - 745 000 €", not a price."""
         cards = soup_of("immoweb_search.html").select(immoweb.CARD_SELECTOR)
