@@ -218,6 +218,10 @@ class TestComparisFallbacks:
         postal, city = Comparis().get_locality({"Address": ["Quelque part"]})
         assert (postal, city) == ("", "Quelque part")
 
+    def test_a_street_line_before_the_locality_is_not_the_town(self):
+        address = {"Address": ["Grand-Rue 57", "1170 Aubonne"]}
+        assert Comparis().get_locality(address) == ("1170", "Aubonne")
+
     def test_an_item_with_no_address_at_all(self):
         assert Comparis().get_locality({}) == ("", "")
 

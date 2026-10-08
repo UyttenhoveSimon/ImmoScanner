@@ -61,10 +61,14 @@ class Comparis(RealEstateWorker):
         return f"{DETAIL_URL}/{result['AdId']}"
 
     def get_locality(self, result):
-        # Address is a list whose first line is "1618 Châtel-St-Denis".
-        address = (result.get("Address") or [""])[0]
-        match = re.match(r"(\d{4})\s+(.*)", address)
-        return (match.group(1), match.group(2).title()) if match else ("", address)
+        # Address is a list ending in "1618 Châtel-St-Denis", sometimes after a
+        # street line such as "Grand-Rue 57"; the locality is the coded line.
+        lines = result.get("Address") or [""]
+        for line in reversed(lines):
+            match = re.match(r"(\d{4})\s+(.*)", line)
+            if match:
+                return match.group(1), match.group(2).title()
+        return "", lines[-1]
 
     def get_rooms_number(self, result):
         for fact in result.get("EssentialInformation") or []:
