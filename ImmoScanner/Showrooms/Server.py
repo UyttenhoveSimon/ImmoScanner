@@ -92,7 +92,7 @@ class Handler(BaseHTTPRequestHandler):
             return self.send_error(404)
 
         try:
-            with Explorer(self.archive_path) as explorer:
+            with Explorer(self.archive_path, narrowing=query) as explorer:
                 payload = answer(explorer, parsed.path, query)
         except Exception as error:
             logger.warning(f"{parsed.path} failed: {error}")

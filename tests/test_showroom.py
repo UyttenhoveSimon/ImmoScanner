@@ -219,6 +219,69 @@ class TestLocalities:
             assert explorer.localities("Switzerland", "buy") == []
 
 
+class TestNarrowing:
+    @pytest.fixture
+    def houses(self, tmp_path):
+        path = tmp_path / "houses.db"
+        sizes = [("1", 2, 0), ("2", 3, 500), ("3", 4, 1200), ("4", 0, 0)]
+        found = []
+        for listing_id, bedrooms, land in sizes:
+            item = located(listing_id, 300000, "5000", "Namur", 50.46, 4.87)
+            item.bedrooms_number, item.land_square_meters = bedrooms, land
+            found.append(item)
+        with Store(path) as store:
+            store.record(NAMUR, found)
+        return path
+
+    def test_nothing_asked_narrows_nothing(self, houses):
+        with Explorer(houses) as explorer:
+            assert len(explorer.listings()) == 4
+
+    def test_at_least_so_many_bedrooms(self, houses):
+        with Explorer(houses, {"min_bedrooms": "3"}) as explorer:
+            assert {r["listing_id"] for r in explorer.listings()} == {"2", "3"}
+
+    def test_a_listing_that_does_not_say_is_left_out(self, houses):
+        with Explorer(houses, {"min_bedrooms": "1"}) as explorer:
+            assert "4" not in {r["listing_id"] for r in explorer.listings()}
+
+    def test_narrowings_add_up(self, houses):
+        with Explorer(houses, {"min_bedrooms": "3", "min_land": "1000"}) as explorer:
+            assert [r["listing_id"] for r in explorer.listings()] == ["3"]
+
+    def test_every_view_is_narrowed(self, houses):
+        with Explorer(houses, {"min_land": "1000"}) as explorer:
+            assert explorer.searches()[0]["listings"] == 1
+            assert explorer.localities("Belgium", "buy")[0]["listings"] == 1
+
+    def test_a_place_with_no_match_is_still_listed(self, houses):
+        with Explorer(houses, {"min_bedrooms": "9"}) as explorer:
+            searches = explorer.searches()
+        assert [(s["search_key"], s["listings"], s["priced"]) for s in searches] == [
+            (NAMUR, 0, 0)
+        ]
+
+    @pytest.mark.parametrize("value", ["", "abc", "-2", "1; DROP TABLE listings"])
+    def test_what_is_not_a_positive_number_is_ignored(self, houses, value):
+        with Explorer(houses, {"min_bedrooms": value}) as explorer:
+            assert len(explorer.listings()) == 4
+
+    def test_an_unknown_narrowing_is_ignored(self, houses):
+        with Explorer(houses, {"max_price; --": "1"}) as explorer:
+            assert len(explorer.listings()) == 4
+
+    def test_an_archive_without_plots_matches_no_plot(self, archive):
+        with sqlite3.connect(archive) as connection:
+            connection.execute("ALTER TABLE listings DROP COLUMN land_square_meters")
+        with Explorer(archive, {"min_land": "100"}) as explorer:
+            assert explorer.listings() == []
+        with Explorer(archive) as explorer:
+            assert explorer.listings()[0]["land_square_meters"] is None
+
+    def test_the_server_passes_the_narrowing_on(self, running):
+        assert fetch(running, "/api/listings?min_bedrooms=99") == (200, b"[]")
+
+
 class TestListings:
     def test_a_search_narrows_the_rows(self, archive):
         with Explorer(archive) as explorer:

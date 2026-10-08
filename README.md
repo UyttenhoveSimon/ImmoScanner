@@ -36,6 +36,7 @@
 - 🗂️ **History**: save each scan and see what is new, cheaper, more expensive or gone
 - 🧹 **No double counting**: a flat listed on three websites counts once
 - 🌐 **Web explorer**: compare places, browse listings and see prices on a map, in four languages
+- 🎯 **Narrowing**: count only listings with enough bedrooms, rooms, living area or land
 - 🤝 **Polite**: limits how many pages it reads and pauses between them
 
 ## 🚀 Quick start
@@ -206,6 +207,7 @@ Then go to **http://127.0.0.1:8765**. From there you can:
 - 🔍 **Click a listing** to see its details, a chart of its price over time, and a link to the original ad.
 - 💰 **Compare rental yields** on the *Rental yield* page, for every place scanned both for sale and to let.
 - 🗺️ **See prices on a map** on the *Map* page: one circle per locality, coloured by median price per m² and sized by the number of listings, for sale or to let. A region scan is split into its towns. Hover a circle for its figures; click it to open the place.
+- 🎯 **Narrow everything down** from the sidebar: at least so many bedrooms or rooms, a minimum living area or plot of land. Every page then counts only the listings that match, including the medians, the yields and the map. A listing that doesn't give the figure is left out. Land area comes from immoweb only, since immovlan and comparis don't publish it in their search results.
 - ↕️ **Sort any table** by clicking a column heading. Click again to reverse the order.
 - 🔖 **Bookmark any view**: each place has its own address, and the browser's back button works.
 - 🌍 **Pick your language**: English, French, Dutch or German, from the menu at the top.

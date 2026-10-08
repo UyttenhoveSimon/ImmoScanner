@@ -20,10 +20,42 @@ SORTS = {
 DEFAULT_LIMIT = 200
 MAX_LIMIT = 2000
 
+#: what a reader can narrow every view to, mapped to the condition it adds;
+#: a listing that does not say how many bedrooms it has never has "at least 3"
+NARROWINGS = {
+    "min_bedrooms": "bedrooms_number >= ?",
+    "min_rooms": "rooms_number >= ?",
+    "min_surface": "livable_square_meters >= ?",
+    "min_land": "land_square_meters >= ?",
+}
+
+
 class Explorer:
-    def __init__(self, path):
+    def __init__(self, path, narrowing=None):
         self.connection = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
         self.connection.row_factory = sqlite3.Row
+        # The explorer cannot write, so an archive from before land was kept
+        # is read as one where no plot is known.
+        columns = {row["name"] for row in self.rows("PRAGMA table_info(listings)")}
+        self.land = "land_square_meters" if "land_square_meters" in columns else "NULL"
+        self.match, self.match_parameters = self.conditions(narrowing or {})
+
+    def conditions(self, narrowing):
+        """One sql condition for every narrowing asked, and its parameters.
+
+        Only the names in NARROWINGS are read, and only as numbers, so what
+        the browser sends picks among fixed conditions and never becomes sql.
+        """
+        clauses, parameters = [], []
+        for name, clause in NARROWINGS.items():
+            try:
+                value = float(narrowing.get(name, ""))
+            except (TypeError, ValueError):
+                continue
+            if value > 0:
+                clauses.append(clause.replace("land_square_meters", self.land))
+                parameters.append(value)
+        return " AND ".join(clauses) or "1", tuple(parameters)
 
     def __enter__(self):
         return self
@@ -46,8 +78,12 @@ class Explorer:
         """
         summaries = []
         for scope in self.rows(
-            "SELECT search_key, COUNT(*) AS listings, MAX(last_seen) AS last_seen "
-            "FROM listings GROUP BY search_key ORDER BY search_key"
+            # Every search keeps its row when nothing in it matches: a place
+            # with no three-bedroom house is an answer, not a missing place.
+            f"SELECT search_key, SUM(CASE WHEN {self.match} THEN 1 ELSE 0 END) "
+            "AS listings, MAX(last_seen) AS last_seen "
+            "FROM listings GROUP BY search_key ORDER BY search_key",
+            self.match_parameters,
         ):
             summaries.append(
                 {
@@ -82,8 +118,8 @@ class Explorer:
     def statistics_for(self, search_key):
         priced = self.rows(
             "SELECT price, livable_square_meters AS surface FROM listings "
-            "WHERE search_key = ? AND price > 0",
-            (search_key,),
+            f"WHERE search_key = ? AND price > 0 AND {self.match}",
+            (search_key, *self.match_parameters),
         )
         prices = [row["price"] for row in priced]
         ratios = [row["price"] / row["surface"] for row in priced if row["surface"]]
@@ -152,8 +188,9 @@ class Explorer:
         grouped = {}
         for row in self.rows(
             "SELECT search_key, postal_code, city, latitude, longitude, price, "
-            "livable_square_meters AS surface FROM listings WHERE search_key LIKE ?",
-            (f"{country}/%/%/{rent_or_buy}",),
+            "livable_square_meters AS surface FROM listings "
+            f"WHERE search_key LIKE ? AND {self.match}",
+            (f"{country}/%/%/{rent_or_buy}", *self.match_parameters),
         ):
             # LIKE treats "_" and "%" in the country as wildcards; the exact
             # parts settle it.
@@ -192,7 +229,7 @@ class Explorer:
         return sorted(mapped, key=lambda locality: locality["city"])
 
     def listings(self, search_key=None, source=None, sort="price", limit=DEFAULT_LIMIT):
-        where, parameters = [], []
+        where, parameters = [self.match], [*self.match_parameters]
         if search_key:
             where.append("search_key = ?")
             parameters.append(search_key)
@@ -200,13 +237,14 @@ class Explorer:
             where.append("COALESCE(NULLIF(source, ''), platform) LIKE ?")
             parameters.append(f"%{source}%")
 
-        clause = f"WHERE {' AND '.join(where)}" if where else ""
+        clause = f"WHERE {' AND '.join(where)}"
         order = SORTS.get(sort, SORTS["price"])
         parameters.append(bounded(limit))
 
         return self.rows(
             "SELECT platform, listing_id, url, description, type, source, city, "
             "postal_code, price, currency, livable_square_meters, bedrooms_number, "
+            f"rooms_number, {self.land} AS land_square_meters, "
             "latitude, longitude, first_seen, last_seen "
             f"FROM listings {clause} "
             f"ORDER BY CASE WHEN price > 0 THEN 0 ELSE 1 END, {order} DESC "
@@ -226,8 +264,8 @@ class Explorer:
         moved = []
         for row in self.rows(
             "SELECT platform, listing_id, url, city, price FROM listings "
-            "WHERE search_key = ?",
-            (search_key,),
+            f"WHERE search_key = ? AND {self.match}",
+            (search_key, *self.match_parameters),
         ):
             history = self.price_history(row["platform"], row["listing_id"])
             prices = [point["price"] for point in history if point["price"]]
