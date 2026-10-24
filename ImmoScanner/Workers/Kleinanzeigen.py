@@ -62,7 +62,8 @@ class Kleinanzeigen(RealEstateWorker):
     WAIT_FOR = (CARD_SELECTOR,)
     #: Länder are not a search kleinanzeigen offers by url
     SEARCH_BY_REGION = False
-    VERIFIED = False
+    #: checked on captures, page 2 included (tests/fixtures/kleinanzeigen_search.html)
+    VERIFIED = True
 
     def __init__(self, **kwargs):
         kwargs.setdefault("locale", "de-DE")

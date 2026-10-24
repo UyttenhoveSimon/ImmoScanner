@@ -495,14 +495,13 @@ If a portal shows a captcha, the scanner raises a `BotWallError` instead of retu
 | leboncoin.fr ⛔ | 🇫🇷 | the `__NEXT_DATA__` block | DataDome wall | ✅ |
 | seloger.com ⛔ | 🇫🇷 | the result cards (AVIV layout), from a copied search url | DataDome wall | ❌ |
 | pap.fr ⛔ | 🇫🇷 | schema.org JSON-LD, from a copied search url | Cloudflare challenge | if published |
-| kleinanzeigen.de ⚠️ | 🇩🇪 | the result cards, read by their text | browser | ❌ |
+| kleinanzeigen.de | 🇩🇪 | the result cards, read by their text | plain HTTP | ❌ |
 | immobilienscout24.de ⛔ | 🇩🇪 | schema.org JSON-LD, from a copied search url | its own wall | if published |
-| immowelt.de ⚠️ | 🇩🇪 | the result cards (AVIV layout) | plain HTTP | ❌ |
+| immowelt.de | 🇩🇪 | the result cards (AVIV layout) | plain HTTP | ❌ |
 
 The French and German readers were written before any page of those portals could be reached from where they were written. A capture run on GitHub then told them apart:
 
-- ✅ **bienici.com** works: its reader is checked on that capture (`tests/fixtures/bienici_search.json`).
-- ⚠️ **kleinanzeigen.de** and **immowelt.de** served real pages, and their readers are checked on them (`tests/fixtures/*_search.html`); the way they turn a place into a search url is still to be confirmed by the next capture.
+- ✅ **bienici.com**, **kleinanzeigen.de** and **immowelt.de** work: their readers, and the way they turn a place into a search url, are checked on captured pages (`tests/fixtures/bienici_search.json`, `kleinanzeigen_search.html`, `immowelt_search.html`).
 - ⛔ **leboncoin.fr**, **seloger.com**, **pap.fr** and **immobilienscout24.de** answered with an anti-bot wall even from a real browser. Their readers are kept, unverified, in case they answer from elsewhere (a home connection, say); the scan reports the wall as a `BotWallError` rather than an empty market.
 
 A scan logs a warning for every unverified portal it uses. To check them again:

@@ -42,9 +42,7 @@ SEARCHES = [
         {"url": "https://www.pap.fr/annonce/vente-immobiliere-lyon-69-g43590"},
         marks=UNVERIFIED,
     ),
-    pytest.param(
-        Kleinanzeigen, {"postal_code": "10115", "city": "Berlin"}, marks=UNVERIFIED
-    ),
+    (Kleinanzeigen, {"postal_code": "10115", "city": "Berlin"}),
     pytest.param(
         ImmoScout24,
         {
@@ -52,7 +50,7 @@ SEARCHES = [
         },
         marks=UNVERIFIED,
     ),
-    pytest.param(Immowelt, {"city": "Berlin"}, marks=UNVERIFIED),
+    (Immowelt, {"city": "Berlin"}),
 ]
 
 

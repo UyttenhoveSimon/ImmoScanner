@@ -13,7 +13,8 @@ class Immowelt(AvivWorker):
     immowelt's own coded search for it.
     """
 
-    VERIFIED = False
+    #: checked on captures, place search included (tests/fixtures/immowelt_search.html)
+    VERIFIED = True
 
     def __init__(self, **kwargs):
         kwargs.setdefault("locale", "de-DE")

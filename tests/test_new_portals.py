@@ -75,7 +75,7 @@ class TestCountries:
             country = CountryFactory().generate_country_given_name(name)
             assert country is not None
             verified += [site.domain_name for site in country.websites if site.VERIFIED]
-        assert verified == ["bienici.com"]
+        assert verified == ["bienici.com", "kleinanzeigen.de", "immowelt.de"]
 
     def test_regions_are_matched_however_typed(self):
         france = CountryFactory().generate_country_given_name("France")
@@ -452,8 +452,10 @@ class TestKleinanzeigen:
         monkeypatch.setattr(worker, "get_soup", lambda url, wait_for=(): page)
         worker.fetch_page(searched, 1)
         url = worker.url_builder(searched, 2)
-        assert url.startswith("https://www.kleinanzeigen.de/s-")
-        assert "/seite:2/c196" in url
+        # the site's own link to page 2 of the same search
+        assert url == (
+            "https://www.kleinanzeigen.de/s-wohnung-kaufen/10115/seite:2/c196l9668"
+        )
 
     def test_before_the_form_has_answered_later_pages_use_it_too(self):
         url = Kleinanzeigen().url_builder(research(city="Berlin", type=HOUSE), 3)
@@ -492,25 +494,25 @@ class TestKleinanzeigen:
         assert asked == [HOUSE]
 
     def test_the_announced_total_is_read(self, page):
-        assert Kleinanzeigen().total_results(page) == 72968
+        # "1 - 25 von 86 Eigentumswohnung kaufen in 10115 Mitte"
+        assert Kleinanzeigen().total_results(page) == 86
 
     def test_the_cards_of_a_captured_page_become_listings(self, page):
         worker = Kleinanzeigen()
         items = [worker.extract_findings(card) for card in page.select(CARD)]
         assert len(items) == 3
         first = items[0]
-        assert first.id == "3129133778"
+        assert first.id == "3549373207"
         assert first.url.startswith("https://www.kleinanzeigen.de/s-anzeige/")
-        assert (first.price, first.currency) == (340000, "EUR")
-        assert (first.livable_square_meters, first.rooms_number) == (61, 2)
-        assert (first.postal_code, first.city) == ("12055", "Neukölln")
-        assert first.description.startswith("Berlin-Feeling pur")
-        assert items[2].rooms_number == 2.5
-        assert items[2].price == 290000  # "290.000 € VB", not the old 315.000 €
+        assert (first.price, first.currency) == (1250000, "EUR")
+        assert (first.livable_square_meters, first.rooms_number) == (130, 4)
+        assert (first.postal_code, first.city) == ("10115", "Mitte")
+        assert first.description.startswith("Pure Harmonie")
+        assert (items[2].price, items[2].price_text) == (99000, "99.000 € VB")
 
     def test_a_card_without_locality_code_keeps_nothing_made_up(self, soup_of):
         bare = soup_of("kleinanzeigen_search.html").select_one(CARD)
-        for line in bare.find_all(string=lambda text: "Neukölln" in text):
+        for line in bare.find_all(string=lambda text: "10115 Mitte" in text):
             line.replace_with("Berlin")
         item = Kleinanzeigen().extract_findings(bare)
         assert (item.postal_code, item.city) == ("", "")
