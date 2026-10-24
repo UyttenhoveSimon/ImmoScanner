@@ -1,8 +1,12 @@
 import logging
 import urllib.parse
+from typing import TYPE_CHECKING
 
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
+
+if TYPE_CHECKING:
+    import pycountry.db
 
 logger = logging.getLogger(__name__)
 
@@ -27,8 +31,8 @@ class Country:
         self.numeric = ""
         self.name = ""
         self.official_name = ""
-        self.currency = ""
-        self.languages = []
+        self.currency: pycountry.db.Data | None = None
+        self.languages: list[pycountry.db.Data | None] = []
         self.websites = []
 
     def search_postal_codes(self, query):
@@ -47,7 +51,7 @@ class Country:
         table = BeautifulSoup(response.text, GEONAMES_PARSER).find(
             "table", {"class": "restable"}
         )
-        if table is None:
+        if not isinstance(table, Tag):
             return []
 
         hits = []

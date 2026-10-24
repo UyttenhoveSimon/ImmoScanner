@@ -21,6 +21,9 @@ class CountryFactory:
         country = country_class()
 
         iso_country = pycountry.countries.get(name=name)
+        if iso_country is None:
+            msg = f"ISO 3166 knows no country called {name}"
+            raise LookupError(msg)
         country.alpha_2 = iso_country.alpha_2
         country.alpha_3 = iso_country.alpha_3
         country.numeric = iso_country.numeric

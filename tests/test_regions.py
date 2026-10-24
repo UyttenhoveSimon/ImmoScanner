@@ -110,7 +110,7 @@ class TestScanning:
                 return [portal]
 
             def find_region(self, name):
-                return Belgium.find_region(self, name)
+                return Belgium.find_region(self, name)  # ty: ignore[invalid-argument-type]
 
             def fetch_city_given_postal_code(self, code):
                 looked_up.append(code)

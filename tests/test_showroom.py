@@ -3,6 +3,7 @@
 import json
 import sqlite3
 import threading
+import urllib.error
 import urllib.request
 
 import pytest

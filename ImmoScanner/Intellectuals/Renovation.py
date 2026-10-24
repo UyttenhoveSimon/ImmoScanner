@@ -7,10 +7,16 @@ keeps the reasons it was classed the way it was - a heuristic should show its
 working, so a false positive is spotted at a glance.
 """
 
+from __future__ import annotations
+
 import re
 import unicodedata
+from typing import TYPE_CHECKING
 
 from ..Means.RealEstateResearch import ANY
+
+if TYPE_CHECKING:
+    from ..Means.RealEstateResearchResult import RealEstateResearchResult
 
 #: something needs doing: a refresh, a new kitchen, an energy upgrade
 WORKS = "works"
@@ -62,20 +68,20 @@ RENOVATE_PATTERN = re.compile(r"\b(?:" + "|".join(RENOVATE_PHRASES) + r")\b")
 WORKS_PATTERN = re.compile(r"\b(?:" + "|".join(WORKS_PHRASES) + r")\b")
 
 
-def normalise(text):
+def normalise(text: str | None) -> str:
     decomposed = unicodedata.normalize("NFKD", text or "")
     without_accents = "".join(c for c in decomposed if not unicodedata.combining(c))
     return re.sub(r"\s+", " ", without_accents.casefold().replace("œ", "oe"))
 
 
-def epc_label(text):
+def epc_label(text: str | None) -> str:
     """Pull a certificate label out of "C", "peb_c.png" or "WalloniaD"."""
     match = re.search(r"(A\+\+|A\+|[A-G])$", (text or "").strip().upper())
     return match.group(1) if match else ""
 
 
-def phrases(pattern, text):
-    found = []
+def phrases(pattern: re.Pattern[str], text: str) -> list[str]:
+    found: list[str] = []
     for match in pattern.finditer(text):
         before = text[max(0, match.start() - NEGATION_WINDOW) : match.start()]
         if NEGATION.search(before):
@@ -85,14 +91,14 @@ def phrases(pattern, text):
     return found
 
 
-def assess(item):
+def assess(item: RealEstateResearchResult) -> tuple[str, list[str]]:
     """Return the condition a listing advertises, and the evidence for it."""
     text = normalise(item.description)
     heavy = phrases(RENOVATE_PATTERN, text)
     light = phrases(WORKS_PATTERN, text)
 
     reasons = [f"« {phrase} »" for phrase in heavy + light]
-    epc = getattr(item, "epc", "")
+    epc = item.epc
     if epc in EPC_FOR_RENOVATION | EPC_FOR_WORKS:
         reasons.append(f"PEB {epc}")
 
@@ -103,12 +109,12 @@ def assess(item):
     return "", reasons
 
 
-def annotate(item):
+def annotate(item: RealEstateResearchResult) -> RealEstateResearchResult:
     item.condition, item.condition_reasons = assess(item)
     return item
 
 
-def merge(kept, duplicate):
+def merge(kept: RealEstateResearchResult, duplicate: RealEstateResearchResult) -> None:
     """Fold what a second portal knows about a listing into the copy kept.
 
     immoweb's card has only a title where immovlan prints the whole
@@ -124,7 +130,7 @@ def merge(kept, duplicate):
     absorb(kept, duplicate.condition, duplicate.condition_reasons)
 
 
-def absorb(item, condition, reasons):
+def absorb(item: RealEstateResearchResult, condition: str, reasons: list[str]) -> None:
     if RANK[condition] > RANK[item.condition]:
         item.condition = condition
     for reason in reasons:
@@ -132,6 +138,6 @@ def absorb(item, condition, reasons):
             item.condition_reasons.append(reason)
 
 
-def meets(item, condition):
+def meets(item: RealEstateResearchResult, condition: str) -> bool:
     """Tell whether a listing needs at least the asked amount of work."""
     return RANK[item.condition] >= RANK[condition or ANY]

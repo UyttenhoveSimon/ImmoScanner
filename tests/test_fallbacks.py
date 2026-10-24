@@ -4,6 +4,8 @@ The captured fixtures cover the happy path; these cover what each extractor
 falls back on when a field is missing, and the defaults of the shared base.
 """
 
+from decimal import Decimal
+
 import pytest
 from bs4 import BeautifulSoup
 
@@ -309,3 +311,37 @@ class TestGrossYield:
         )
         with pytest.raises(ValueError, match="not implemented"):
             ImmoScanner().research_real_estate_url("Atlantis", "https://x.test")
+
+
+class TestContracts:
+    def test_a_portal_must_say_how_to_build_its_urls(self):
+        with pytest.raises(NotImplementedError):
+            RealEstateWorker().url_builder(RealEstateResearch(), 1)
+
+    def test_a_portal_must_say_how_to_read_its_cards(self):
+        with pytest.raises(NotImplementedError):
+            RealEstateWorker().extract_findings(object())
+
+    def test_a_country_iso_does_not_know_is_refused(self, monkeypatch):
+        from ImmoScanner.Countries.Belgium import Belgium
+        from ImmoScanner.Countries.CountryFactory import CountryFactory
+
+        factory = CountryFactory()
+        factory.countries["Atlantis"] = Belgium
+        with pytest.raises(LookupError, match="Atlantis"):
+            factory.generate_country_given_name("Atlantis")
+
+    def test_a_browser_that_opens_no_page_is_an_error(self, monkeypatch):
+        from ImmoScanner.Workers.Worker import Worker
+
+        worker = Worker()
+        monkeypatch.setattr(worker, "start", lambda: worker)
+        with pytest.raises(RuntimeError, match="no page"):
+            worker.open_page()
+
+    def test_a_missing_price_is_worth_nothing(self):
+        item = RealEstateResearchResult()
+        item.price = None
+        assert item.price_value == 0
+        item.price = Decimal(199000)
+        assert item.price_value == 199000.0

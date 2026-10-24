@@ -118,6 +118,17 @@ class RealEstateWorker(Worker):
         )
         return soup.select(self.CARD_SELECTOR), self.total_results(soup)
 
+    def fill_empty_fields(self, real_estate_research, /):
+        """Complete the research with what this portal needs; nothing by default."""
+
+    def url_builder(self, real_estate_research, page=1, /):
+        """Address of one page of results; every portal has its own scheme."""
+        raise NotImplementedError
+
+    def extract_findings(self, card, /):
+        """Read one result card into a listing; every portal lays them out apart."""
+        raise NotImplementedError
+
     def extract_safely(self, item):
         """Read one card; a card the portal laid out oddly is skipped, not fatal."""
         try:

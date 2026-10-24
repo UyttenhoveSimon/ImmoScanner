@@ -65,8 +65,9 @@ def answer(explorer, path, query):
 
 
 class Handler(BaseHTTPRequestHandler):
-    archive_path = None
-    runner = None
+    # both are bound by build_server, on a subclass made for each archive
+    archive_path: str
+    runner: ScanRunner
     server_version = "ImmoScanner"
 
     def log_message(self, format, *args):

@@ -22,7 +22,7 @@ class RealEstateResearch(Research):
         rent_or_buy: str = BUY,
         country: str | None = None,
         url: str = "",
-    ):
+    ) -> None:
         super().__init__()
         self.url = url
         self.type = type

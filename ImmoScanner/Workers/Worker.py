@@ -2,6 +2,7 @@ import logging
 import os
 import time
 from http import HTTPStatus
+from typing import Any
 
 import requests
 from rustwright.sync_api import sync_playwright
@@ -91,7 +92,7 @@ class Worker:
         logger.debug(f"{self.domain_name}: starting the browser engine")
         self.playwright = sync_playwright().start()
 
-        launch_options = {"headless": self.headless}
+        launch_options: dict[str, Any] = {"headless": self.headless}
         executable_path = os.environ.get("IMMOSCANNER_BROWSER_PATH")
         if executable_path:
             launch_options["executable_path"] = executable_path
@@ -142,7 +143,7 @@ class Worker:
         if self.http_client is None:
             return None
 
-        if self.http_client == "curl_cffi":
+        if self.http_client == "curl_cffi" and curl_requests is not None:
             self.session = curl_requests.Session(impersonate=CURL_IMPERSONATE)
         else:
             self.session = requests.Session()
@@ -181,21 +182,27 @@ class Worker:
         return response.text
 
     def fetch_in_browser(self, url, wait_for=(), render_timeout=10_000):
-        self.start()
-        self.page.goto(url, wait_until="domcontentloaded")
+        page = self.open_page()
+        page.goto(url, wait_until="domcontentloaded")
         for selector in wait_for:
-            self.wait_for_selector(url, selector, render_timeout)
-        return self.page.content()
+            self.wait_for_selector(page, url, selector, render_timeout)
+        return page.content()
 
-    def wait_for_selector(self, url, selector, render_timeout):
+    def open_page(self):
+        """The browser tab, starting the browser on first use."""
+        self.start()
+        if self.page is None:
+            msg = f"{self.domain_name}: the browser opened no page"
+            raise RuntimeError(msg)
+        return self.page
+
+    def wait_for_selector(self, page, url, selector, render_timeout):
         """Wait for one element; a page that never renders it is still read."""
         try:
             # "attached", not the default "visible": what is awaited may be
             # a <script> holding the payload, which is never visible, and
             # waiting for visibility burns the whole timeout on every page.
-            self.page.wait_for_selector(
-                selector, state="attached", timeout=render_timeout
-            )
+            page.wait_for_selector(selector, state="attached", timeout=render_timeout)
         except Exception:  # noqa: BLE001 - the browser's timeout type varies
             logger.debug(f"{self.domain_name}: {selector!r} never rendered on {url}")
 

@@ -22,3 +22,12 @@ repos:
     hooks:
       # pyproject.toml and uv.lock must never drift apart
       - id: uv-lock
+  - repo: local
+    hooks:
+      # the project's own ty, from uv.lock, checking the whole tree at once
+      - id: ty
+        name: ty check
+        entry: uv run ty check
+        language: system
+        types: [python]
+        pass_filenames: false

@@ -17,11 +17,19 @@ The figures are asking prices, not sales, and the renovation budget is a flat
 cost per m²: a first sort through a few hundred listings, not a valuation.
 """
 
+from __future__ import annotations
+
 import statistics
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Any
 
 from .Renovation import RANK
 from .StatisticalInsights import StatisticalInsights
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Iterable, Sequence
+
+    from ..Means.RealEstateResearchResult import RealEstateResearchResult
 
 #: below this many comparables a median says more about one house than an area
 MIN_COMPARABLES = 5
@@ -30,7 +38,7 @@ POSTAL_CODE, POSTAL_CODE_ALL, SCAN = "postal code", "postal code, all", "scan"
 
 @dataclass
 class Opportunity:
-    item: object
+    item: RealEstateResearchResult
     #: where the reference price came from: one of the three scopes above
     reference_scope: str
     reference_price_per_m2: float
@@ -44,30 +52,34 @@ class Opportunity:
     monthly_rent: float = 0
     #: yearly rent over purchase price plus works, in percent
     gross_yield_percent: float = 0
-    notes: list = field(default_factory=list)
+    notes: list[str] = field(default_factory=list)
 
     @property
-    def all_in_cost(self):
-        return float(self.item.price) + self.works_budget
+    def all_in_cost(self) -> float:
+        return self.item.price_value + self.works_budget
 
 
-def median_per_m2(listings):
+def median_per_m2(listings: Iterable[RealEstateResearchResult]) -> float:
     return StatisticalInsights(listings).price_per_square_meter_median()
 
 
 class Reference:
     """Median price per m², postal code by postal code, with fallbacks."""
 
-    def __init__(self, listings, prefer=None):
+    def __init__(
+        self,
+        listings: Iterable[RealEstateResearchResult],
+        prefer: Callable[[RealEstateResearchResult], bool] | None = None,
+    ) -> None:
         self.listings = [
             item
             for item in listings
             if not item.is_project and item.price_per_square_meter
         ]
         self.prefer = prefer or (lambda _item: True)
-        self.cache = {}
+        self.cache: dict[str, tuple[str, float]] = {}
 
-    def for_postal_code(self, postal_code):
+    def for_postal_code(self, postal_code: str) -> tuple[str, float]:
         if postal_code not in self.cache:
             local = [i for i in self.listings if i.postal_code == postal_code]
             preferred = [i for i in local if self.prefer(i)]
@@ -82,11 +94,16 @@ class Reference:
         return self.cache[postal_code]
 
 
-def needs_no_work(item):
+def needs_no_work(item: RealEstateResearchResult) -> bool:
     return RANK[item.condition] == 0
 
 
-def rank(candidates, market, rentals=(), works_per_m2=0):
+def rank(
+    candidates: Iterable[RealEstateResearchResult],
+    market: Iterable[RealEstateResearchResult],
+    rentals: Iterable[RealEstateResearchResult] = (),
+    works_per_m2: float = 0,
+) -> list[Opportunity]:
     """Measure each candidate against its area; best discount first.
 
     ``market`` is the whole sale scan the candidates were picked from: it sets
@@ -97,7 +114,8 @@ def rank(candidates, market, rentals=(), works_per_m2=0):
     opportunities = []
 
     for item in candidates:
-        if item.is_project or not item.price_per_square_meter:
+        price_per_m2 = item.price_per_square_meter
+        if item.is_project or not price_per_m2:
             continue
 
         scope, reference = prices.for_postal_code(item.postal_code)
@@ -111,10 +129,10 @@ def rank(candidates, market, rentals=(), works_per_m2=0):
             item=item,
             reference_scope=scope,
             reference_price_per_m2=reference,
-            discount=1 - item.price_per_square_meter / reference,
+            discount=1 - price_per_m2 / reference,
             after_repair_value=after_repair_value,
             works_budget=works,
-            equity=after_repair_value - float(item.price) - works,
+            equity=after_repair_value - item.price_value - works,
         )
         if scope != POSTAL_CODE:
             opportunity.notes.append(f"reference: {scope}")
@@ -134,7 +152,10 @@ def rank(candidates, market, rentals=(), works_per_m2=0):
     return sorted(opportunities, key=lambda o: o.discount, reverse=True)
 
 
-def area_summary(market, rentals=()):
+def area_summary(
+    market: Sequence[RealEstateResearchResult],
+    rentals: Sequence[RealEstateResearchResult] = (),
+) -> list[dict[str, Any]]:
     """Price and rent per m² of every postal code scanned, for picking areas."""
     rows = []
     for postal_code in sorted({item.postal_code for item in market}):

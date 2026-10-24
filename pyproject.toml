@@ -33,6 +33,7 @@ dev = [
     "pytest>=9.1.1",
     "pytest-cov>=7.1.0",
     "ruff>=0.17.2",
+    "ty>=0.0.91",
     "types-beautifulsoup4>=4.12.0.20240907",
 ]
 
@@ -46,7 +47,6 @@ extend-exclude = [".vscode"]
 select = ["ALL"]
 ignore = [
     "COM812",  # the formatter owns trailing commas
-    "ANN",     # the package is untyped; annotations would be all it says
     "D100", "D101", "D102", "D103", "D104", "D105", "D107",  # docstrings where they explain something, not on every name
     "D401",    # docstrings describe ("Return the...") as often as they command
     "CPY001",  # the licence lives in LICENSE and NOTICE
@@ -59,7 +59,12 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
+# Annotations are required where they have been written so far; the rest of
+# the package follows, one folder at a time, and ty checks all of it.
+"ImmoScanner/{Archives,Countries,Showrooms,Workers}/**" = ["ANN"]
+"ImmoScanner/{ImmoScanner,Console}.py" = ["ANN"]
 "tests/**" = [
+    "ANN",      # fixtures and fakes say what they are by name
     "S101",     # pytest asserts
     "PLR2004",  # expected values are the point of a test
     "ARG",      # fakes match the signature they replace
@@ -73,6 +78,7 @@ ignore = [
     "S310",     # urlopen against the explorer the test itself started on localhost
 ]
 "scripts/**" = [
+    "ANN",     # a throwaway generator
     "INP001",  # a script, not a package
     "T201",    # it reports on stdout
     "S311",    # made-up demo data, not secrets
@@ -113,3 +119,14 @@ artifacts = ["ImmoScanner/Showrooms/page.html"]
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.ty.environment]
+python-version = "3.10"
+
+[[tool.ty.overrides]]
+# test doubles swap methods on an instance and add attributes to fakes
+include = ["tests/**"]
+
+[tool.ty.overrides.rules]
+invalid-assignment = "ignore"
+unresolved-attribute = "ignore"

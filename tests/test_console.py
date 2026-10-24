@@ -1,6 +1,7 @@
 """The command line: what it asks for, what it prints, what it writes."""
 
 import json
+from typing import ClassVar
 
 import pytest
 
@@ -29,7 +30,7 @@ def listing(listing_id="1", price=300000, **extra):
 class StubScanner:
     """Records what the cli asked of the scanner, and answers plausibly."""
 
-    calls = None
+    calls: ClassVar[list] = []
 
     def __init__(self):
         StubScanner.calls = self.calls if self.calls is not None else []
