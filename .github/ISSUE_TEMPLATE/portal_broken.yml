@@ -1,0 +1,41 @@
+name: Portal broken
+description: A portal returns fewer listings than its site shows, or none
+labels: [portal]
+body:
+  - type: dropdown
+    id: portal
+    attributes:
+      label: Portal
+      options:
+        - immoweb.be
+        - immovlan.be
+        - comparis.ch
+        - bienici.com
+        - leboncoin.fr
+        - seloger.com
+        - pap.fr
+        - kleinanzeigen.de
+        - immobilienscout24.de
+        - immowelt.de
+    validations:
+      required: true
+  - type: input
+    id: command
+    attributes:
+      label: Command
+      placeholder: immoscanner --debug scan Belgium -p 5000
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: What came back, and what the site shows
+      description: The scan's last lines, and how many listings the portal's own page shows for the same search.
+    validations:
+      required: true
+  - type: checkboxes
+    id: wall
+    attributes:
+      label: Anti-bot wall
+      options:
+        - label: The scan reported a BotWallError

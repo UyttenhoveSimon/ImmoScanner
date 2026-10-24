@@ -1,26 +1,35 @@
 <div align="center">
 
-# 🏠 ImmoScanner
+<img src="docs/logo.svg" alt="ImmoScanner" width="440">
 
-**Scan real estate websites for any town, province or canton, get price statistics, and see what changed since your last scan.**
+**Scan the real estate portals of a town, a province or a canton. Get price statistics, rental yields and the listings priced under their neighbourhood, and see what changed since your last scan.**
 
 [![Tests](https://github.com/UyttenhoveSimon/ImmoScanner/actions/workflows/tests.yml/badge.svg)](https://github.com/UyttenhoveSimon/ImmoScanner/actions/workflows/tests.yml)
 [![Live canary](https://github.com/UyttenhoveSimon/ImmoScanner/actions/workflows/canary.yml/badge.svg)](https://github.com/UyttenhoveSimon/ImmoScanner/actions/workflows/canary.yml)
-![Python](https://img.shields.io/badge/python-3.10%E2%80%933.15-blue)
 ![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen)
+![Python](https://img.shields.io/badge/python-3.10%E2%80%933.15-blue?logo=python&logoColor=white)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
+<br>
+[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![ty](https://img.shields.io/badge/types-ty-261230)](https://github.com/astral-sh/ty)
+[![prek](https://img.shields.io/badge/hooks-prek-orange)](https://github.com/j178/prek)
+[![Countries](https://img.shields.io/badge/countries-🇧🇪_🇨🇭_🇫🇷_🇩🇪-informational)](#-supported-portals)
 
 [Quick start](#-quick-start) •
 [Usage](#-usage) •
 [Explorer](#-exploring-an-archive) •
-[Architecture](#-architecture) •
-[Design choices](#-design-choices) •
 [Portals](#-supported-portals) •
-[Tests](#-tests)
+[Architecture](#-architecture) •
+[Contributing](#-contributing)
 
 </div>
 
 ---
+
+<p align="center">
+  <img src="docs/cli.svg" alt="immoscanner --help: the scan, yield, brrrr and serve commands" width="760">
+</p>
 
 <p align="center">
   <img src="docs/explorer.png" alt="The ImmoScanner explorer comparing towns in Walloon Brabant" width="900">
@@ -43,7 +52,19 @@
 
 ## 🚀 Quick start
 
+Install the command once, with [uv](https://docs.astral.sh/uv/):
+
 ```bash
+uv tool install git+https://github.com/UyttenhoveSimon/ImmoScanner
+immoscanner scan Belgium --city Namur
+```
+
+Portals that only answer a real browser are read with Chromium; download it once with `uvx --from git+https://github.com/UyttenhoveSimon/ImmoScanner python -m rustwright install chromium`.
+
+Or work from a clone (every `immoscanner` command below then runs as `uv run immoscanner`):
+
+```bash
+git clone https://github.com/UyttenhoveSimon/ImmoScanner && cd ImmoScanner
 uv sync
 uv run python -m rustwright install chromium
 uv run immoscanner scan Belgium --city Namur
@@ -289,7 +310,7 @@ listings = scanner.duplicate_finder(results)
 insights = scanner.get_insights(listings)
 ```
 
-## 🤝 Being polite to the websites
+## 🛡️ Being polite to the websites
 
 By default a scan reads at most **20 pages per portal** and waits **800 ms** between pages. These limits are `MAX_PAGES` and `PAGE_DELAY_MS` on `RealEstateWorker`. Different portals are scanned at the same time, but the pages of one portal are read one after another.
 
@@ -301,7 +322,7 @@ ImmoScanner.py      runs a scan: finds the place, asks each portal, removes dupl
 Countries/          which portals cover each country, and postal code lookups
 Workers/            one class per portal, sharing a common base
 Means/              what is searched for (Research) and what comes back (Result)
-Intellectuals/      statistics
+Intellectuals/      statistics, condition reading, BRRRR ranking
 Archives/           the SQLite archive of every listing ever seen
 Showrooms/          the browser view of an archive, and the scans it starts
 ```
@@ -328,6 +349,8 @@ Showrooms/          the browser view of an archive, and the scans it starts
 | `PROBE_SELECTOR` | Something that proves a simple download returned the real listings |
 | `WAIT_FOR` | What to wait for before reading the page, when a browser is used |
 | `fetch_page(research, page)` | Only override this if the listings are not in the page's HTML |
+| `SEARCH_BY_PLACE`, `SEARCH_BY_REGION` | What it can search by itself; otherwise it follows a copied `--url` |
+| `VERIFIED` | `False` until its reader has been checked on a captured page |
 
 Then add the class to its country under `Countries/`, and save a search page into `tests/fixtures/` so it can be tested without going online.
 
@@ -561,6 +584,10 @@ Apart from the live tests, nothing goes online: geonames, the portals, the HTTP 
 | `test_live_portals.py` | The live tests (`-m live`) |
 
 </details>
+
+## 🤝 Contributing
+
+Portals change their pages without notice, so fixes against a fresh capture are always welcome. [CONTRIBUTING.md](CONTRIBUTING.md) says how to set up, check and test a change; [AGENTS.md](AGENTS.md) holds the code map and the pitfalls already met, for coding agents and people alike. Please read the [code of conduct](CODE_OF_CONDUCT.md), and report security issues [privately](SECURITY.md). Changes are listed in the [changelog](CHANGELOG.md).
 
 ## 📄 License
 

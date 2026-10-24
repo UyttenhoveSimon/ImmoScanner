@@ -1,0 +1,15 @@
+name: Feature request
+description: A portal, a country, a figure or a command you would like
+labels: [enhancement]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: What you are trying to do
+      description: The question you want answered, before the feature you have in mind.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would help

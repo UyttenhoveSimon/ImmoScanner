@@ -1,10 +1,27 @@
 [project]
 name = "immoscanner"
 version = "0.2.0"
-description = "Allows scanning of real estates websites"
+description = "Scan real estate portals for a town or a region: price statistics, rental yields, fixer-uppers ranked against their neighbourhood, and what changed since the last scan."
 authors = [{ name = "Simon Uyttenhove" }]
 license = "Apache-2.0"
 readme = "README.md"
+keywords = [
+    "real-estate", "scraper", "rental-yield", "brrrr", "property",
+    "immoweb", "comparis", "immowelt", "belgium", "switzerland",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Environment :: Web Environment",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Office/Business :: Financial :: Investment",
+    "Topic :: Internet :: WWW/HTTP :: Indexing/Search",
+    "Typing :: Typed",
+]
 requires-python = ">=3.10,<3.16"
 dependencies = [
     # Rust CDP engine with a Playwright-compatible sync API; no Node driver to ship.
@@ -23,6 +40,13 @@ dependencies = [
 [project.optional-dependencies]
 # kept to diff behaviour against the engine ImmoScanner used to run on
 compare = ["playwright>=1.50"]
+
+[project.urls]
+Homepage = "https://github.com/UyttenhoveSimon/ImmoScanner"
+Documentation = "https://github.com/UyttenhoveSimon/ImmoScanner#readme"
+Repository = "https://github.com/UyttenhoveSimon/ImmoScanner"
+Issues = "https://github.com/UyttenhoveSimon/ImmoScanner/issues"
+Changelog = "https://github.com/UyttenhoveSimon/ImmoScanner/blob/master/CHANGELOG.md"
 
 [project.scripts]
 immoscanner = "ImmoScanner.Console:cli"

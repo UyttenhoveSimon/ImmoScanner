@@ -1,0 +1,24 @@
+# ImmoScanner
+
+> Scan real estate portals in Belgium, Switzerland, France and Germany for a town, a postal code or a region: de-duplicated listings, price statistics, gross rental yields, a BRRRR ranking of fixer-uppers, an archive of every scan and a web explorer. Python 3.10+, uv, cyclopts CLI (`immoscanner scan | yield | brrrr | serve`).
+
+Portals: immoweb.be and immovlan.be (Belgium), comparis.ch (Switzerland), bienici.com (France), kleinanzeigen.de and immowelt.de (Germany) are verified on captured pages; leboncoin.fr, seloger.com, pap.fr and immobilienscout24.de answer with anti-bot walls, which ImmoScanner reports as `BotWallError` and never bypasses.
+
+## Docs
+
+- [README](https://github.com/UyttenhoveSimon/ImmoScanner/blob/master/README.md): usage, commands and options, the explorer, architecture, design choices, supported portals
+- [AGENTS.md](https://github.com/UyttenhoveSimon/ImmoScanner/blob/master/AGENTS.md): code map, commands, repository rules and pitfalls, for coding agents
+- [CONTRIBUTING.md](https://github.com/UyttenhoveSimon/ImmoScanner/blob/master/CONTRIBUTING.md): setting up, checks, adding a portal
+- [CHANGELOG.md](https://github.com/UyttenhoveSimon/ImmoScanner/blob/master/CHANGELOG.md): what changed, version by version
+
+## Code
+
+- [ImmoScanner/Console.py](https://github.com/UyttenhoveSimon/ImmoScanner/blob/master/ImmoScanner/Console.py): the command line
+- [ImmoScanner/ImmoScanner.py](https://github.com/UyttenhoveSimon/ImmoScanner/blob/master/ImmoScanner/ImmoScanner.py): one scan, end to end
+- [ImmoScanner/Workers/](https://github.com/UyttenhoveSimon/ImmoScanner/tree/master/ImmoScanner/Workers): one reader per portal
+- [ImmoScanner/Intellectuals/](https://github.com/UyttenhoveSimon/ImmoScanner/tree/master/ImmoScanner/Intellectuals): statistics, condition reading, BRRRR ranking
+
+## Optional
+
+- [scripts/](https://github.com/UyttenhoveSimon/ImmoScanner/tree/master/scripts): demo archive, portal capture, discount scan
+- [.github/workflows/](https://github.com/UyttenhoveSimon/ImmoScanner/tree/master/.github/workflows): tests, live canary, portal capture, area scan

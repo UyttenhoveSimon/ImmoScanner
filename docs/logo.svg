@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 128" width="520" height="128" role="img" aria-labelledby="title">
+  <title id="title">ImmoScanner</title>
+  <style>
+    .roof, .walls { fill: none; stroke: #1d4ed8; stroke-width: 7; stroke-linejoin: round; stroke-linecap: round; }
+    .bar { fill: #1d4ed8; }
+    .bar.low { fill: #60a5fa; }
+    .lens { fill: #ffffff; stroke: #0f766e; stroke-width: 7; }
+    .handle { stroke: #0f766e; stroke-width: 9; stroke-linecap: round; }
+    .tick { fill: none; stroke: #0f766e; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+    .word { font: 700 56px "Segoe UI", "Helvetica Neue", Arial, sans-serif; fill: #0f172a; letter-spacing: -1px; }
+    .word .accent { fill: #1d4ed8; }
+    @media (prefers-color-scheme: dark) {
+      .roof, .walls { stroke: #60a5fa; }
+      .bar { fill: #60a5fa; }
+      .bar.low { fill: #93c5fd; }
+      .lens { fill: #0d1117; stroke: #2dd4bf; }
+      .handle, .tick { stroke: #2dd4bf; }
+      .word { fill: #e6edf3; }
+      .word .accent { fill: #60a5fa; }
+    }
+  </style>
+  <!-- a house whose walls frame a small price chart -->
+  <path class="roof" d="M10 58 L58 16 L106 58"/>
+  <path class="walls" d="M22 50 V108 H94 V50"/>
+  <rect class="bar low" x="34" y="84" width="11" height="18" rx="2"/>
+  <rect class="bar" x="51" y="72" width="11" height="30" rx="2"/>
+  <rect class="bar low" x="68" y="78" width="11" height="24" rx="2"/>
+  <!-- the scanner's lens, catching the listing priced under the others -->
+  <line class="handle" x1="104" y1="104" x2="120" y2="120"/>
+  <circle class="lens" cx="88" cy="88" r="20"/>
+  <path class="tick" d="M79 88 L86 95 L98 81"/>
+  <text class="word" x="140" y="84">Immo<tspan class="accent">Scanner</tspan></text>
+</svg>
