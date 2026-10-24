@@ -161,3 +161,60 @@ class TestWorkers:
         for watermark in card.select(".v3-epc-watermark"):
             watermark.decompose()
         assert immovlan.get_epc(card) == ""
+
+
+class TestEdgeCases:
+    def test_a_dutch_negation_is_read_too(self):
+        assert (
+            Renovation.assess(listing("Woning met geen werken, op te frissen"))[0]
+            == WORKS
+        )
+        assert Renovation.assess(listing("geen op te frissen"))[0] == ""
+
+    def test_a_phrase_repeated_is_one_reason(self):
+        _, reasons = Renovation.assess(listing("À rénover. Vraiment à rénover !"))
+        assert reasons == ["« a renover »"]
+
+    def test_heavy_and_light_phrases_both_show(self):
+        condition, reasons = Renovation.assess(
+            listing("À rénover, ou au moins à rafraîchir", epc="F")
+        )
+        assert condition == RENOVATE
+        assert reasons == ["« a renover »", "« a rafraichir »", "PEB F"]
+
+    def test_merging_twice_keeps_the_strongest_and_every_reason(self):
+        kept = Renovation.annotate(listing("Maison", listing_id="1"))
+        works = Renovation.annotate(listing("à rafraîchir", listing_id="2"))
+        heavy = Renovation.annotate(listing("à rénover", listing_id="3"))
+
+        Renovation.merge(kept, heavy)
+        Renovation.merge(kept, works)
+
+        assert kept.condition == RENOVATE
+        assert kept.condition_reasons == ["« a renover »", "« a rafraichir »"]
+
+    def test_a_listing_without_a_condition_meets_only_any(self):
+        item = listing()
+        assert Renovation.meets(item, "any") and Renovation.meets(item, "")
+        assert not Renovation.meets(item, WORKS)
+
+
+class TestImmowebPriceCut:
+    def test_the_old_price_of_a_reduced_listing_is_kept(self, soup_of):
+        import json
+
+        immoweb = Immoweb()
+        card = soup_of("immoweb_search.html").select(immoweb.CARD_SELECTOR)[0]
+        component = card.find(attrs={":classified": True})
+        classified = json.loads(component[":classified"])
+        classified["transaction"]["sale"]["oldPrice"] = 219000
+
+        item = immoweb.extract_from_classified(card, classified)
+
+        assert item.previous_price == 219000
+
+    def test_a_card_without_a_transaction_has_no_certificate(self, soup_of):
+        immoweb = Immoweb()
+        card = soup_of("immoweb_search.html").select(immoweb.CARD_SELECTOR)[0]
+        item = immoweb.extract_from_classified(card, {"id": 1})
+        assert (item.epc, item.previous_price) == ("", 0)

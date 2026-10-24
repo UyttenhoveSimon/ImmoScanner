@@ -341,3 +341,25 @@ class TestYieldOptions:
         console.main("Belgium", region="Liège", max_pages=4, yield_=True)
         asked = call("yield")
         assert (asked["region"], asked["max_pages"]) == ("Liège", 4)
+
+
+class TestDescribe:
+    def test_a_listing_without_certificate_or_reasons(self):
+        line = console.describe(listing("x", 250000, postal_code="4000", city="Liège"))
+        assert "PEB" not in line and "[" not in line
+        assert "250,000 EUR" in line and "2,500/m²" in line and "4000 Liège" in line
+
+    def test_listings_are_printed_cheapest_per_m2_first(self, capsys):
+        dear = listing("dear", 300000)
+        cheap = listing("cheap", 120000)
+        no_surface = listing("none", 90000, livable_square_meters=0)
+
+        console.print_listings([dear, no_surface, cheap], top=5)
+
+        printed = capsys.readouterr().out
+        assert printed.index("/cheap") < printed.index("/dear")
+        assert "/none" not in printed
+
+    def test_top_limits_what_is_printed(self, capsys):
+        console.print_listings([listing(str(n), 100000 + n) for n in range(5)], top=2)
+        assert capsys.readouterr().out.count("https://") == 2
