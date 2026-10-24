@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import itertools
 import logging
 from concurrent.futures import ThreadPoolExecutor
+from typing import TYPE_CHECKING
 
 import tldextract
 
@@ -8,6 +11,17 @@ from .Countries.CountryFactory import CountryFactory
 from .Intellectuals import Renovation
 from .Intellectuals.StatisticalInsights import StatisticalInsights
 from .Means.RealEstateResearch import ANY, BUY, RENT, RealEstateResearch
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Sequence
+
+    from .Countries.Country import Country
+    from .Means.RealEstateResearchResult import RealEstateResearchResult
+    from .Workers.RealEstateWorker import RealEstateWorker
+
+    Listings = list[RealEstateResearchResult]
+    #: one list of listings per portal, as the portals returned them
+    Groups = list[Listings]
 
 logger = logging.getLogger(__name__)
 
@@ -19,14 +33,14 @@ MAX_CONCURRENT_PORTALS = 4
 class ImmoScanner:
     def research_real_estate(
         self,
-        country_name,
-        postal_code="",
-        city="",
-        region="",
-        type=ANY,
-        rent_or_buy=BUY,
-        max_pages=None,
-    ):
+        country_name: str,
+        postal_code: str = "",
+        city: str = "",
+        region: str = "",
+        type: str = ANY,
+        rent_or_buy: str = BUY,
+        max_pages: int | None = None,
+    ) -> Groups:
         codes = [code.strip() for code in str(postal_code).split(",") if code.strip()]
         if len(codes) > 1 and not region:
             return self.research_several_postal_codes(
@@ -49,7 +63,7 @@ class ImmoScanner:
             country, country_name, postal_code, city, region
         )
 
-        def scan(website):
+        def scan(website: RealEstateWorker) -> Listings:
             if max_pages:
                 website.MAX_PAGES = max_pages
 
@@ -74,17 +88,32 @@ class ImmoScanner:
         ) as pool:
             return list(pool.map(scan, websites))
 
-    def research_several_postal_codes(self, country_name, codes, **what):
+    def research_several_postal_codes(
+        self,
+        country_name: str,
+        codes: Iterable[str],
+        type: str = ANY,
+        rent_or_buy: str = BUY,
+        max_pages: int | None = None,
+    ) -> Groups:
         """Search a city and its suburbs: one search each, laid end to end."""
-        results = []
+        results: Groups = []
         for code in codes:
             results.extend(
-                self.research_real_estate(country_name, postal_code=code, **what)
+                self.research_real_estate(
+                    country_name,
+                    postal_code=code,
+                    type=type,
+                    rent_or_buy=rent_or_buy,
+                    max_pages=max_pages,
+                )
             )
         return results
 
     @staticmethod
-    def locate(country, country_name, postal_code, city, region):
+    def locate(
+        country: Country, country_name: str, postal_code: str, city: str, region: str
+    ) -> tuple[str, str, str]:
         """Settle what to search: a whole region, or one postal code and city."""
         if region:
             # A whole province or canton: there is no locality to look up.
@@ -104,7 +133,7 @@ class ImmoScanner:
         logger.info(f"searching {city} ({postal_code}) in {country_name}")
         return region, postal_code, city
 
-    def research_real_estate_url(self, country_name, url):
+    def research_real_estate_url(self, country_name: str, url: str) -> Groups:
         country = CountryFactory().generate_country_given_name(name=country_name)
         if country is None:
             raise ValueError(f"the country {country_name} is not implemented")
@@ -113,7 +142,7 @@ class ImmoScanner:
         # tldextract has deprecated.
         extracted = tldextract.extract(url)
         domain = f"{extracted.domain}.{extracted.suffix}".strip(".")
-        results = []
+        results: Groups = []
         for website in country.get_real_estate_websites():
             if domain != website.domain_name:
                 continue
@@ -126,13 +155,13 @@ class ImmoScanner:
 
     def research_gross_yield(
         self,
-        country_name,
-        postal_code="",
-        city="",
-        region="",
-        type=ANY,
-        max_pages=None,
-    ):
+        country_name: str,
+        postal_code: str = "",
+        city: str = "",
+        region: str = "",
+        type: str = ANY,
+        max_pages: int | None = None,
+    ) -> dict[str, float]:
         """Scan the same area twice, for sale and to let, and compare the two."""
         selling, renting = self.research_both_sides(
             country_name,
@@ -144,16 +173,35 @@ class ImmoScanner:
         )
         return self.get_insights(selling, renting)
 
-    def research_both_sides(self, country_name, **where):
+    def research_both_sides(
+        self,
+        country_name: str,
+        postal_code: str = "",
+        city: str = "",
+        region: str = "",
+        type: str = ANY,
+        max_pages: int | None = None,
+    ) -> tuple[Listings, Listings]:
         """The de-duplicated listings for sale, then those to let, of one area."""
-        return tuple(
+        selling, renting = (
             self.duplicate_finder(
-                self.research_real_estate(country_name, rent_or_buy=deal, **where)
+                self.research_real_estate(
+                    country_name,
+                    postal_code=postal_code,
+                    city=city,
+                    region=region,
+                    type=type,
+                    rent_or_buy=deal,
+                    max_pages=max_pages,
+                )
             )
             for deal in (BUY, RENT)
         )
+        return selling, renting
 
-    def filter_by_source(self, results, keep=(), drop=()):
+    def filter_by_source(
+        self, results: Groups, keep: Iterable[str] = (), drop: Iterable[str] = ()
+    ) -> Groups:
         """Keep or drop listings by the portal they originally came from.
 
         An aggregator republishes other portals' listings and names the origin
@@ -164,20 +212,22 @@ class ImmoScanner:
         Applied before de-duplication: filtering afterwards would compare
         against a representative that may well be the copy you asked to drop.
         """
-        keep = tuple(pattern.casefold() for pattern in keep if pattern)
-        drop = tuple(pattern.casefold() for pattern in drop if pattern)
-        if not keep and not drop:
+        kept = tuple(pattern.casefold() for pattern in keep if pattern)
+        dropped = tuple(pattern.casefold() for pattern in drop if pattern)
+        if not kept and not dropped:
             return results
 
-        def wanted(item):
+        def wanted(item: RealEstateResearchResult) -> bool:
             origin = (item.source or item.platform).casefold()
-            if keep and not any(pattern in origin for pattern in keep):
+            if kept and not any(pattern in origin for pattern in kept):
                 return False
-            return not any(pattern in origin for pattern in drop)
+            return not any(pattern in origin for pattern in dropped)
 
         return [[item for item in group if wanted(item)] for group in results]
 
-    def duplicate_finder(self, results):
+    def duplicate_finder(
+        self, results: Iterable[Iterable[RealEstateResearchResult]]
+    ) -> Listings:
         """Flatten per-portal results, dropping the same property seen twice.
 
         Listings are matched on :meth:`RealEstateResearchResult.fingerprint`,
@@ -191,8 +241,8 @@ class ImmoScanner:
             if item.is_project or (item.price and item.livable_square_meters)
         ]
 
-        unique_items = []
-        seen = {}
+        unique_items: Listings = []
+        seen: dict[tuple, RealEstateResearchResult] = {}
         for item in flat_list:
             Renovation.annotate(item)
             keys = [item.fingerprint(), item.geo_fingerprint()]
@@ -208,11 +258,17 @@ class ImmoScanner:
         return unique_items
 
     @staticmethod
-    def filter_by_condition(findings, condition=ANY):
+    def filter_by_condition(
+        findings: Iterable[RealEstateResearchResult], condition: str = ANY
+    ) -> Listings:
         """Keep the listings that need at least ``condition`` of work."""
         return [item for item in findings if Renovation.meets(item, condition)]
 
-    def get_insights(self, selling_results, renting_results=None):
+    def get_insights(
+        self,
+        selling_results: Sequence[RealEstateResearchResult],
+        renting_results: Sequence[RealEstateResearchResult] | None = None,
+    ) -> dict[str, float]:
         # A development has a price range over a whole building; averaging it
         # in would describe no property at all.
         properties = [item for item in selling_results if not item.is_project]
@@ -220,7 +276,7 @@ class ImmoScanner:
         # Neutral names: the same call summarises a sale search and a rental
         # one. Only the yield comparison below has a selling and a renting side.
         scanned = StatisticalInsights(properties)
-        insights = {
+        insights: dict[str, float] = {
             "listings": len(properties),
             "projects": len(selling_results) - len(properties),
             "mean_price": scanned.calculate_mean_price(),

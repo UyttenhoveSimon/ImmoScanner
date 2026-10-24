@@ -487,7 +487,7 @@ If a portal shows a captcha, the scanner raises a `BotWallError` instead of retu
 
 ## 🧪 Tests
 
-The project is managed with [uv](https://docs.astral.sh/uv/). [Ruff](https://docs.astral.sh/ruff/) formats the code and lints it with every rule it has, minus the few listed, with their reasons, in `pyproject.toml`. [ty](https://docs.astral.sh/ty/) type-checks the whole tree; type annotations are required in `Means/` and `Intellectuals/`, and the rest of the package follows folder by folder. The hooks (Ruff, ty, the lockfile check, whitespace) run with [prek](https://github.com/j178/prek). `uv sync` installs all of it:
+The project is managed with [uv](https://docs.astral.sh/uv/). [Ruff](https://docs.astral.sh/ruff/) formats the code and lints it with every rule it has, minus the few listed, with their reasons, in `pyproject.toml`. [ty](https://docs.astral.sh/ty/) type-checks the whole tree; type annotations are required in `Means/`, `Intellectuals/`, `ImmoScanner.py` and `Console.py`; `Archives/`, `Countries/`, `Showrooms/` and `Workers/` follow folder by folder. The hooks (Ruff, ty, the lockfile check, whitespace) run with [prek](https://github.com/j178/prek). `uv sync` installs all of it:
 
 ```bash
 uv sync

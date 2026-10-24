@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import json
 import logging
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING, Any, TypedDict
 
 import plac
 
@@ -12,8 +15,27 @@ from .Intellectuals.Renovation import CONDITIONS, WORKS
 from .Means.RealEstateResearch import ANY, BUY, PROPERTY_TYPES, RENT
 from .Showrooms.Server import DEFAULT_PORT, serve
 
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+
+    from .Archives.Store import Report
+    from .ImmoScanner import Listings
+    from .Means.RealEstateResearchResult import RealEstateResearchResult
+
 #: yields and per-m2 rents lose all meaning rounded to the unit
 ROUNDING_THRESHOLD = 100
+
+Row = dict[str, Any]
+
+
+class Where(TypedDict):
+    """Where to search and for what: the part every scan of a run shares."""
+
+    postal_code: str
+    city: str
+    region: str
+    type: str
+    max_pages: int
 
 
 @plac.pos("country", "Country targeted by the research", type=str)
@@ -59,27 +81,27 @@ ROUNDING_THRESHOLD = 100
 @plac.opt("top", "how many listings to print", type=int, abbrev="l")
 @plac.flg("debug", "Enable debug logging")
 def main(
-    country,
-    postal_code="",
-    city="",
-    region="",
-    url="",
-    type=ANY,
-    output="",
-    store="",
-    source="",
-    exclude_source="",
-    max_pages=0,
-    port=DEFAULT_PORT,
-    serve_=False,
-    rent=False,
-    yield_=False,
-    condition=ANY,
-    brrrr=False,
-    works_per_m2=0.0,
-    top=15,
-    debug=False,
-):
+    country: str,
+    postal_code: str = "",
+    city: str = "",
+    region: str = "",
+    url: str = "",
+    type: str = ANY,
+    output: str = "",
+    store: str = "",
+    source: str = "",
+    exclude_source: str = "",
+    max_pages: int = 0,
+    port: int = DEFAULT_PORT,
+    serve_: bool = False,
+    rent: bool = False,
+    yield_: bool = False,
+    condition: str = ANY,
+    brrrr: bool = False,
+    works_per_m2: float = 0.0,
+    top: int = 15,
+    debug: bool = False,
+) -> None:
     """Welcome to ImmoScanner.
 
     Add at least either the postal code or the city; several postal codes can
@@ -97,7 +119,7 @@ def main(
         serve(store, port=port)
         return
 
-    where = {
+    where: Where = {
         "postal_code": postal_code,
         "city": city,
         "region": region,
@@ -140,14 +162,22 @@ def main(
 class Search:
     """One place, scanned for sale or to let the same way each time."""
 
-    def __init__(self, scanner, country, url, where, keep, drop):
+    def __init__(
+        self,
+        scanner: ImmoScanner,
+        country: str,
+        url: str,
+        where: Where,
+        keep: list[str],
+        drop: list[str],
+    ) -> None:
         self.scanner = scanner
         self.country = country
         self.url = url
         self.where = where
         self.keep, self.drop = keep, drop
 
-    def scan(self, rent_or_buy, label=""):
+    def scan(self, rent_or_buy: str, label: str = "") -> Listings:
         if self.url:
             results = self.scanner.research_real_estate_url(
                 country_name=self.country, url=self.url
@@ -167,7 +197,13 @@ class Search:
         return findings
 
 
-def report_brrrr(search, findings, condition, works_per_m2, top):
+def report_brrrr(
+    search: Search,
+    findings: Listings,
+    condition: str,
+    works_per_m2: float,
+    top: int,
+) -> list[Row]:
     rentals = search.scan(RENT, label="to let: ")
     # a BRRRR hunt is for work to do; asking for "any" still means some
     condition = WORKS if condition in ("", ANY) else condition
@@ -178,7 +214,9 @@ def report_brrrr(search, findings, condition, works_per_m2, top):
     return [opportunity_row(opportunity) for opportunity in opportunities]
 
 
-def report_condition(scanner, findings, condition, top):
+def report_condition(
+    scanner: ImmoScanner, findings: Listings, condition: str, top: int
+) -> list[Row]:
     shown = scanner.filter_by_condition(findings, condition)
     if condition and condition != ANY:
         print(f"{len(shown)} of {len(findings)} need {condition}")
@@ -186,17 +224,17 @@ def report_condition(scanner, findings, condition, top):
     return [item.to_dict() for item in shown]
 
 
-def write_json(output, rows):
+def write_json(output: str, rows: list[Row]) -> None:
     with Path(output).open("w", encoding="utf-8") as stream:
         json.dump(rows, stream, default=str, ensure_ascii=False, indent=2)
     print(f"written to {output}")
 
 
-def split_list(value):
+def split_list(value: str) -> list[str]:
     return [part.strip() for part in value.split(",") if part.strip()]
 
 
-def print_insights(insights):
+def print_insights(insights: Mapping[str, object]) -> None:
     for name, value in insights.items():
         if not isinstance(value, float):
             print(f"{name}: {value}")
@@ -206,28 +244,28 @@ def print_insights(insights):
             print(f"{name}: {value:,.0f}")
 
 
-def describe(item):
+def describe(item: RealEstateResearchResult) -> str:
     epc = f" PEB {item.epc}" if item.epc else ""
     reasons = ", ".join(item.condition_reasons)
     return (
-        f"{float(item.price):>9,.0f} {item.currency} "
+        f"{item.price_value:>9,.0f} {item.currency} "
         f"{item.livable_square_meters:>4} m² "
         f"{item.price_per_square_meter or 0:>6,.0f}/m²{epc} "
         f"{item.postal_code} {item.city}" + (f" [{reasons}]" if reasons else "")
     )
 
 
-def print_listings(findings, top):
+def print_listings(findings: Listings, top: int) -> None:
     cheapest = sorted(
         (item for item in findings if item.price_per_square_meter),
-        key=lambda item: item.price_per_square_meter,
+        key=lambda item: item.price_per_square_meter or 0,
     )
     for item in cheapest[:top]:
         print(f"  {describe(item)}")
         print(f"    {item.url}")
 
 
-def print_areas(rows):
+def print_areas(rows: Sequence[Row]) -> None:
     print("by postal code: median price/m², rent/m², gross yield, needing work")
     for row in rows:
         print(
@@ -239,7 +277,9 @@ def print_areas(rows):
         )
 
 
-def print_opportunities(opportunities, condition, top):
+def print_opportunities(
+    opportunities: Sequence[Brrrr.Opportunity], condition: str, top: int
+) -> None:
     print(
         f"{len(opportunities)} listings needing {condition}, "
         "best discount to their postal code first:"
@@ -266,7 +306,7 @@ def print_opportunities(opportunities, condition, top):
         print(f"    {item.url}")
 
 
-def opportunity_row(opportunity):
+def opportunity_row(opportunity: Brrrr.Opportunity) -> Row:
     row = opportunity.item.to_dict()
     row.update(
         {
@@ -284,7 +324,7 @@ def opportunity_row(opportunity):
     return row
 
 
-def print_report(report):
+def print_report(report: Report) -> None:
     print(f"since the last run: {report.summary()}")
 
     for item in report.new[:10]:
@@ -303,7 +343,7 @@ def print_report(report):
         print(f"  gone     {row['price']} {row['city']} {row['url']}")
 
 
-def cli():
+def cli() -> None:
     """Console-script entry point; plac parses argv for us."""
     plac.call(main)
 

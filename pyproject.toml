@@ -62,7 +62,6 @@ ignore = [
 # Annotations are required where they have been written so far; the rest of
 # the package follows, one folder at a time, and ty checks all of it.
 "ImmoScanner/{Archives,Countries,Showrooms,Workers}/**" = ["ANN"]
-"ImmoScanner/{ImmoScanner,Console}.py" = ["ANN"]
 "tests/**" = [
     "ANN",      # fixtures and fakes say what they are by name
     "S101",     # pytest asserts
