@@ -29,8 +29,8 @@ class Germany(Country):
 
     def __init__(self):
         super().__init__()
-        # kleinanzeigen searches a postal code by itself; immoscout24 and
-        # immowelt follow a search url copied from their site
+        # kleinanzeigen and immowelt search a place by themselves; immoscout24
+        # follows a search url copied from its site
         self.websites = [Kleinanzeigen(), ImmoScout24(), Immowelt()]
 
     def get_real_estate_websites(self):

@@ -1,0 +1,478 @@
+{
+ "total": 231,
+ "realEstateAds": [
+  {
+   "blurInfo": {
+    "type": "exact",
+    "bbox": [
+     4.833027999999999,
+     45.77012299999998,
+     4.8330280000000005,
+     45.77012300000002
+    ],
+    "origin": "accounts",
+    "position": {
+     "lat": 45.770123,
+     "lon": 4.833028
+    },
+    "centroid": {
+     "lat": 45.770123,
+     "lon": 4.833028
+    }
+   },
+   "city": "Lyon 1er",
+   "postalCode": "69001",
+   "chargingStations": {
+    "providers": []
+   },
+   "hasGeorisquesMention": true,
+   "id": "netty-pietrapolis-appt-52528",
+   "adType": "buy",
+   "propertyType": "flat",
+   "reference": "215881-PIETRAPOLIS",
+   "description": "EXCLUSIVITÉ – LYON 1ER – APPARTEMENT CANUT T4 DE 100 M² AU COEUR DU PASSAGE THIAFFAIT<br>Charme de l'ancien, volumes généreux et calme absolu au coeur des pentes de la Croix-Rousse.<br>Situé au 2? étage d'un immeuble sans ascenseur, au sein du très recherché passage Thiaffait, découvrez ce superbe appartement T4 d'environ 100 m² (dont 94,02 m² Carrez), aménagé dans un ancien atelier de canuts.<br>Ce bien de caractère séduit immédiatement par son authenticité, ses beaux volumes et son atmosphère chaleureuse, témoins du patrimoine architectural lyonnais.<br>Dès l'entrée, vous découvrirez une agréable pièce de vie bénéficiant d'une hauteur sous plafond de plus de 3,60 mètres, offrant une véritable sensation d'espace. Une mezzanine, aménagée en espace couchage supplémentaire, permet d'exploiter intelligemment ces volumes tout en préservant le charme du lieu.<br>La cuisine aménagée et équipée, semi-ouverte sur le séjour, s'intègre harmonieusement à cet espace de vie convivial.<br>L'espace nuit se compose de trois grandes chambres, offrant de belles possibilités d'aménagement selon vos besoins : chambres familiales, bureau ou espace dédié au télétravail. Une salle de bains ainsi que des toilettes indépendantes complètent l'ensemble.<br>Un emplacement privilégié au coeur de Lyon.<br>Niché dans le passage Thiaffait, lieu emblématique des pentes de la Croix-Rousse, cet appartement bénéficie d'un environnement singulier, à proximité immédiate des commerces, restaurants, transports et de l'effervescence du centre-ville.<br>Son véritable atout ? Un calme absolu en plein coeur d'un quartier vivant et chargé d'histoire.<br>Un bien rare, idéal pour les amateurs d'architecture lyonnaise, les familles ou les acquéreurs à la recherche d'un appartement atypique alliant cachet et emplacement central.<br>Informations complémentaires :<br>Surface : environ 100 m², dont 94,02 m² Carrez<br>Configuration : T4, trois chambres et mezzanine<br>Taxe foncière : 600 € / an<br>Charges : 150 € / mois<br>Pour plus de renseignements ou organiser une visite, contactez Sébastien ABEILLON au <span class=\"importDescriptionDecorator\" data-type=\"phone\">07 69 63 63 44</span>.<br>Agent commercial – RSAC n° 513 191 064.<br>Honoraires à la charge du vendeur.  Dans une copropriété de 50 lots. Aucune procédure n'est en cours. Classe énergie D, Classe climat D Montant estimé des dépenses annuelles d'énergie pour un usage standard : entre 2200.00 € et 3040.00 € sur les années 2021, 2022 et 2023 (abonnements compris). Les informations sur les risques auxquels ce bien est exposé sont disponibles sur le site Géorisques : georisques.gouv.fr. <br>Votre conseiller Pietrapolis Lyon 3 Préfecture : Sébastien ABEILLON<br>Agent commercial (Entreprise individuelle)  <br>  RSAC 51319106400031",
+   "title": "PASSAGE THIAFFAIT - Appartement T4 100 m²",
+   "publicationDate": "2026-10-16T17:18:09.863Z",
+   "modificationDate": "2026-10-21T19:13:35.354Z",
+   "newProperty": false,
+   "virtualTours": [
+    {
+     "url": "https://player.previsite.net/video/7BCE93F7-12F8-4ACF-9525-3D452AFD3CF1",
+     "previewImageUrl": "https://player.previsite.net/poster/7BCE93F7-12F8-4ACF-9525-3D452AFD3CF1.jpg",
+     "type": "video",
+     "highlighted": true,
+     "accepted": true,
+     "https": true,
+     "size": "responsive",
+     "mobileSupport": true,
+     "id": "netty-pietrapolis-appt-52528_virtualTour_0"
+    },
+    {
+     "originalUrl": "https://youtu.be/-B1FHGlcYwQ",
+     "url": "https://www.youtube.com/embed/-B1FHGlcYwQ?rel=0&controls=2&iv_load_policy=3&showinfo=0",
+     "accepted": true,
+     "https": true,
+     "type": "video",
+     "size": "responsive",
+     "mobileSupport": true,
+     "id": "netty-pietrapolis-appt-52528_virtualTour_1"
+    }
+   ],
+   "accountType": "agency",
+   "isBienIciExclusive": false,
+   "photoWatermarkAlias": "4af3f286-e795-45a9-8806-0ce44a5b427e",
+   "accountDisplayName": "PIETRAPOLIS LYON 3",
+   "price": 375000,
+   "surfaceArea": 100,
+   "roomsQuantity": 4,
+   "bedroomsQuantity": 3,
+   "floor": 2,
+   "floorQuantity": 5,
+   "bathroomsQuantity": 1,
+   "hasSeparateToilet": true,
+   "hasElevator": false,
+   "hasCellar": true,
+   "hasTerrace": false,
+   "hasPool": false,
+   "isExclusiveSaleMandate": true,
+   "photos": [
+    {
+     "url_photo": "https://img.netty.immo/productw/pietrapolis/2/VA52528/17924020694_VA52528_34_original.jpg",
+     "photo": "netty-pietrapolis-appt-52528_img.netty.immo_productw_pietrapolis_2_VA52528_17924020694_VA52528_34_original.jpg",
+     "url": "https://file.bienici.com/photo/netty-pietrapolis-appt-52528_img.netty.immo_productw_pietrapolis_2_VA52528_17924020694_VA52528_34_original.jpg"
+    }
+   ],
+   "workToDo": false,
+   "energyValue": 250,
+   "energyClassification": "D",
+   "greenhouseGazValue": 42,
+   "greenhouseGazClassification": "D",
+   "isInCondominium": true,
+   "condominiumPartsQuantity": 50,
+   "isCondominiumInProcedure": false,
+   "feesChargedTo": "seller",
+   "priceWithoutFees": 375000,
+   "agencyFeeUrl": "https://files.netty.immo/file/pietrapolis/83522/NNbW9/bareme_honoraires_2026.pdf",
+   "energyPerformanceDiagnosticDate": "2025-12-13",
+   "useJuly2021EnergyPerformanceDiagnostic": true,
+   "minEnergyConsumption": 2200,
+   "maxEnergyConsumption": 3040,
+   "exposition": "Est Ouest",
+   "adCreatedByPro": true,
+   "heating": "électrique individuel",
+   "district": {
+    "id_polygone": 100160,
+    "id_type": 1,
+    "name": "Lyon 1er Arrondissement - Haut - Coeur des Pentes",
+    "libelle": "Haut - Coeur des Pentes",
+    "cp": "69001",
+    "code_insee": "69381",
+    "id": 100160,
+    "insee_code": "69381",
+    "postal_code": "69001",
+    "type_id": 1
+   },
+   "status": {
+    "onTheMarket": true,
+    "closedByUser": false,
+    "autoImported": true,
+    "isLeading": false,
+    "highlighted": false,
+    "is3dHighlighted": false
+   },
+   "departmentCode": "69",
+   "addressKnown": true,
+   "displayDistrictName": true,
+   "pricePerSquareMeter": 3750,
+   "postalCodeForSearchFilters": "69001",
+   "descriptionTextLength": 2652,
+   "userRelativeData": {
+    "importAccountId": "643eb01ff69fb300b6dd4eaf",
+    "accountIds": [
+     "netty-ag694470"
+    ],
+    "searchAccountIds": [
+     "netty-ag694470",
+     "643eb01ff69fb300b6dd4eaf",
+     "contract-type-agency-efficiency-package",
+     "extension-notoriety",
+     "contract-type-agency-performance-package"
+    ],
+    "isAdmin": false,
+    "isAdModifier": false,
+    "canSetAsFeatured": false,
+    "canSeeExactPosition": false,
+    "canSeeAddress": false,
+    "canSeeStats": false,
+    "canOpenAdDetail": true,
+    "canSeeRealDates": false,
+    "canSeePublicationCertificateHtml": false,
+    "canSeePublicationCertificatePdf": false
+   },
+   "priceHasDecreased": false,
+   "transactionType": "buy",
+   "adTypeFR": "vente",
+   "with3dModel": false,
+   "endOfPromotedAsExclusive": 0,
+   "nothingBehindForm": false,
+   "highlightMailContact": false,
+   "customerId": "pietrapolis-lyon-1",
+   "displayInsuranceEstimation": true,
+   "phoneDisplays": []
+  },
+  {
+   "blurInfo": {
+    "type": "exact",
+    "bbox": [
+     4.822907999999999,
+     45.77329499999999,
+     4.822908000000001,
+     45.773295000000005
+    ],
+    "origin": "accounts",
+    "position": {
+     "lat": 45.773295,
+     "lon": 4.822908
+    },
+    "centroid": {
+     "lat": 45.773295,
+     "lon": 4.822908
+    }
+   },
+   "city": "Lyon 1er",
+   "postalCode": "69001",
+   "chargingStations": {
+    "providers": []
+   },
+   "hasGeorisquesMention": true,
+   "id": "netty-company34101kmq-appt-2794",
+   "adType": "buy",
+   "propertyType": "flat",
+   "reference": "VA2794-POURQUOIPASVOUS",
+   "description": "EXCLUSIVITÉ PPV : VISITE VIRTUELLE VIDÉO DISPONIBLE SUR NOTRE SITE WEB ET SUR INSTAGRAM @pourquoi_pas_vous_immo<br>POURQUOI PAS tomber sous le charme de ce superbe appartement bourgeois T4/T5 de 140 m², idéalement situé sur l'emblématique Boulevard de la Croix-Rousse, avec de beaux volumes, le charme de l'ancien et l'accès à un magnifique jardin partagé ?<br>Disposition :<br>1 entrée, 1 vaste séjour, 1 salle à manger, 1 cuisine indépendante, 3 chambres dont 1 avec dressing, 1 salle de douche, 1 WC indépendant, 1 cellier et 1 pièce supplémentaire à aménager selon vos envies.<br>Les +<br>- Emplacement recherché sur le Boulevard de la Croix-Rousse<br>- Appartement traversant Nord/Sud<br>- Beaux volumes et belle luminosité<br>- Charme de l'ancien préservé : parquet en bois massif, moulures et cheminées d'époque<br>- 1 pièce supplémentaire à aménager selon vos besoins : deuxième salle de bain, bureau, dressing, rangement...<br>- Magnifique jardin partagé, véritable écrin de verdure en plein coeur de la Croix-Rousse<br>Local à vélo dans la copropriété<br>Le bien détient également 1 cave et un grand grenier.<br>Un appartement rare de caractère, idéal pour les amoureux de l'ancien.<br>Et si c'était vous ?<br>N'hésitez pas à me contacter au <span class=\"importDescriptionDecorator\" data-type=\"phone\">06 34 69 17 01</span> pour organiser une visite !!<br>Clara Le Normand<br>Honoraires à la charge du vendeur.  Dans une copropriété de 6 lots. Aucune procédure n'est en cours. Classe énergie D, Classe climat D Montant estimé des dépenses annuelles d'énergie pour un usage standard : entre 2710.00 € et 3700.00 € sur les années 2021, 2022 et 2023 (abonnements compris). Les informations sur les risques auxquels ce bien est exposé sont disponibles sur le site Géorisques : georisques.gouv.fr. <br>Votre conseiller Pourquoi Pas Vous Immobilier : Clara LE NORMAND<br>Agent commercial (Entreprise individuelle).<br>Visite virtuelle disponible sur le compte INSTAGRAM @pourquoi_pas_vous_immo",
+   "title": "Magnifique appartement bourgeois Boulevard Croix-Rousse",
+   "publicationDate": "2026-09-24T11:37:48.324Z",
+   "modificationDate": "2026-10-16T12:32:25.551Z",
+   "newProperty": false,
+   "virtualTours": [
+    {
+     "url": "https://player.previsite.net/video/2BD85451-386C-49E1-975E-7EB6F2AFC865",
+     "previewImageUrl": "https://player.previsite.net/poster/2BD85451-386C-49E1-975E-7EB6F2AFC865.jpg",
+     "type": "video",
+     "highlighted": true,
+     "accepted": true,
+     "https": true,
+     "size": "responsive",
+     "mobileSupport": true,
+     "id": "netty-company34101kmq-appt-2794_virtualTour_0"
+    },
+    {
+     "originalUrl": "https://youtube.com/shorts/j6dDoBfgi1Q",
+     "url": "https://www.youtube.com/embed/j6dDoBfgi1Q?rel=0&controls=2&iv_load_policy=3&showinfo=0",
+     "accepted": true,
+     "https": true,
+     "type": "video",
+     "size": "responsive",
+     "mobileSupport": true,
+     "id": "netty-company34101kmq-appt-2794_virtualTour_1"
+    }
+   ],
+   "accountType": "agency",
+   "isBienIciExclusive": false,
+   "photoWatermarkAlias": "3f1741f4-c69b-471e-a040-fcb395b67e6d",
+   "accountDisplayName": "Pourquoi Pas Vous Immobilier",
+   "price": 830000,
+   "surfaceArea": 140,
+   "roomsQuantity": 5,
+   "bedroomsQuantity": 3,
+   "floor": 1,
+   "floorQuantity": 5,
+   "showerRoomsQuantity": 1,
+   "hasSeparateToilet": true,
+   "hasElevator": false,
+   "hasCellar": true,
+   "hasTerrace": false,
+   "hasUnobstructedView": true,
+   "isExclusiveSaleMandate": true,
+   "photos": [
+    {
+     "url_photo": "https://img.netty.immo/productrtw/company34101kmq/2/VA2794/1790232692_VA2794_2_original.jpg",
+     "photo": "netty-company34101kmq-appt-2794_img.netty.immo_productrtw_company34101kmq_2_VA2794_1790232692_VA2794_2_original.jpg",
+     "url": "https://file.bienici.com/photo/netty-company34101kmq-appt-2794_img.netty.immo_productrtw_company34101kmq_2_VA2794_1790232692_VA2794_2_original.jpg"
+    }
+   ],
+   "workToDo": false,
+   "energyValue": 215,
+   "energyClassification": "D",
+   "greenhouseGazValue": 44,
+   "greenhouseGazClassification": "D",
+   "isInCondominium": true,
+   "condominiumPartsQuantity": 6,
+   "isCondominiumInProcedure": false,
+   "feesChargedTo": "seller",
+   "priceWithoutFees": 830000,
+   "agencyFeeUrl": "https://drive.google.com/file/d/1jIFI0Ds30Q8QHgz5VQb2OFNYUiDKdEbx/view?usp=sharing",
+   "energyPerformanceDiagnosticDate": "2026-04-17",
+   "useJuly2021EnergyPerformanceDiagnostic": true,
+   "minEnergyConsumption": 2710,
+   "maxEnergyConsumption": 3700,
+   "epdFinalEnergyConsumption": 204,
+   "exposition": "Nord Sud",
+   "adCreatedByPro": true,
+   "heating": "gaz",
+   "district": {
+    "id_polygone": 100161,
+    "id_type": 1,
+    "name": "Lyon 1er Arrondissement - Ouest des Pentes",
+    "libelle": "Ouest des Pentes",
+    "cp": "69001",
+    "code_insee": "69381",
+    "id": 100161,
+    "insee_code": "69381",
+    "postal_code": "69001",
+    "type_id": 1
+   },
+   "status": {
+    "onTheMarket": true,
+    "closedByUser": false,
+    "autoImported": true,
+    "isLeading": true,
+    "highlighted": false,
+    "is3dHighlighted": false
+   },
+   "departmentCode": "69",
+   "addressKnown": true,
+   "displayDistrictName": true,
+   "pricePerSquareMeter": 5928.571428571428,
+   "postalCodeForSearchFilters": "69001",
+   "descriptionTextLength": 1870,
+   "userRelativeData": {
+    "importAccountId": "643eb01ff69fb300b6dd4eaf",
+    "accountIds": [
+     "netty-ag696230"
+    ],
+    "searchAccountIds": [
+     "netty-ag696230",
+     "643eb01ff69fb300b6dd4eaf",
+     "contract-type-agency-efficiency-package",
+     "extension-mandate",
+     "contract-type-agency-performance-package"
+    ],
+    "isAdmin": false,
+    "isAdModifier": false,
+    "canSetAsFeatured": false,
+    "canSeeExactPosition": false,
+    "canSeeAddress": false,
+    "canSeeStats": false,
+    "canOpenAdDetail": true,
+    "canSeeRealDates": false,
+    "canSeePublicationCertificateHtml": false,
+    "canSeePublicationCertificatePdf": false
+   },
+   "priceHasDecreased": false,
+   "transactionType": "buy",
+   "adTypeFR": "vente",
+   "with3dModel": false,
+   "endOfPromotedAsExclusive": 0,
+   "opticalFiberStatus": "deploye",
+   "nothingBehindForm": false,
+   "highlightMailContact": false,
+   "customerId": "pourquoipasvous-1711039630109",
+   "displayInsuranceEstimation": true,
+   "phoneDisplays": []
+  },
+  {
+   "blurInfo": {
+    "type": "exact",
+    "bbox": [
+     4.836217999999999,
+     45.769037,
+     4.836218000000001,
+     45.769037
+    ],
+    "origin": "accounts",
+    "position": {
+     "lat": 45.769037,
+     "lon": 4.836218
+    },
+    "centroid": {
+     "lat": 45.769037,
+     "lon": 4.836218
+    }
+   },
+   "city": "Lyon 1er",
+   "postalCode": "69001",
+   "chargingStations": {
+    "providers": []
+   },
+   "hasGeorisquesMention": true,
+   "id": "hektor-espacesetlieux-267",
+   "adType": "buy",
+   "propertyType": "flat",
+   "reference": "VAP10000267",
+   "description": "Situé au 2ème étage du 5 rue du Griffon à Lyon 1er, au sein du quartier recherché « Opéra/Hôtel De Ville », quartier commerçant apprécié pour son charme et son emplacement central, l'agence Espaces et Lieux a le plaisir de vous proposer à la vente ce beau T3 canut de 90 m2.<br> L'appartement bénéficie d'une spacieuse entrée avec rangements, d'une lumineuse pièce de vie de 40 m2 avec cuisine ouverte, d'une chambre de 12 m2 sur cour avec double exposition, d'une salle de bains ainsi que d'un WC.<br> Une mezzanine de plus de 21 m2 carrez (hauteur sous plafond de 1,90 m), aménagée actuellement en bureau, vous permettra de bénéficier d'une pièce supplémentaire pouvant faire office de 2ème chambre, de bureau ou d'espace détente. Une salle de douche ainsi qu'un 2ème WC se trouvent également au niveau de la mezzanine.<br> Vous serez séduit par ses volumes, sa belle hauteur sous plafond (4m) ainsi que ses poutres et pierres apparentes qui en font un bien agréable à vivre au quotidien, prêt à vous accueillir !<br> Situé à seulement 2 minutes à pied des stations de Métro A et C Hôtel de Ville et de la station Croix Paquet, cette belle adresse bénéficie du charme de l'ancien, d'un cadre privilégié en plein coeur de la ville ainsi que d'un emplacement recherché pour une résidence principale, un investissement locatif ou un agréable pied à terre.<br> Les + :<br> - Volumes, cachet et atmosphère chaleureuse<br> - Pas de travaux à prévoir, appartement très bien entretenu<br> - Une place de parking en location est également disponible.<br> Les informations sur les risques auxquels ce bien est exposé sont disponibles sur le site Géorisques : www.georisques.gouv.fr",
+   "title": "Beau canut T3 90 m2  - Opéra /Hotel de Ville",
+   "publicationDate": "2026-09-18T09:56:31.008Z",
+   "modificationDate": "2026-10-15T08:05:52.422Z",
+   "newProperty": false,
+   "yearOfConstruction": 1500,
+   "virtualTours": [
+    {
+     "originalUrl": "https://tour.previsite.com/FD708742-6D94-994A-38A7-0E44B3D299E7",
+     "url": "https://tour.previsite.com/FD708742-6D94-994A-38A7-0E44B3D299E7?unbranded=true",
+     "type": "photos 360, déplacements suivi",
+     "accepted": true,
+     "https": true,
+     "size": "responsive",
+     "mobileSupport": true,
+     "id": "hektor-espacesetlieux-267_virtualTour_0"
+    }
+   ],
+   "accountType": "agency",
+   "isBienIciExclusive": false,
+   "photoWatermarkAlias": "b251b25d-6885-4833-8c40-4b3025ddacb6",
+   "accountDisplayName": "ESPACES ET LIEUX",
+   "price": 375000,
+   "surfaceArea": 89.34,
+   "roomsQuantity": 3,
+   "bedroomsQuantity": 2,
+   "floor": 2,
+   "floorQuantity": 6,
+   "bathroomsQuantity": 1,
+   "showerRoomsQuantity": 1,
+   "toiletQuantity": 2,
+   "hasElevator": true,
+   "hasCellar": false,
+   "hasIntercom": true,
+   "hasTerrace": false,
+   "isExclusiveSaleMandate": true,
+   "photos": [
+    {
+     "url_photo": "https://espacesetlieux.staticlbi.com/original/images/biens/1/b2862c7cbf2cc381dd439ee5ac518f3f/photo_89e1df5c403cc0503aebdba1397f51b0.jpg",
+     "photo": "hektor-espacesetlieux-267_espacesetlieux.staticlbi.com_original_images_biens_1_b2862c7cbf2cc381dd439ee5ac518f3f_photo_89e1df5c403cc0503aebdba1397f51b0.jpg",
+     "url": "https://file.bienici.com/photo/hektor-espacesetlieux-267_espacesetlieux.staticlbi.com_original_images_biens_1_b2862c7cbf2cc381dd439ee5ac518f3f_photo_89e1df5c403cc0503aebdba1397f51b0.jpg"
+    }
+   ],
+   "workToDo": false,
+   "energyValue": 184,
+   "energyClassification": "D",
+   "greenhouseGazValue": 34,
+   "greenhouseGazClassification": "D",
+   "isInCondominium": true,
+   "condominiumPartsQuantity": 69,
+   "annualCondominiumFees": 2070,
+   "isCondominiumInProcedure": false,
+   "feesChargedTo": "seller",
+   "priceWithoutFees": 375000,
+   "agencyFeeUrl": "https://www.espacesetlieux.fr/i/redac/honoraires?honofor=1",
+   "energyPerformanceDiagnosticDate": "2025-11-17",
+   "useJuly2021EnergyPerformanceDiagnostic": true,
+   "minEnergyConsumption": 1560,
+   "maxEnergyConsumption": 2150,
+   "energySimulationReferenceDate": "2023-01-01",
+   "averageAnnualEnergyConsumption": 0,
+   "epdFinalEnergyConsumption": 170,
+   "adCreatedByPro": true,
+   "heating": "gaz individuel",
+   "district": {
+    "id_polygone": 100159,
+    "id_type": 1,
+    "name": "Lyon 1er Arrondissement - Bas des Pentes - Presqu'île",
+    "libelle": "Bas des Pentes - Presqu'île",
+    "cp": "69001",
+    "code_insee": "69381",
+    "id": 100159,
+    "insee_code": "69381",
+    "postal_code": "69001",
+    "type_id": 1
+   },
+   "with360": true,
+   "status": {
+    "onTheMarket": true,
+    "closedByUser": false,
+    "autoImported": true,
+    "isLeading": true,
+    "highlighted": false,
+    "is3dHighlighted": false
+   },
+   "departmentCode": "69",
+   "addressKnown": true,
+   "displayDistrictName": true,
+   "pricePerSquareMeter": 4197.447951645399,
+   "postalCodeForSearchFilters": "69001",
+   "descriptionTextLength": 1646,
+   "userRelativeData": {
+    "importAccountId": "584fd128b442a40099b9b67a",
+    "accountIds": [
+     "hektor-espacesetlieux"
+    ],
+    "searchAccountIds": [
+     "hektor-espacesetlieux",
+     "contract-type-agency-performance-package",
+     "584fd128b442a40099b9b67a"
+    ],
+    "isAdmin": false,
+    "isAdModifier": false,
+    "canSetAsFeatured": false,
+    "canSeeExactPosition": false,
+    "canSeeAddress": false,
+    "canSeeStats": false,
+    "canOpenAdDetail": true,
+    "canSeeRealDates": false,
+    "canSeePublicationCertificateHtml": false,
+    "canSeePublicationCertificatePdf": false
+   },
+   "priceHasDecreased": true,
+   "transactionType": "buy",
+   "adTypeFR": "vente",
+   "with3dModel": false,
+   "endOfPromotedAsExclusive": 0,
+   "opticalFiberStatus": "deploye",
+   "nothingBehindForm": false,
+   "highlightMailContact": false,
+   "customerId": "espacesetlieux-1698152017186",
+   "displayInsuranceEstimation": true,
+   "phoneDisplays": []
+  }
+ ]
+}

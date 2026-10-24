@@ -52,11 +52,7 @@ SEARCHES = [
         },
         marks=UNVERIFIED,
     ),
-    pytest.param(
-        Immowelt,
-        {"url": "https://www.immowelt.de/suche/berlin/wohnungen/kaufen"},
-        marks=UNVERIFIED,
-    ),
+    pytest.param(Immowelt, {"city": "Berlin"}, marks=UNVERIFIED),
 ]
 
 

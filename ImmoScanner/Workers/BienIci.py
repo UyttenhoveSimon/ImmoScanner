@@ -26,7 +26,8 @@ class BienIci(RealEstateWorker):
     then the ads of those zones are asked for, a page at a time.
     """
 
-    VERIFIED = False
+    #: checked on a capture (tests/fixtures/bienici_search.json)
+    VERIFIED = True
 
     def __init__(self, **kwargs):
         kwargs.setdefault("locale", "fr-FR")

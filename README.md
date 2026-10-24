@@ -30,7 +30,7 @@
 
 ## ✨ Features
 
-- 🔎 **Search by city, postal code, region or URL** in Belgium 🇧🇪, Switzerland 🇨🇭, France 🇫🇷 and Germany 🇩🇪 (the last two still unverified, see [Portals](#-supported-portals))
+- 🔎 **Search by city, postal code, region or URL** in Belgium 🇧🇪, Switzerland 🇨🇭, France 🇫🇷 and Germany 🇩🇪 (some French and German portals wall bots off, see [Portals](#-supported-portals))
 - 📊 **Price statistics**: mean, median, median per m², typical price range
 - 💰 **Gross rental yield**: compares sale prices with rents in the same area
 - 🗂️ **History**: save each scan and see what is new, cheaper, more expensive or gone
@@ -491,20 +491,26 @@ If a portal shows a captcha, the scanner raises a `BotWallError` instead of retu
 | immoweb.be | 🇧🇪 | JSON inside each listing | plain HTTP | partly |
 | immovlan.be | 🇧🇪 | schema.org tags on each listing | plain HTTP | ❌ |
 | comparis.ch | 🇨🇭 | the `__NEXT_DATA__` block | curl_cffi | ✅ |
-| bienici.com ⚠️ | 🇫🇷 | its JSON api (`realEstateAds.json`) | to be measured | blurred |
-| leboncoin.fr ⚠️ | 🇫🇷 | the `__NEXT_DATA__` block | to be measured | ✅ |
-| seloger.com ⚠️ | 🇫🇷 | schema.org JSON-LD, from a copied search url | to be measured | if published |
-| pap.fr ⚠️ | 🇫🇷 | schema.org JSON-LD, from a copied search url | to be measured | if published |
-| kleinanzeigen.de ⚠️ | 🇩🇪 | the result cards | to be measured | ❌ |
-| immobilienscout24.de ⚠️ | 🇩🇪 | schema.org JSON-LD, from a copied search url | to be measured | if published |
-| immowelt.de ⚠️ | 🇩🇪 | schema.org JSON-LD, from a copied search url | to be measured | if published |
+| bienici.com | 🇫🇷 | its JSON api (`realEstateAds.json`) | plain HTTP | blurred |
+| leboncoin.fr ⛔ | 🇫🇷 | the `__NEXT_DATA__` block | DataDome wall | ✅ |
+| seloger.com ⛔ | 🇫🇷 | the result cards (AVIV layout), from a copied search url | DataDome wall | ❌ |
+| pap.fr ⛔ | 🇫🇷 | schema.org JSON-LD, from a copied search url | Cloudflare challenge | if published |
+| kleinanzeigen.de ⚠️ | 🇩🇪 | the result cards, read by their text | browser | ❌ |
+| immobilienscout24.de ⛔ | 🇩🇪 | schema.org JSON-LD, from a copied search url | its own wall | if published |
+| immowelt.de ⚠️ | 🇩🇪 | the result cards (AVIV layout) | plain HTTP | ❌ |
 
-⚠️ **Unverified.** The French and German readers were written before any page of those portals could be captured, from how each is known to publish its listings. A scan says so in its log. Several of these sites guard their pages against bots; some may never answer a scanner. To check them for real:
+The French and German readers were written before any page of those portals could be reached from where they were written. A capture run on GitHub then told them apart:
 
-- the **portal capture** workflow (GitHub Actions, run on demand or when a reader changes) saves one result page per portal and what the reader made of it on the `portal-captures` branch, or locally: `uv run python scripts/capture_portals.py captures/`;
-- the **live tests** list them as expected failures, and report `XPASS` the day one starts working: `uv run pytest -m live`.
+- ✅ **bienici.com** works: its reader is checked on that capture (`tests/fixtures/bienici_search.json`).
+- ⚠️ **kleinanzeigen.de** and **immowelt.de** served real pages, and their readers are checked on them (`tests/fixtures/*_search.html`); the way they turn a place into a search url is still to be confirmed by the next capture.
+- ⛔ **leboncoin.fr**, **seloger.com**, **pap.fr** and **immobilienscout24.de** answered with an anti-bot wall even from a real browser. Their readers are kept, unverified, in case they answer from elsewhere (a home connection, say); the scan reports the wall as a `BotWallError` rather than an empty market.
 
-seloger.com, pap.fr, immobilienscout24.de and immowelt.de key their searches by ids of their own, so they follow a search url copied from the site: `immoscanner scan France --url "https://www.seloger.com/..."`. A place search in France uses bienici.com and leboncoin.fr; in Germany, kleinanzeigen.de. A région search in France uses bienici.com only.
+A scan logs a warning for every unverified portal it uses. To check them again:
+
+- the **portal capture** workflow (GitHub Actions, run on demand or whenever a reader changes) saves one result page per portal and what the reader made of it on the `portal-captures` branch; locally: `uv run python scripts/capture_portals.py captures/`;
+- the **live tests** list the unverified ones as expected failures, and report `XPASS` the day one starts working: `uv run pytest -m live`.
+
+seloger.com, pap.fr and immobilienscout24.de key their searches by ids of their own, so they follow a search url copied from the site: `immoscanner scan France --url "https://www.seloger.com/..."`. A place search in France uses bienici.com and leboncoin.fr; in Germany, kleinanzeigen.de and immowelt.de. A région search in France uses bienici.com only.
 
 - immovlan moved away from `immo.vlan.be`, which now returns a 503 error.
 - **homegate.ch** and **immoscout24.ch** block automated access everywhere, including their APIs, so they aren't scanned directly. Their listings still show up through comparis, which collects both, and each listing names its original website in `source`.

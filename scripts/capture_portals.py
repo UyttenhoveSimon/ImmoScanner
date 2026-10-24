@@ -28,6 +28,7 @@ from ImmoScanner.Workers.SeLoger import SeLoger
 
 LYON = {"postal_code": "69001", "city": "Lyon", "type": ANY}
 BERLIN = {"postal_code": "10115", "city": "Berlin", "type": APARTMENT}
+BERLIN_ANY = {"postal_code": "10115", "city": "Berlin", "type": ANY}
 
 #: one search per portal: a place where the portal can search one, else a
 #: search url as the site itself builds it for a big city
@@ -43,7 +44,7 @@ SEARCHES = [
             "url": "https://www.immobilienscout24.de/Suche/de/berlin/berlin/wohnung-kaufen"
         },
     ),
-    (Immowelt, {"url": "https://www.immowelt.de/suche/berlin/wohnungen/kaufen"}),
+    (Immowelt, BERLIN_ANY),
 ]
 SAMPLES = 2
 

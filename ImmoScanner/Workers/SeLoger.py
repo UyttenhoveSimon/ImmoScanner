@@ -1,12 +1,17 @@
-from .SchemaOrg import SchemaOrgWorker
+from .Aviv import AvivWorker
 
 
-class SeLoger(SchemaOrgWorker):
-    """seloger.com, read through the schema.org list on its result pages.
+class SeLoger(AvivWorker):
+    """seloger.com, in the same AVIV group as immowelt.de.
 
-    Its searches are keyed by INSEE codes this scanner does not hold, so a
-    search url copied from the site is followed instead (``scan --url``).
+    Its searches are keyed by codes this scanner does not hold, so a search url
+    copied from the site is followed instead (``scan --url``). It answered the
+    first capture with a DataDome wall; its cards are assumed to be laid out
+    as immowelt's are.
     """
+
+    SEARCH_BY_PLACE = False
+    VERIFIED = False
 
     def __init__(self, **kwargs):
         kwargs.setdefault("locale", "fr-FR")

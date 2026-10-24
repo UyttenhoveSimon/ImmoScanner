@@ -1,15 +1,15 @@
-"""The French and German portals, on synthetic pages.
+"""The French and German portals.
 
-These readers were written before any page of these portals could be
-captured, so the payloads below are shaped after how each portal is known to
-publish its listings - they are NOT captures. They pin the extraction logic;
-whether the portals still look like this is for the live tests
-(``pytest -m live``) and the capture workflow to say. Replace a payload with a
-real capture from ``scripts/capture_portals.py`` as soon as one exists.
+bienici.com, immowelt.de and kleinanzeigen.de are read here from pages the
+capture workflow saved from the live sites (tests/fixtures). The others
+answered that capture with an anti-bot wall, so their payloads below are
+SYNTHETIC: shaped after how each portal is known to publish its listings, to
+pin the extraction logic until a real page of theirs can be captured.
 """
 
 import json
 import urllib.parse
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -37,6 +37,8 @@ from ImmoScanner.Workers.SchemaOrg import (
     number,
 )
 from ImmoScanner.Workers.SeLoger import SeLoger
+
+FIXTURES = Path(__file__).parent / "fixtures"
 
 
 def soup(html):
@@ -67,11 +69,13 @@ class TestCountries:
         assert country.currency.alpha_3 == "EUR"
         assert [site.domain_name for site in country.websites] == domains
 
-    def test_every_new_portal_is_marked_unverified(self):
+    def test_only_the_portals_checked_on_a_capture_are_verified(self):
+        verified = []
         for name in ("France", "Germany"):
             country = CountryFactory().generate_country_given_name(name)
             assert country is not None
-            assert not any(site.VERIFIED for site in country.websites)
+            verified += [site.domain_name for site in country.websites if site.VERIFIED]
+        assert verified == ["bienici.com"]
 
     def test_regions_are_matched_however_typed(self):
         france = CountryFactory().generate_country_given_name("France")
@@ -176,6 +180,19 @@ class TestBienIci:
         assert (item.postal_code, item.city, item.epc) == ("69001", "Lyon 1er", "F")
         assert (item.latitude, item.longitude) == (45.767, 4.834)
         assert assess(item)[0] == RENOVATE
+
+    def test_the_ads_of_a_captured_answer_become_listings(self, bienici):
+        captured = json.loads(
+            (FIXTURES / "bienici_search.json").read_text(encoding="utf-8")
+        )
+        assert captured["total"] == 231
+        items = [bienici.extract_findings(ad) for ad in captured["realEstateAds"]]
+        first = items[0]
+        assert first.id == "netty-pietrapolis-appt-52528"
+        assert (first.price, first.livable_square_meters) == (375000, 100)
+        assert (first.postal_code, first.city, first.epc) == ("69001", "Lyon 1er", "D")
+        assert first.latitude is not None
+        assert all(item.price and item.livable_square_meters for item in items)
 
     def test_a_programme_is_a_project(self, bienici):
         item = bienici.extract_findings({**AD, "price": [210000, 480000]})
@@ -342,7 +359,7 @@ class TestSchemaOrg:
         assert listing_entries(["not a dict"]) == []
 
     def test_an_offer_becomes_a_listing(self):
-        item = SeLoger().extract_findings(JSON_LD["itemListElement"][0]["item"])
+        item = Pap().extract_findings(JSON_LD["itemListElement"][0]["item"])
         assert item.id == "246813579"
         assert (item.price, item.currency) == (199000, "EUR")
         assert (item.livable_square_meters, item.rooms_number) == (110, 5)
@@ -354,11 +371,11 @@ class TestSchemaOrg:
         entry = {
             "@type": "Apartment",
             "identifier": "ABC-1",
-            "url": "https://www.immowelt.de/expose/abc",
+            "url": "https://www.immobilienscout24.de/expose/abc",
             "offers": [{"priceSpecification": {"price": 1250}}],
             "floorSize": "72 m²",
         }
-        item = Immowelt().extract_findings(entry)
+        item = ImmoScout24().extract_findings(entry)
         assert (item.id, item.price, item.livable_square_meters) == ("ABC-1", 1250, 72)
         assert item.currency == "EUR"
 
@@ -384,19 +401,17 @@ class TestSchemaOrg:
         assert url.endswith("pagenumber=2")
 
     def test_a_page_is_read_through_its_json_ld(self, monkeypatch):
-        worker = SeLoger()
+        worker = Pap()
         page = soup(
             f'<script type="application/ld+json">{json.dumps(JSON_LD)}</script>'
         )
         monkeypatch.setattr(worker, "get_soup", lambda url, wait_for=(): page)
-        entries, total = worker.fetch_page(research(url="https://www.seloger.com/x"), 1)
+        entries, total = worker.fetch_page(research(url="https://www.pap.fr/x-g1"), 1)
         assert (len(entries), total) == (1, None)
 
     def test_an_id_comes_from_the_url_when_nothing_else_names_it(self):
-        assert (
-            SeLoger.id_from_url("https://x.test/annonce/123456789.htm") == "123456789"
-        )
-        assert SeLoger.id_from_url("https://x.test/a") == "https://x.test/a"
+        assert Pap.id_from_url("https://x.test/annonce/123456789.htm") == "123456789"
+        assert Pap.id_from_url("https://x.test/a") == "https://x.test/a"
 
 
 class TestPap:
@@ -417,38 +432,42 @@ class TestPap:
         )
 
 
-CARD = """
-<article class="aditem" data-adid="2801234567"
-         data-href="/s-anzeige/haus-zu-verkaufen/2801234567-208-3331">
-  <div class="aditem-main--top--left">10115 Mitte</div>
-  <h2><a class="ellipsis" href="/s-anzeige/haus-zu-verkaufen/2801234567-208-3331">
-    Sanierungsbedürftiges Haus</a></h2>
-  <p class="aditem-main--middle--description">Altbau, Renovierung nötig.</p>
-  <p class="aditem-main--middle--price-shipping--price">350.000 € VB</p>
-  <span class="simpletag">120 m²</span>
-  <span class="simpletag">4,5 Zi.</span>
-</article>
-"""
-
-
 class TestKleinanzeigen:
-    def test_the_search_url_is_slug_postal_code_and_category(self):
+    @pytest.fixture
+    def page(self, soup_of):
+        return soup_of("kleinanzeigen_search.html")
+
+    def test_a_place_goes_through_the_search_form(self):
+        url = Kleinanzeigen().url_builder(
+            research(postal_code="10115", type=APARTMENT, rent_or_buy=BUY), 1
+        )
+        query = urllib.parse.parse_qs(urllib.parse.urlsplit(url).query)
+        assert url.startswith("https://www.kleinanzeigen.de/s-suchanfrage.html?")
+        assert query["categoryId"] == ["196"]
+        assert query["locationStr"] == ["10115"]
+
+    def test_later_pages_follow_the_url_the_form_resolved_to(self, page, monkeypatch):
         worker = Kleinanzeigen()
-        assert worker.url_builder(
-            research(postal_code="10115", type=HOUSE, rent_or_buy=BUY), 1
-        ) == ("https://www.kleinanzeigen.de/s-haus-kaufen/10115/c208")
-        assert worker.url_builder(
-            research(postal_code="10115", type=APARTMENT, rent_or_buy=RENT), 3
-        ) == ("https://www.kleinanzeigen.de/s-mietwohnung/10115/seite:3/c203")
+        searched = research(postal_code="10115", type=APARTMENT)
+        monkeypatch.setattr(worker, "get_soup", lambda url, wait_for=(): page)
+        worker.fetch_page(searched, 1)
+        url = worker.url_builder(searched, 2)
+        assert url.startswith("https://www.kleinanzeigen.de/s-")
+        assert "/seite:2/c196" in url
+
+    def test_before_the_form_has_answered_later_pages_use_it_too(self):
+        url = Kleinanzeigen().url_builder(research(city="Berlin", type=HOUSE), 3)
+        assert "s-suchanfrage.html" in url and "pageNum=3" in url
 
     def test_a_copied_url_is_paged_in_its_path(self):
         worker = Kleinanzeigen()
-        base = "https://www.kleinanzeigen.de/s-haus-kaufen/10115/c208"
+        base = "https://www.kleinanzeigen.de/s-wohnung-kaufen/berlin/c196l3331"
         assert worker.url_builder(research(url=base), 2) == (
-            "https://www.kleinanzeigen.de/s-haus-kaufen/10115/seite:2/c208"
+            "https://www.kleinanzeigen.de/s-wohnung-kaufen/berlin/seite:2/c196l3331"
         )
-        paged = "https://www.kleinanzeigen.de/s-haus-kaufen/10115/seite:2/c208"
-        assert worker.url_builder(research(url=paged), 5).endswith("/seite:5/c208")
+        assert worker.url_builder(research(url=f"{base}?x=1"), 1) == f"{base}?x=1"
+        paged = "https://www.kleinanzeigen.de/s-wohnung-kaufen/berlin/seite:2/c196l3331"
+        assert worker.url_builder(research(url=paged), 5).endswith("/seite:5/c196l3331")
 
     def test_any_type_is_searched_as_houses_then_flats(self, monkeypatch):
         worker = Kleinanzeigen()
@@ -472,20 +491,99 @@ class TestKleinanzeigen:
         worker.get_findings(research(postal_code="10115", type=HOUSE))
         assert asked == [HOUSE]
 
-    def test_a_card_becomes_a_listing(self):
-        card = soup(CARD).select_one(Kleinanzeigen.CARD_SELECTOR)
-        item = Kleinanzeigen().extract_findings(card)
-        assert item.id == "2801234567"
-        assert item.url.startswith("https://www.kleinanzeigen.de/s-anzeige/")
-        assert (item.price, item.currency) == (350000, "EUR")
-        assert (item.livable_square_meters, item.rooms_number) == (120, 4.5)
-        assert (item.postal_code, item.city) == ("10115", "Mitte")
-        assert "Renovierung" in item.description
+    def test_the_announced_total_is_read(self, page):
+        assert Kleinanzeigen().total_results(page) == 72968
 
-    def test_a_card_without_locality_code_keeps_the_text(self):
-        bare = (
-            '<article class="aditem" data-adid="1">'
-            '<div class="aditem-main--top--left">Berlin</div></article>'
+    def test_the_cards_of_a_captured_page_become_listings(self, page):
+        worker = Kleinanzeigen()
+        items = [worker.extract_findings(card) for card in page.select(CARD)]
+        assert len(items) == 3
+        first = items[0]
+        assert first.id == "3129133778"
+        assert first.url.startswith("https://www.kleinanzeigen.de/s-anzeige/")
+        assert (first.price, first.currency) == (340000, "EUR")
+        assert (first.livable_square_meters, first.rooms_number) == (61, 2)
+        assert (first.postal_code, first.city) == ("12055", "Neukölln")
+        assert first.description.startswith("Berlin-Feeling pur")
+        assert items[2].rooms_number == 2.5
+        assert items[2].price == 290000  # "290.000 € VB", not the old 315.000 €
+
+    def test_a_card_without_locality_code_keeps_nothing_made_up(self, soup_of):
+        bare = soup_of("kleinanzeigen_search.html").select_one(CARD)
+        for line in bare.find_all(string=lambda text: "Neukölln" in text):
+            line.replace_with("Berlin")
+        item = Kleinanzeigen().extract_findings(bare)
+        assert (item.postal_code, item.city) == ("", "")
+
+
+CARD = "article[data-adid]"
+
+
+class TestImmowelt:
+    @pytest.fixture
+    def page(self, soup_of):
+        return soup_of("immowelt_search.html")
+
+    def test_a_town_is_searched_by_name(self):
+        worker = Immowelt()
+        assert worker.url_builder(research(city="Berlin", type=APARTMENT), 1) == (
+            "https://www.immowelt.de/suche/berlin/wohnungen/kaufen"
         )
-        item = Kleinanzeigen().extract_findings(soup(bare).select_one("article"))
-        assert (item.postal_code, item.city, item.price) == ("", "Berlin", 0)
+        assert worker.url_builder(
+            research(city="Köln", type=HOUSE, rent_or_buy=RENT), 2
+        ) == ("https://www.immowelt.de/suche/koln/haeuser/mieten?page=2")
+        assert "/immobilien/" in worker.url_builder(research(city="Berlin"), 1)
+
+    def test_a_town_is_needed(self):
+        with pytest.raises(ValueError, match="by its name"):
+            Immowelt().url_builder(research(postal_code="10115"), 1)
+
+    def test_a_copied_url_is_paged(self):
+        url = Immowelt().url_builder(
+            research(url="https://www.immowelt.de/suche/kaufen/wohnung/x/ad08de8634"), 3
+        )
+        assert url.endswith("?page=3")
+
+    def test_the_announced_total_is_read(self, page):
+        assert Immowelt().total_results(page) == 9915
+
+    def test_no_title_no_total(self, soup_of):
+        assert Immowelt().total_results(BeautifulSoup("", "lxml")) is None
+
+    def test_the_cards_of_a_captured_page_become_listings(self, page):
+        worker = Immowelt()
+        items = [
+            worker.extract_findings(card) for card in page.select(worker.CARD_SELECTOR)
+        ]
+        assert len(items) == 3
+        first = items[0]
+        assert first.id == "256Q14GY2JL7"
+        assert first.url == (
+            "https://www.immowelt.de/expose/1215b46c-9e03-4081-bc72-67209544ff9f"
+        )
+        assert (first.price, first.livable_square_meters, first.rooms_number) == (
+            170000,
+            45,
+            2,
+        )
+        assert (first.postal_code, first.city, first.epc) == ("12557", "Berlin", "D")
+        assert first.type == "Wohnung zum Kauf"
+        assert items[2].postal_code == "12161"
+
+    def test_a_card_with_an_odd_address_keeps_it_as_the_town(self, page):
+        card = page.select_one(Immowelt.CARD_SELECTOR)
+        address = card.select_one('[data-testid="cardmfe-description-box-address"]')
+        address.string = "Berlin"
+        item = Immowelt().extract_findings(card)
+        assert (item.postal_code, item.city) == ("", "Berlin")
+
+    def test_seloger_follows_a_copied_url_only(self):
+        with pytest.raises(ValueError, match="scan --url"):
+            SeLoger().url_builder(research(postal_code="69001"), 1)
+        assert (
+            SeLoger()
+            .url_builder(
+                research(url="https://www.seloger.com/classified-search?x=1"), 2
+            )
+            .endswith("page=2")
+        )

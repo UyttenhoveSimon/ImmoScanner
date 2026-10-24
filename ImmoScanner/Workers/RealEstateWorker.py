@@ -27,6 +27,8 @@ BOT_WALL_MARKERS = (
     "captcha-delivery.com",
     "geo.captcha",
     "/cdn-cgi/challenge-platform",
+    # immobilienscout24.de's own wall, a page of its own with no third party
+    "Ich bin kein Roboter",
 )
 
 
