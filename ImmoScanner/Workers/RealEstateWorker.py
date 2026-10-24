@@ -47,6 +47,19 @@ class RealEstateWorker(Worker):
     WAIT_FOR = ()
     #: the result cards on a search page
     CARD_SELECTOR = None
+    #: can it search a postal code or a town by itself? Otherwise it only
+    #: follows a search url copied from the portal (``scan --url``)
+    SEARCH_BY_PLACE = True
+    #: can it search a whole province, canton, région or Land?
+    SEARCH_BY_REGION = True
+    #: has the extraction been checked against pages captured from the portal?
+    #: An unverified worker is written from how the portal is known to publish
+    #: its listings; the live tests say whether it still holds.
+    VERIFIED = True
+
+    def can_search(self, region: str) -> bool:
+        """Whether this portal can run a search by place or region on its own."""
+        return self.SEARCH_BY_REGION if region else self.SEARCH_BY_PLACE
 
     def get_findings(self, real_estate_research):
         """Walk the result pages and turn every card into a result object.

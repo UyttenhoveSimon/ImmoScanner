@@ -55,9 +55,7 @@ class ImmoScanner:
         if country is None:
             raise ValueError(f"the country {country_name} is not implemented")
 
-        websites = country.get_real_estate_websites()
-        if not websites:
-            raise ValueError(f"no real estate website registered for {country_name}")
+        websites = self.searchable_websites(country, country_name, region)
 
         region, postal_code, city = self.locate(
             country, country_name, postal_code, city, region
@@ -66,6 +64,12 @@ class ImmoScanner:
         def scan(website: RealEstateWorker) -> Listings:
             if max_pages:
                 website.MAX_PAGES = max_pages
+            if not website.VERIFIED:
+                logger.warning(
+                    f"{website.domain_name}: this reader has not been checked "
+                    "against the live site yet; trust its numbers once a live "
+                    "test has passed"
+                )
 
             # fill_empty_fields mutates the research, so each portal gets its own
             research = RealEstateResearch(
@@ -87,6 +91,28 @@ class ImmoScanner:
             max_workers=min(len(websites), MAX_CONCURRENT_PORTALS)
         ) as pool:
             return list(pool.map(scan, websites))
+
+    @staticmethod
+    def searchable_websites(
+        country: Country, country_name: str, region: str
+    ) -> list[RealEstateWorker]:
+        """The country's portals able to run this search without a copied url."""
+        websites = country.get_real_estate_websites()
+        if not websites:
+            raise ValueError(f"no real estate website registered for {country_name}")
+
+        what = "a region" if region else "a place"
+        able = [website for website in websites if website.can_search(region)]
+        for website in websites:
+            if website not in able:
+                logger.info(
+                    f"{website.domain_name}: cannot search {what} by itself; "
+                    "copy a search url from the portal and use scan --url"
+                )
+        if not able:
+            msg = f"no {country_name} portal can search {what}; use scan --url"
+            raise ValueError(msg)
+        return able
 
     def research_several_postal_codes(
         self,
@@ -146,6 +172,12 @@ class ImmoScanner:
         for website in country.get_real_estate_websites():
             if domain != website.domain_name:
                 continue
+            if not website.VERIFIED:
+                logger.warning(
+                    f"{website.domain_name}: this reader has not been checked "
+                    "against the live site yet; trust its numbers once a live "
+                    "test has passed"
+                )
             results.append(website.get_findings(RealEstateResearch(url=url)))
 
         if not results:

@@ -9,28 +9,68 @@ quietly returns nothing.
 import pytest
 
 from ImmoScanner.Means.RealEstateResearch import ANY, BUY, RealEstateResearch
+from ImmoScanner.Workers.BienIci import BienIci
 from ImmoScanner.Workers.Comparis import Comparis
+from ImmoScanner.Workers.ImmoScout24 import ImmoScout24
 from ImmoScanner.Workers.ImmoVlan import ImmoVlan
 from ImmoScanner.Workers.Immoweb import Immoweb
+from ImmoScanner.Workers.Immowelt import Immowelt
+from ImmoScanner.Workers.Kleinanzeigen import Kleinanzeigen
+from ImmoScanner.Workers.Leboncoin import Leboncoin
+from ImmoScanner.Workers.Pap import Pap
+from ImmoScanner.Workers.SeLoger import SeLoger
 
 pytestmark = pytest.mark.live
 
+#: a reader written before its portal could be captured is expected to fail
+#: until it is checked; the run reports XPASS the day it starts working
+UNVERIFIED = pytest.mark.xfail(reason="reader not yet checked on the live site")
+
 SEARCHES = [
-    (Immoweb, "5000", "Namur"),
-    (ImmoVlan, "5000", "Namur"),
-    (Comparis, "1618", "Châtel-St-Denis"),
+    (Immoweb, {"postal_code": "5000", "city": "Namur"}),
+    (ImmoVlan, {"postal_code": "5000", "city": "Namur"}),
+    (Comparis, {"postal_code": "1618", "city": "Châtel-St-Denis"}),
+    pytest.param(BienIci, {"postal_code": "69001", "city": "Lyon"}, marks=UNVERIFIED),
+    pytest.param(Leboncoin, {"postal_code": "69001", "city": "Lyon"}, marks=UNVERIFIED),
+    pytest.param(
+        SeLoger,
+        {"url": "https://www.seloger.com/immobilier/achat/immo-lyon-69/"},
+        marks=UNVERIFIED,
+    ),
+    pytest.param(
+        Pap,
+        {"url": "https://www.pap.fr/annonce/vente-immobiliere-lyon-69-g43590"},
+        marks=UNVERIFIED,
+    ),
+    pytest.param(
+        Kleinanzeigen, {"postal_code": "10115", "city": "Berlin"}, marks=UNVERIFIED
+    ),
+    pytest.param(
+        ImmoScout24,
+        {
+            "url": "https://www.immobilienscout24.de/Suche/de/berlin/berlin/wohnung-kaufen"
+        },
+        marks=UNVERIFIED,
+    ),
+    pytest.param(
+        Immowelt,
+        {"url": "https://www.immowelt.de/suche/berlin/wohnungen/kaufen"},
+        marks=UNVERIFIED,
+    ),
 ]
 
 
-@pytest.mark.parametrize(("worker_class", "postal_code", "city"), SEARCHES, ids=str)
-def test_the_portal_still_yields_usable_listings(worker_class, postal_code, city):
+@pytest.mark.parametrize(
+    ("worker_class", "terms"),
+    SEARCHES,
+    ids=lambda value: getattr(value, "__name__", ""),
+)
+def test_the_portal_still_yields_usable_listings(worker_class, terms):
     worker = worker_class()
     worker.MAX_PAGES = 1  # one page is enough to prove the extractors still bite
 
     results = worker.get_findings(
-        RealEstateResearch(
-            postal_code=postal_code, city=city, type=ANY, rent_or_buy=BUY
-        )
+        RealEstateResearch(type=ANY, rent_or_buy=BUY, **terms)
     )
 
     assert results, f"{worker.domain_name} returned no listing at all"

@@ -31,12 +31,26 @@ def result(listing_id, platform, price=300000, area=100):
 
 
 class SpyWorker:
-    def __init__(self, domain_name, findings=(), error=None, barrier=None):
+    VERIFIED = True
+
+    def __init__(
+        self,
+        domain_name,
+        findings=(),
+        error=None,
+        barrier=None,
+        by_place=True,
+        by_region=True,
+    ):
         self.domain_name = domain_name
+        self.by_place, self.by_region = by_place, by_region
         self.findings = list(findings)
         self.error = error
         self.barrier = barrier
         self.researches = []
+
+    def can_search(self, region):
+        return self.by_region if region else self.by_place
 
     def get_findings(self, research):
         self.researches.append(research)
@@ -96,6 +110,33 @@ class TestScan:
         )
         results = ImmoScanner().research_real_estate("Belgium", postal_code="5000")
         assert [len(group) for group in results] == [1, 2]
+
+    def test_a_portal_that_needs_a_url_is_left_out_of_a_place_search(
+        self, country, caplog
+    ):
+        url_only = SpyWorker(
+            "url-only.fr", [result("9", "url-only.fr")], by_place=False
+        )
+        country([SpyWorker("a.fr", [result("1", "a.fr")]), url_only])
+
+        with caplog.at_level("INFO"):
+            results = ImmoScanner().research_real_estate("France", postal_code="69001")
+
+        assert [len(group) for group in results] == [1]
+        assert url_only.researches == []
+        assert "url-only.fr: cannot search a place" in caplog.text
+
+    def test_a_country_with_no_portal_able_to_search_is_refused(self, country):
+        country([SpyWorker("a.de", by_place=False, by_region=False)])
+        with pytest.raises(ValueError, match="use scan --url"):
+            ImmoScanner().research_real_estate("Germany", postal_code="10115")
+
+    def test_an_unverified_portal_is_flagged_in_the_log(self, country, caplog):
+        worker = SpyWorker("new.fr")
+        worker.VERIFIED = False
+        country([worker])
+        ImmoScanner().research_real_estate("France", postal_code="69001")
+        assert "new.fr: this reader has not been checked" in caplog.text
 
     def test_each_portal_gets_its_own_research_object(self, country):
         """fill_empty_fields mutates it; a shared one would leak between portals."""

@@ -3,6 +3,8 @@ import logging
 import pycountry
 
 from .Belgium import Belgium
+from .France import France
+from .Germany import Germany
 from .Switzerland import Switzerland
 
 logger = logging.getLogger(__name__)
@@ -10,7 +12,12 @@ logger = logging.getLogger(__name__)
 
 class CountryFactory:
     def __init__(self):
-        self.countries = {"Belgium": Belgium, "Switzerland": Switzerland}
+        self.countries = {
+            "Belgium": Belgium,
+            "France": France,
+            "Germany": Germany,
+            "Switzerland": Switzerland,
+        }
 
     def generate_country_given_name(self, name):
         country_class = self.countries.get(name)

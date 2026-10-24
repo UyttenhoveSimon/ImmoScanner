@@ -122,6 +122,10 @@ class TestSeveralPostalCodes:
 
         class Website:
             domain_name = "portal.be"
+            VERIFIED = True
+
+            def can_search(self, region):
+                return True
 
             def get_findings(self, research):
                 searched.append((research.postal_code, research.city, research.type))

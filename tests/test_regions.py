@@ -92,6 +92,10 @@ class TestScanning:
 
         class Portal:
             domain_name = "portal.test"
+            VERIFIED = True
+
+            def can_search(self, region):
+                return True
 
             def __init__(self):
                 self.researches = []
