@@ -1,15 +1,20 @@
+# Run with prek (a faster drop-in for pre-commit, installed by `uv sync`):
+#   uv run prek install            # once, to run the hooks on every commit
+#   uv run prek run --all-files    # what CI runs
+# editor settings are not ours to reformat
+exclude: ^\.vscode/
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v6.0.0
     hooks:
-    - id: check-yaml
-    - id: end-of-file-fixer
-    - id: trailing-whitespace
-  - repo: https://github.com/psf/black
-    rev: 22.12.0
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+  - repo: https://github.com/psf/black-pre-commit-mirror
+    rev: 26.10.1
     hooks:
-    - id: black
+      - id: black
   - repo: https://github.com/pycqa/isort
-    rev: 5.12.0
+    rev: 9.0.2
     hooks:
-    - id: isort
+      - id: isort

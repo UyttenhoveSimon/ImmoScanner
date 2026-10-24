@@ -87,7 +87,9 @@ def build(path):
                         for item in market:
                             if rng.random() < 0.07:
                                 cut = 0.97 if deal == "buy" else 0.95
-                                item.price = round(item.price * cut, -3 if deal == "buy" else 1)
+                                item.price = round(
+                                    item.price * cut, -3 if deal == "buy" else 1
+                                )
                         market += [
                             listing(rng, next(numbers), place, deal)
                             for _ in range(rng.randint(2, 8))

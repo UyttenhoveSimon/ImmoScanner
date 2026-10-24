@@ -29,6 +29,7 @@ immoscanner = "ImmoScanner.Console:cli"
 
 [dependency-groups]
 dev = [
+    "prek>=0.5.7",
     "pytest>=9.1.1",
     "pytest-cov>=7.1.0",
     "types-beautifulsoup4>=4.12.0.20240907",
@@ -37,6 +38,10 @@ dev = [
 [tool.black]
 # requires-python allows 3.15, which the pinned interpreter cannot parse
 target-version = ["py310"]
+
+[tool.isort]
+# black and isort otherwise disagree on how to wrap a long import
+profile = "black"
 
 [tool.pytest.ini_options]
 # the live portal checks are opt-in: `pytest -m live`
