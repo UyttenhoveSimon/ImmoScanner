@@ -31,11 +31,14 @@ PORTALS = {"EUR": ["immoweb.be", "immovlan.be"], "CHF": ["comparis.ch"]}
 SOURCES = ["homegate.ch", "immoscout24.ch", "comparis.ch"]
 
 SCANS = 4
+#: share of the listings that sell, and that get cheaper, from one week to the next
+SOLD = 0.08
+REPRICED = 0.07
 FIRST_SCAN = datetime(2026, 9, 9, 9, 0, tzinfo=timezone.utc)
 
 
 def listing(rng, number, place, deal):
-    country, postal_code, town, (lat, lon), currency, sale_m2, rent_m2 = place
+    _country, postal_code, town, (lat, lon), currency, sale_m2, rent_m2 = place
     kind = rng.choice(["House", "Apartment"])
     surface = rng.randint(90, 260) if kind == "House" else rng.randint(40, 140)
     if deal == "rent":
@@ -82,10 +85,11 @@ def build(path):
 
                 for week in range(SCANS):
                     if week:
-                        # A week on the market: some sell, some get cheaper, some arrive.
-                        market = [item for item in market if rng.random() > 0.08]
+                        # A week on the market: some sell, some get cheaper,
+                        # some arrive.
+                        market = [item for item in market if rng.random() > SOLD]
                         for item in market:
-                            if rng.random() < 0.07:
+                            if rng.random() < REPRICED:
                                 cut = 0.97 if deal == "buy" else 0.95
                                 item.price = round(
                                     item.price * cut, -3 if deal == "buy" else 1

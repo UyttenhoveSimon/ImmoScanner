@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 IDLE, RUNNING, DONE, FAILED = "idle", "running", "done", "failed"
 
 
-class Busy(RuntimeError):
+class BusyError(RuntimeError):
     """A scan is already under way."""
 
 
@@ -47,7 +47,7 @@ class ScanRunner:
 
         with self.lock:
             if self.state["state"] == RUNNING:
-                raise Busy(f"already scanning {self.state.get('asked')}")
+                raise BusyError(f"already scanning {self.state.get('asked')}")
             self.state = {
                 "state": RUNNING,
                 "asked": region or postal_code or city,
@@ -94,7 +94,8 @@ class ScanRunner:
                     "summary": report.summary(),
                 }
             )
-        except Exception as error:
+        # Whatever went wrong is reported on the page, not lost in a thread.
+        except Exception as error:  # noqa: BLE001
             logger.warning(f"scan of {region or postal_code or city} failed: {error}")
             self.finish({"state": FAILED, "error": str(error)})
 

@@ -14,7 +14,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from ..Countries.CountryFactory import CountryFactory
 from ..Means.RealEstateResearch import PROPERTY_TYPES, TRANSACTIONS
 from .Explorer import Explorer
-from .Runner import Busy, ScanRunner
+from .Runner import BusyError, ScanRunner
 
 logger = logging.getLogger(__name__)
 
@@ -23,47 +23,45 @@ DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8765
 
 
+def options():
+    """What a scan may be asked for, straight from the code that knows."""
+    countries = CountryFactory().countries
+    return {
+        "countries": sorted(countries),
+        "regions": {
+            name: list(country.REGIONS) for name, country in sorted(countries.items())
+        },
+        "types": list(PROPERTY_TYPES),
+        "transactions": list(TRANSACTIONS),
+    }
+
+
+ROUTES = {
+    "/api/searches": lambda explorer, _query: explorer.searches(),
+    "/api/listings": lambda explorer, query: explorer.listings(
+        search_key=query.get("search"),
+        source=query.get("source"),
+        sort=query.get("sort", "price"),
+        limit=query.get("limit", 200),
+    ),
+    "/api/history": lambda explorer, query: explorer.price_history(
+        query.get("platform", ""), query.get("id", "")
+    ),
+    "/api/movements": lambda explorer, query: explorer.movements(
+        query.get("search", "")
+    ),
+    "/api/yields": lambda explorer, _query: explorer.yields(),
+    "/api/localities": lambda explorer, query: explorer.localities(
+        query.get("country", ""), query.get("rent_or_buy", "buy")
+    ),
+    "/api/options": lambda _explorer, _query: options(),
+}
+
+
 def answer(explorer, path, query):
     """Route one api path to the explorer. Returns the object to serialise."""
-    if path == "/api/searches":
-        return explorer.searches()
-
-    if path == "/api/listings":
-        return explorer.listings(
-            search_key=query.get("search"),
-            source=query.get("source"),
-            sort=query.get("sort", "price"),
-            limit=query.get("limit", 200),
-        )
-
-    if path == "/api/history":
-        return explorer.price_history(query.get("platform", ""), query.get("id", ""))
-
-    if path == "/api/movements":
-        return explorer.movements(query.get("search", ""))
-
-    if path == "/api/yields":
-        return explorer.yields()
-
-    if path == "/api/localities":
-        return explorer.localities(
-            query.get("country", ""), query.get("rent_or_buy", "buy")
-        )
-
-    if path == "/api/options":
-        # What a scan may be asked for, straight from the code that knows.
-        countries = CountryFactory().countries
-        return {
-            "countries": sorted(countries),
-            "regions": {
-                name: list(country.REGIONS)
-                for name, country in sorted(countries.items())
-            },
-            "types": list(PROPERTY_TYPES),
-            "transactions": list(TRANSACTIONS),
-        }
-
-    return None
+    route = ROUTES.get(path)
+    return route(explorer, query) if route else None
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -94,14 +92,15 @@ class Handler(BaseHTTPRequestHandler):
         try:
             with Explorer(self.archive_path, narrowing=query) as explorer:
                 payload = answer(explorer, parsed.path, query)
-        except Exception as error:
+        # One bad request must not take the explorer down.
+        except Exception as error:  # noqa: BLE001
             logger.warning(f"{parsed.path} failed: {error}")
             return self.send_error(500, "the archive could not answer that")
 
         if payload is None:
             return self.send_error(404)
 
-        self.send_json(payload)
+        return self.send_json(payload)
 
     def do_POST(self):
         if urllib.parse.urlsplit(self.path).path != "/api/scans":
@@ -133,7 +132,7 @@ class Handler(BaseHTTPRequestHandler):
                 ),
                 status=202,
             )
-        except Busy as error:
+        except BusyError as error:
             return self.send_error(409, str(error))
         except ValueError as error:
             return self.send_error(400, str(error))

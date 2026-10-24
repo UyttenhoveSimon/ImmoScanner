@@ -47,7 +47,7 @@ class ImmoVlan(RealEstateWorker):
         return items, total
 
     def total_results(self, soup):
-        # "30 résultats (1 - 20)"
+        # the counter reads like "30 résultats (1 - 20)"
         counter = soup.select_one(".v3-search-result-count")
         if counter is None:
             return None
@@ -87,7 +87,7 @@ class ImmoVlan(RealEstateWorker):
         """Read a highlight pill such as "<strong>541</strong> m²"."""
         for pill in result.select("span.v3-search-card-pill"):
             text = self.visible_text(pill)
-            if re.search(unit_pattern, text, re.I):
+            if re.search(unit_pattern, text, re.IGNORECASE):
                 value = pill.select_one("strong")
                 return self.first_int(value.get_text(strip=True) if value else text)
         return 0

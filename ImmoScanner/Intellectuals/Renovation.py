@@ -133,5 +133,5 @@ def absorb(item, condition, reasons):
 
 
 def meets(item, condition):
-    """Does a listing need at least the asked amount of work?"""
+    """Tell whether a listing needs at least the asked amount of work."""
     return RANK[item.condition] >= RANK[condition or ANY]

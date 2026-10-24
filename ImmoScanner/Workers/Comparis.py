@@ -72,7 +72,7 @@ class Comparis(RealEstateWorker):
 
     def get_rooms_number(self, result):
         for fact in result.get("EssentialInformation") or []:
-            match = re.match(r"([\d.,]+)\s*pièce", fact, re.I)
+            match = re.match(r"([\d.,]+)\s*pièce", fact, re.IGNORECASE)
             if match:
                 return float(match.group(1).replace(",", "."))
         return 0

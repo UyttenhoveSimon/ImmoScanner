@@ -28,6 +28,8 @@ NARROWINGS = {
     "min_surface": "livable_square_meters >= ?",
     "min_land": "land_square_meters >= ?",
 }
+#: a search key is country/place/type/deal
+KEY_PARTS = 4
 
 
 class Explorer:
@@ -76,23 +78,22 @@ class Explorer:
         Medians are computed here rather than in sql: sqlite has no median, and
         an archive holds thousands of rows, not millions.
         """
-        summaries = []
-        for scope in self.rows(
+        scopes = self.rows(
             # Every search keeps its row when nothing in it matches: a place
             # with no three-bedroom house is an answer, not a missing place.
             f"SELECT search_key, SUM(CASE WHEN {self.match} THEN 1 ELSE 0 END) "
             "AS listings, MAX(last_seen) AS last_seen "
             "FROM listings GROUP BY search_key ORDER BY search_key",
             self.match_parameters,
-        ):
-            summaries.append(
-                {
-                    **scope,
-                    "city": self.city_of(scope["search_key"]),
-                    **self.statistics_for(scope["search_key"]),
-                }
-            )
-        return summaries
+        )
+        return [
+            {
+                **scope,
+                "city": self.city_of(scope["search_key"]),
+                **self.statistics_for(scope["search_key"]),
+            }
+            for scope in scopes
+        ]
 
     def city_of(self, search_key):
         """The place a search actually reached, named rather than numbered.
@@ -145,11 +146,11 @@ class Explorer:
         """
         scopes = {}
         for search in self.searches():
-            country, place, type, deal = search["search_key"].split("/")
-            scopes.setdefault((country, place, type), {})[deal] = search
+            country, place, kind, deal = search["search_key"].split("/")
+            scopes.setdefault((country, place, kind), {})[deal] = search
 
         compared = []
-        for (country, place, type), sides in scopes.items():
+        for (country, place, kind), sides in scopes.items():
             buying, renting = sides.get("buy"), sides.get("rent")
             if not (buying and renting):
                 continue
@@ -159,7 +160,7 @@ class Explorer:
                     "country": country,
                     "place": place,
                     "city": buying.get("city") or renting.get("city") or place,
-                    "type": type,
+                    "type": kind,
                     "for_sale": buying["listings"],
                     "to_let": renting["listings"],
                     "median_price": buying["median_price"],
@@ -195,7 +196,11 @@ class Explorer:
             # LIKE treats "_" and "%" in the country as wildcards; the exact
             # parts settle it.
             parts = row["search_key"].split("/")
-            if len(parts) != 4 or parts[0] != country or parts[3] != rent_or_buy:
+            if (
+                len(parts) != KEY_PARTS
+                or parts[0] != country
+                or parts[3] != rent_or_buy
+            ):
                 continue
             code = row["postal_code"] or row["city"]
             if code:
@@ -269,7 +274,7 @@ class Explorer:
         ):
             history = self.price_history(row["platform"], row["listing_id"])
             prices = [point["price"] for point in history if point["price"]]
-            if len(set(prices)) < 2:
+            if len(set(prices)) < 2:  # noqa: PLR2004 - a change takes two prices
                 continue
             moved.append({**row, "first_price": prices[0], "history": history})
 

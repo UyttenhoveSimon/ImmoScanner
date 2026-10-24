@@ -1,6 +1,7 @@
 import json
 import logging
 import sys
+from pathlib import Path
 
 import plac
 
@@ -10,6 +11,9 @@ from .Intellectuals import Brrrr
 from .Intellectuals.Renovation import CONDITIONS, WORKS
 from .Means.RealEstateResearch import ANY, BUY, PROPERTY_TYPES, RENT
 from .Showrooms.Server import DEFAULT_PORT, serve
+
+#: yields and per-m2 rents lose all meaning rounded to the unit
+ROUNDING_THRESHOLD = 100
 
 
 @plac.pos("country", "Country targeted by the research", type=str)
@@ -76,11 +80,11 @@ def main(
     top=15,
     debug=False,
 ):
-    """
-    Welcome to ImmoScanner.
+    """Welcome to ImmoScanner.
+
     Add at least either the postal code or the city; several postal codes can
-    be given comma separated.
-    If url is provided, only the targeted website will be parsed, country must still be provided.
+    be given comma separated. If url is provided, only the targeted website
+    will be parsed, and country must still be provided.
     """
     logging.basicConfig(
         level=logging.DEBUG if debug else logging.INFO,
@@ -90,20 +94,20 @@ def main(
     if serve_:
         if not store:
             sys.exit("--serve needs --store to say which archive to explore")
-        return serve(store, port=port)
+        serve(store, port=port)
+        return
 
+    where = {
+        "postal_code": postal_code,
+        "city": city,
+        "region": region,
+        "type": type,
+        "max_pages": max_pages,
+    }
     scanner = ImmoScanner()
 
     if yield_:
-        insights = scanner.research_gross_yield(
-            country_name=country,
-            postal_code=postal_code,
-            city=city,
-            region=region,
-            type=type,
-            max_pages=max_pages,
-        )
-        print_insights(insights)
+        print_insights(scanner.research_gross_yield(country_name=country, **where))
         return
 
     if not (url or city or postal_code or region):
@@ -111,39 +115,11 @@ def main(
     if brrrr and url:
         sys.exit("--brrrr compares a whole area: give a place rather than --url")
 
-    def scan(rent_or_buy):
-        if url:
-            results = scanner.research_real_estate_url(country_name=country, url=url)
-        else:
-            results = scanner.research_real_estate(
-                country_name=country,
-                city=city,
-                postal_code=postal_code,
-                region=region,
-                type=type,
-                rent_or_buy=rent_or_buy,
-                max_pages=max_pages,
-            )
-
-        scanned = sum(len(group) for group in results)
-        results = scanner.filter_by_source(
-            results, keep=split_list(source), drop=split_list(exclude_source)
-        )
-        kept = sum(len(group) for group in results)
-
-        findings = scanner.duplicate_finder(results)
-        side = "to let: " if rent_or_buy == RENT and brrrr else ""
-        if kept != scanned:
-            print(
-                f"{side}{scanned} listings, {kept} from the asked sources, "
-                f"{len(findings)} unique"
-            )
-        else:
-            print(f"{side}{scanned} listings, {len(findings)} unique")
-        return findings
-
+    search = Search(
+        scanner, country, url, where, split_list(source), split_list(exclude_source)
+    )
     deal = RENT if rent and not brrrr else BUY
-    findings = scan(deal)
+    findings = search.scan(deal)
     print_insights(scanner.get_insights(findings))
 
     if store:
@@ -153,27 +129,67 @@ def main(
             print_report(archive.record(key, findings))
 
     if brrrr:
-        rentals = scan(RENT)
-        # a BRRRR hunt is for work to do; asking for "any" still means some
-        condition = WORKS if condition in ("", ANY) else condition
-        candidates = scanner.filter_by_condition(findings, condition)
-        opportunities = Brrrr.rank(
-            candidates, findings, rentals, works_per_m2=works_per_m2
-        )
-        print_areas(Brrrr.area_summary(findings, rentals))
-        print_opportunities(opportunities, condition, top)
-        rows = [opportunity_row(opportunity) for opportunity in opportunities]
+        rows = report_brrrr(search, findings, condition, works_per_m2, top)
     else:
-        shown = scanner.filter_by_condition(findings, condition)
-        if condition and condition != ANY:
-            print(f"{len(shown)} of {len(findings)} need {condition}")
-            print_listings(shown, top)
-        rows = [item.to_dict() for item in shown]
+        rows = report_condition(scanner, findings, condition, top)
 
     if output:
-        with open(output, "w", encoding="utf-8") as stream:
-            json.dump(rows, stream, default=str, ensure_ascii=False, indent=2)
-        print(f"written to {output}")
+        write_json(output, rows)
+
+
+class Search:
+    """One place, scanned for sale or to let the same way each time."""
+
+    def __init__(self, scanner, country, url, where, keep, drop):
+        self.scanner = scanner
+        self.country = country
+        self.url = url
+        self.where = where
+        self.keep, self.drop = keep, drop
+
+    def scan(self, rent_or_buy, label=""):
+        if self.url:
+            results = self.scanner.research_real_estate_url(
+                country_name=self.country, url=self.url
+            )
+        else:
+            results = self.scanner.research_real_estate(
+                country_name=self.country, rent_or_buy=rent_or_buy, **self.where
+            )
+
+        scanned = sum(len(group) for group in results)
+        results = self.scanner.filter_by_source(results, keep=self.keep, drop=self.drop)
+        kept = sum(len(group) for group in results)
+
+        findings = self.scanner.duplicate_finder(results)
+        sources = f"{kept} from the asked sources, " if kept != scanned else ""
+        print(f"{label}{scanned} listings, {sources}{len(findings)} unique")
+        return findings
+
+
+def report_brrrr(search, findings, condition, works_per_m2, top):
+    rentals = search.scan(RENT, label="to let: ")
+    # a BRRRR hunt is for work to do; asking for "any" still means some
+    condition = WORKS if condition in ("", ANY) else condition
+    candidates = search.scanner.filter_by_condition(findings, condition)
+    opportunities = Brrrr.rank(candidates, findings, rentals, works_per_m2=works_per_m2)
+    print_areas(Brrrr.area_summary(findings, rentals))
+    print_opportunities(opportunities, condition, top)
+    return [opportunity_row(opportunity) for opportunity in opportunities]
+
+
+def report_condition(scanner, findings, condition, top):
+    shown = scanner.filter_by_condition(findings, condition)
+    if condition and condition != ANY:
+        print(f"{len(shown)} of {len(findings)} need {condition}")
+        print_listings(shown, top)
+    return [item.to_dict() for item in shown]
+
+
+def write_json(output, rows):
+    with Path(output).open("w", encoding="utf-8") as stream:
+        json.dump(rows, stream, default=str, ensure_ascii=False, indent=2)
+    print(f"written to {output}")
 
 
 def split_list(value):
@@ -184,7 +200,7 @@ def print_insights(insights):
     for name, value in insights.items():
         if not isinstance(value, float):
             print(f"{name}: {value}")
-        elif abs(value) < 100:  # yields and per-m2 rents lose all meaning rounded
+        elif abs(value) < ROUNDING_THRESHOLD:
             print(f"{name}: {value:,.2f}")
         else:
             print(f"{name}: {value:,.0f}")

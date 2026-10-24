@@ -13,6 +13,9 @@ GEONAMES_PARSER = "lxml"
 REQUEST_TIMEOUT = 20
 USER_AGENT = "ImmoScanner (+https://github.com/UyttenhoveSimon/ImmoScanner)"
 
+#: a geonames result row: index, place, postal code, country, and the rest
+GEONAMES_COLUMNS = 4
+
 
 class Country:
     #: provinces, cantons - whatever the country calls the tier above a town
@@ -53,7 +56,7 @@ class Country:
                 cell.get_text(" ", strip=True)
                 for cell in row.find_all("td", recursive=False)
             ]
-            if len(cells) < 4 or not cells[0].isdigit():
+            if len(cells) < GEONAMES_COLUMNS or not cells[0].isdigit():
                 continue
             hits.append(
                 {

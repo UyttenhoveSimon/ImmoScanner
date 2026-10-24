@@ -78,9 +78,7 @@ def country(monkeypatch):
         monkeypatch.setattr(
             scanner_module,
             "CountryFactory",
-            lambda: type(
-                "F", (), {"generate_country_given_name": lambda self, name: built}
-            )(),
+            type("F", (), {"generate_country_given_name": lambda self, name: built}),
         )
         holder["country"] = built
         return built
@@ -150,24 +148,23 @@ class TestScan:
         monkeypatch.setattr(
             scanner_module,
             "CountryFactory",
-            lambda: type(
-                "F", (), {"generate_country_given_name": lambda self, name: None}
-            )(),
+            type("F", (), {"generate_country_given_name": lambda self, name: None}),
         )
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="not implemented"):
             ImmoScanner().research_real_estate("Atlantis", postal_code="1")
 
     def test_a_country_with_no_portal_left_is_refused(self, country):
         country([])
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="no real estate website"):
             ImmoScanner().research_real_estate("Belgium", postal_code="5000")
 
 
 class TestUrlMode:
     def test_only_the_portal_owning_the_domain_is_asked(self, country):
-        immoweb, immovlan = SpyWorker(
-            "immoweb.be", [result("1", "immoweb.be")]
-        ), SpyWorker("immovlan.be")
+        immoweb, immovlan = (
+            SpyWorker("immoweb.be", [result("1", "immoweb.be")]),
+            SpyWorker("immovlan.be"),
+        )
         country([immoweb, immovlan])
 
         results = ImmoScanner().research_real_estate_url(
@@ -211,7 +208,7 @@ class TestSearchUrls:
         assert "towns=1400-nivelles" in url
 
     @pytest.mark.parametrize(
-        "city, slug",
+        ("city", "slug"),
         [
             ("Braine-L'Alleud", "braine-l-alleud"),
             ("Liège", "liege"),
@@ -230,7 +227,7 @@ class TestSearchUrls:
         assert "towns=1400&" in url
 
     @pytest.mark.parametrize(
-        "worker_class, expected",
+        ("worker_class", "expected"),
         [(Immoweb, ("maison", "appartement")), (ImmoVlan, ("maison", "appartement"))],
     )
     def test_the_property_type_is_translated_per_portal(self, worker_class, expected):
@@ -280,7 +277,7 @@ class TestSearchUrls:
 
 class TestConsoleHelpers:
     @pytest.mark.parametrize(
-        "raw, expected",
+        ("raw", "expected"),
         [
             ("", []),
             ("homegate", ["homegate"]),

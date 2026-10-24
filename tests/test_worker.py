@@ -173,7 +173,7 @@ class TestHttpSession:
             def close(self):
                 raise RuntimeError("already gone")
 
-        monkeypatch.setattr(worker_module.requests, "Session", lambda: Stubborn())
+        monkeypatch.setattr(worker_module.requests, "Session", Stubborn)
         worker = Worker()
         worker.open_session()
 

@@ -22,9 +22,7 @@ SEARCHES = [
 ]
 
 
-@pytest.mark.parametrize(
-    "worker_class, postal_code, city", SEARCHES, ids=lambda value: str(value)
-)
+@pytest.mark.parametrize(("worker_class", "postal_code", "city"), SEARCHES, ids=str)
 def test_the_portal_still_yields_usable_listings(worker_class, postal_code, city):
     worker = worker_class()
     worker.MAX_PAGES = 1  # one page is enough to prove the extractors still bite
@@ -49,6 +47,6 @@ def test_the_portal_still_yields_usable_listings(worker_class, postal_code, city
 
     # A redesign usually keeps the cards and breaks the fields inside them.
     assert len(priced) > len(properties) / 2, f"{worker.domain_name} lost its prices"
-    assert (
-        len(measured) > len(properties) / 2
-    ), f"{worker.domain_name} lost its surfaces"
+    assert len(measured) > len(properties) / 2, (
+        f"{worker.domain_name} lost its surfaces"
+    )

@@ -4,11 +4,19 @@ import json
 import threading
 import urllib.error
 import urllib.request
+from typing import ClassVar
 
 import pytest
 
 from ImmoScanner.Means.RealEstateResearchResult import RealEstateResearchResult
-from ImmoScanner.Showrooms.Runner import DONE, FAILED, IDLE, RUNNING, Busy, ScanRunner
+from ImmoScanner.Showrooms.Runner import (
+    DONE,
+    FAILED,
+    IDLE,
+    RUNNING,
+    BusyError,
+    ScanRunner,
+)
 from ImmoScanner.Showrooms.Server import build_server
 
 
@@ -46,7 +54,7 @@ class FakeReport:
 class FakeStore:
     """Stands in for the archive; records what it was asked to keep."""
 
-    recorded = []
+    recorded: ClassVar[list] = []
 
     def __init__(self, path):
         self.path = path
@@ -168,7 +176,7 @@ class TestOneAtATime:
         started.start("Belgium", postal_code="1300")
 
         try:
-            with pytest.raises(Busy, match="1300"):
+            with pytest.raises(BusyError, match="1300"):
                 started.start("Belgium", postal_code="1400")
         finally:
             gate.wait(timeout=5)
@@ -267,7 +275,7 @@ class TestScanEndpoint:
         assert refused.value.code == 400
 
     @pytest.mark.parametrize(
-        "place, expected",
+        ("place", "expected"),
         [
             ("1400", {"postal_code": "1400", "city": ""}),
             ("Nivelles", {"postal_code": "", "city": "Nivelles"}),

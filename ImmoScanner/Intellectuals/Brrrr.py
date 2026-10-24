@@ -58,13 +58,13 @@ def median_per_m2(listings):
 class Reference:
     """Median price per m², postal code by postal code, with fallbacks."""
 
-    def __init__(self, listings, prefer=lambda item: True):
+    def __init__(self, listings, prefer=None):
         self.listings = [
             item
             for item in listings
             if not item.is_project and item.price_per_square_meter
         ]
-        self.prefer = prefer
+        self.prefer = prefer or (lambda _item: True)
         self.cache = {}
 
     def for_postal_code(self, postal_code):

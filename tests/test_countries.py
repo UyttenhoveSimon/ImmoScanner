@@ -106,7 +106,7 @@ class TestLookups:
         assert belgium().fetch_postal_code_given_city("Châtel-St-Denis") == "1618"
 
     def test_only_hits_on_the_asked_postal_code_count(self, geonames):
-        """geonames ranks by relevance, not by exact match."""
+        """Geonames ranks by relevance, not by exact match."""
         geonames("geonames_postal_5000.html")
         assert belgium().fetch_city_given_postal_code("9999") == ""
 
@@ -143,7 +143,7 @@ class TestFactory:
         )
 
     def test_the_languages_are_not_derived_from_the_country_code(self):
-        """ "be" is Belarusian and "ch" is Chamorro; neither is spoken there."""
+        """Code "be" is Belarusian and "ch" is Chamorro; neither is spoken there."""
         names = {
             language.name
             for language in CountryFactory()
@@ -174,7 +174,7 @@ class TestPortalRegistry:
         }
 
     def test_switzerland_serves_comparis_only(self):
-        """homegate and immoscout24 are behind DataDome; comparis carries both."""
+        """Homegate and immoscout24 are behind DataDome; comparis carries both."""
         assert [
             worker.domain_name for worker in Switzerland().get_real_estate_websites()
         ] == ["comparis.ch"]

@@ -10,11 +10,15 @@ repos:
       - id: check-yaml
       - id: end-of-file-fixer
       - id: trailing-whitespace
-  - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 26.10.1
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.2
     hooks:
-      - id: black
-  - repo: https://github.com/pycqa/isort
-    rev: 9.0.2
+      # lint first: its fixes (imports, f-strings...) are then formatted
+      - id: ruff-check
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.13.5
     hooks:
-      - id: isort
+      # pyproject.toml and uv.lock must never drift apart
+      - id: uv-lock

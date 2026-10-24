@@ -20,7 +20,7 @@ class RealEstateResearch(Research):
         region: str = "",
         type: str = ANY,
         rent_or_buy: str = BUY,
-        country: str = None,
+        country: str | None = None,
         url: str = "",
     ):
         super().__init__()

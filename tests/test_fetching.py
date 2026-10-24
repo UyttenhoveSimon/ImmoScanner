@@ -121,7 +121,7 @@ class TestPageWalk:
         assert worker.pages_requested == [1, 2]  # no wasted third request
 
     def test_counts_distinct_listings_against_the_total(self):
-        """immoweb repeats one sponsored card on every page."""
+        """Immoweb repeats one sponsored card on every page."""
 
         class Item:
             def __init__(self, id):
@@ -162,7 +162,7 @@ class TestPageWalk:
         worker.fetch_page = lambda research, page: (_ for _ in ()).throw(
             ValueError("boom")
         )
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="boom"):
             worker.get_findings(RealEstateResearch())
 
     def test_a_single_unreadable_card_does_not_lose_the_page(self):

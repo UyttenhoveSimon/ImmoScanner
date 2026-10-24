@@ -32,16 +32,67 @@ dev = [
     "prek>=0.5.7",
     "pytest>=9.1.1",
     "pytest-cov>=7.1.0",
+    "ruff>=0.17.2",
     "types-beautifulsoup4>=4.12.0.20240907",
 ]
 
-[tool.black]
-# requires-python allows 3.15, which the pinned interpreter cannot parse
-target-version = ["py310"]
+[tool.ruff]
+target-version = "py310"
+extend-exclude = [".vscode"]
 
-[tool.isort]
-# black and isort otherwise disagree on how to wrap a long import
-profile = "black"
+[tool.ruff.lint]
+# Every rule, then the few that fight this codebase's conventions, each with
+# its reason. New ruff rules are picked up on upgrade.
+select = ["ALL"]
+ignore = [
+    "COM812",  # the formatter owns trailing commas
+    "ANN",     # the package is untyped; annotations would be all it says
+    "D100", "D101", "D102", "D103", "D104", "D105", "D107",  # docstrings where they explain something, not on every name
+    "D401",    # docstrings describe ("Return the...") as often as they command
+    "CPY001",  # the licence lives in LICENSE and NOTICE
+    "N999",    # CamelCase modules are the package's layout
+    "TID252",  # sibling imports within the package are relative by design
+    "A002",    # `type` mirrors the --type flag and the portals' own vocabulary
+    "TRY003", "EM101", "EM102",  # error messages are written where they are raised
+    "G004",    # logging uses f-strings throughout; nothing logs hot enough to matter
+    "PLR0913", "PLR0917",  # searches take many keyword arguments by nature
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    "S101",     # pytest asserts
+    "PLR2004",  # expected values are the point of a test
+    "ARG",      # fakes match the signature they replace
+    "SLF001",   # tests may look inside
+    "INP001",   # tests are not a package
+    "PLC0415",  # imports scoped to the test that monkeypatches them
+    "N802",     # fakes keep the names of what they stand in for
+    "N813",     # `import ImmoScanner.Console as console`
+    "FBT",      # boolean fixtures and fakes
+    "PT018",    # one assertion per line would split facts that belong together
+    "S310",     # urlopen against the explorer the test itself started on localhost
+]
+"scripts/**" = [
+    "INP001",  # a script, not a package
+    "T201",    # it reports on stdout
+    "S311",    # made-up demo data, not secrets
+]
+"ImmoScanner/{Archives/Store,Showrooms/Explorer}.py" = [
+    "S608",  # SQL is composed from column names the code owns; every value is bound
+]
+"ImmoScanner/Showrooms/Server.py" = [
+    "T201",  # tells the person at the terminal where the explorer is listening
+]
+"ImmoScanner/Console.py" = [
+    "T201",  # the console prints by definition
+    "FBT",   # boolean flags are plac's interface
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "pep257"
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
 
 [tool.pytest.ini_options]
 # the live portal checks are opt-in: `pytest -m live`

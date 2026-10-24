@@ -74,7 +74,7 @@ class TestAssess:
         assert Renovation.assess(listing(epc="B")) == ("", [])
 
     @pytest.mark.parametrize(
-        "raw, label",
+        ("raw", "label"),
         [
             ("C", "C"),
             ("WalloniaD", "D"),

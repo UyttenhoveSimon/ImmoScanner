@@ -1,6 +1,7 @@
 import logging
 import os
 import time
+from http import HTTPStatus
 
 import requests
 from rustwright.sync_api import sync_playwright
@@ -45,6 +46,7 @@ class Worker:
 
     def __init__(
         self,
+        *,
         headless=True,
         locale="fr-BE",
         timezone_id="Europe/Brussels",
@@ -123,7 +125,7 @@ class Worker:
                 continue
             try:
                 getattr(resource, release)()
-            except Exception as error:
+            except Exception as error:  # noqa: BLE001 - see above
                 logger.debug(f"failed to release {resource!r}: {error}")
 
         self.session = None
@@ -152,7 +154,7 @@ class Worker:
         if self.session is not None:
             try:
                 self.session.close()
-            except Exception as error:
+            except Exception as error:  # noqa: BLE001 - nothing left to save
                 logger.debug(f"failed to close the http session: {error}")
             self.session = None
         if self.http_clients:
@@ -166,11 +168,11 @@ class Worker:
 
         try:
             response = session.get(url, timeout=HTTP_TIMEOUT)
-        except Exception as error:  # every client raises its own transport errors
+        except Exception as error:  # noqa: BLE001 - each client its own errors
             logger.debug(f"{self.domain_name}: {self.http_client} failed ({error})")
             return None
 
-        if response.status_code != 200:
+        if response.status_code != HTTPStatus.OK:
             logger.debug(
                 f"{self.domain_name}: {self.http_client} got {response.status_code}"
             )
@@ -182,18 +184,20 @@ class Worker:
         self.start()
         self.page.goto(url, wait_until="domcontentloaded")
         for selector in wait_for:
-            try:
-                # "attached", not the default "visible": what is awaited may be
-                # a <script> holding the payload, which is never visible, and
-                # waiting for visibility burns the whole timeout on every page.
-                self.page.wait_for_selector(
-                    selector, state="attached", timeout=render_timeout
-                )
-            except Exception:
-                logger.debug(
-                    f"{self.domain_name}: {selector!r} never rendered on {url}"
-                )
+            self.wait_for_selector(url, selector, render_timeout)
         return self.page.content()
+
+    def wait_for_selector(self, url, selector, render_timeout):
+        """Wait for one element; a page that never renders it is still read."""
+        try:
+            # "attached", not the default "visible": what is awaited may be
+            # a <script> holding the payload, which is never visible, and
+            # waiting for visibility burns the whole timeout on every page.
+            self.page.wait_for_selector(
+                selector, state="attached", timeout=render_timeout
+            )
+        except Exception:  # noqa: BLE001 - the browser's timeout type varies
+            logger.debug(f"{self.domain_name}: {selector!r} never rendered on {url}")
 
     def dismiss_banner(self, selector, timeout=3_000):
         """Click a consent banner if it shows up; never fail the scrape over it."""
@@ -201,9 +205,9 @@ class Worker:
             return False
         try:
             self.page.click(selector, timeout=timeout)
-            return True
-        except Exception:
+        except Exception:  # noqa: BLE001 - no banner is the usual case
             return False
+        return True
 
     def wait(self, milliseconds):
         if self.page is not None:

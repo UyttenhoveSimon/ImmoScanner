@@ -54,8 +54,9 @@ class Immoweb(RealEstateWorker):
         return self.first_int(title) or None
 
     def get_result_id(self, result):
-        # ids on the page are "classified_21841479" but also "premium_position_21803099",
-        # so the classified number is read back from the listing link instead.
+        # ids on the page are "classified_21841479" but also
+        # "premium_position_21803099", so the classified number is read back
+        # from the listing link instead.
         match = re.search(r"/(\d+)/?$", self.get_result_link(result))
         return match.group(1) if match else result.get("id", "")
 

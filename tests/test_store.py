@@ -82,7 +82,8 @@ def test_an_archive_from_before_plots_were_kept_is_brought_up_to_date(tmp_path):
             "CREATE TABLE listings (platform TEXT NOT NULL, listing_id TEXT NOT NULL, "
             "search_key TEXT NOT NULL, url TEXT, description TEXT, type TEXT, "
             "source TEXT, postal_code TEXT, city TEXT, currency TEXT, price REAL, "
-            "livable_square_meters INTEGER, bedrooms_number INTEGER, rooms_number REAL, "
+            "livable_square_meters INTEGER, bedrooms_number INTEGER, "
+            "rooms_number REAL, "
             "latitude REAL, longitude REAL, first_seen TEXT NOT NULL, "
             "last_seen TEXT NOT NULL, PRIMARY KEY (platform, listing_id))"
         )

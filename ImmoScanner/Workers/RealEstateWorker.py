@@ -84,11 +84,11 @@ class RealEstateWorker(Worker):
                 if not items:
                     break
 
-                for item in items:
-                    try:
-                        results.append(self.extract_findings(item))
-                    except Exception as error:
-                        logger.warning(f"{self.domain_name}: skipped a card ({error})")
+                results.extend(
+                    finding
+                    for finding in map(self.extract_safely, items)
+                    if finding is not None
+                )
 
                 # immoweb repeats a sponsored card on every page, so the stop
                 # condition counts distinct listings, not rows.
@@ -118,9 +118,16 @@ class RealEstateWorker(Worker):
         )
         return soup.select(self.CARD_SELECTOR), self.total_results(soup)
 
+    def extract_safely(self, item):
+        """Read one card; a card the portal laid out oddly is skipped, not fatal."""
+        try:
+            return self.extract_findings(item)
+        except Exception as error:  # noqa: BLE001 - any layout surprise
+            logger.warning(f"{self.domain_name}: skipped a card ({error})")
+            return None
+
     def total_results(self, soup):
         """How many listings the portal says the search matched, if it says so."""
-        return None
 
     def get_html(self, url, wait_for=()):
         """Fetch ``url``, over HTTP when the portal serves the list that way.

@@ -29,20 +29,13 @@ class ImmoScanner:
     ):
         codes = [code.strip() for code in str(postal_code).split(",") if code.strip()]
         if len(codes) > 1 and not region:
-            # Several towns, e.g. a city and its suburbs: one search each, and
-            # the portals' groups laid end to end.
-            results = []
-            for code in codes:
-                results.extend(
-                    self.research_real_estate(
-                        country_name,
-                        postal_code=code,
-                        type=type,
-                        rent_or_buy=rent_or_buy,
-                        max_pages=max_pages,
-                    )
-                )
-            return results
+            return self.research_several_postal_codes(
+                country_name,
+                codes,
+                type=type,
+                rent_or_buy=rent_or_buy,
+                max_pages=max_pages,
+            )
 
         country = CountryFactory().generate_country_given_name(name=country_name)
         if country is None:
@@ -52,24 +45,9 @@ class ImmoScanner:
         if not websites:
             raise ValueError(f"no real estate website registered for {country_name}")
 
-        if region:
-            # A whole province or canton: there is no locality to look up.
-            matched = country.find_region(region)
-            if matched is None:
-                raise ValueError(
-                    f"{country_name} has no region called {region!r}; "
-                    f"try one of {', '.join(country.REGIONS)}"
-                )
-            region, postal_code, city = matched, "", ""
-            logger.info(f"searching {region} in {country_name}")
-        else:
-            if not postal_code:
-                postal_code = country.fetch_postal_code_given_city(city)
-
-            if not city:
-                city = country.fetch_city_given_postal_code(postal_code)
-
-            logger.info(f"searching {city} ({postal_code}) in {country_name}")
+        region, postal_code, city = self.locate(
+            country, country_name, postal_code, city, region
+        )
 
         def scan(website):
             if max_pages:
@@ -85,14 +63,46 @@ class ImmoScanner:
             )
             try:
                 return website.get_findings(research)
-            except Exception as error:
-                logger.error(f"{website.domain_name}: search failed ({error})")
+            # One portal down must not sink the others, and its traceback
+            # would drown the log of a scan that otherwise went fine.
+            except Exception as error:  # noqa: BLE001
+                logger.error(f"{website.domain_name}: search failed ({error})")  # noqa: TRY400
                 return []
 
         with ThreadPoolExecutor(
             max_workers=min(len(websites), MAX_CONCURRENT_PORTALS)
         ) as pool:
             return list(pool.map(scan, websites))
+
+    def research_several_postal_codes(self, country_name, codes, **what):
+        """Search a city and its suburbs: one search each, laid end to end."""
+        results = []
+        for code in codes:
+            results.extend(
+                self.research_real_estate(country_name, postal_code=code, **what)
+            )
+        return results
+
+    @staticmethod
+    def locate(country, country_name, postal_code, city, region):
+        """Settle what to search: a whole region, or one postal code and city."""
+        if region:
+            # A whole province or canton: there is no locality to look up.
+            matched = country.find_region(region)
+            if matched is None:
+                raise ValueError(
+                    f"{country_name} has no region called {region!r}; "
+                    f"try one of {', '.join(country.REGIONS)}"
+                )
+            logger.info(f"searching {matched} in {country_name}")
+            return matched, "", ""
+
+        if not postal_code:
+            postal_code = country.fetch_postal_code_given_city(city)
+        if not city:
+            city = country.fetch_city_given_postal_code(postal_code)
+        logger.info(f"searching {city} ({postal_code}) in {country_name}")
+        return region, postal_code, city
 
     def research_real_estate_url(self, country_name, url):
         country = CountryFactory().generate_country_given_name(name=country_name)

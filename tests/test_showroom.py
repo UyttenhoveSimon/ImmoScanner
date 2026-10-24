@@ -348,7 +348,7 @@ class TestHistoryAndMovements:
 
 class TestHelpers:
     @pytest.mark.parametrize(
-        "given, expected",
+        ("given", "expected"),
         [(None, 200), ("", 200), ("abc", 200), (0, 1), (5, 5), (99999, MAX_LIMIT)],
     )
     def test_a_limit_is_always_sane(self, given, expected):
@@ -365,9 +365,8 @@ class TestHelpers:
 
 class TestReadOnly:
     def test_the_explorer_cannot_write_to_the_archive(self, archive):
-        with Explorer(archive) as explorer:
-            with pytest.raises(sqlite3.OperationalError):
-                explorer.connection.execute("DELETE FROM listings")
+        with Explorer(archive) as explorer, pytest.raises(sqlite3.OperationalError):
+            explorer.connection.execute("DELETE FROM listings")
 
 
 class TestRouting:

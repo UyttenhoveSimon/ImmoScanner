@@ -60,7 +60,7 @@ class TestHelpers:
         assert RealEstateWorker.currency_code(None) == ""
 
     @pytest.mark.parametrize(
-        "symbol, code", [("€", "EUR"), ("chf", "CHF"), ("Fr.", "CHF"), ("$", "USD")]
+        ("symbol", "code"), [("€", "EUR"), ("chf", "CHF"), ("Fr.", "CHF"), ("$", "USD")]
     )
     def test_symbols_become_iso_codes(self, symbol, code):
         assert RealEstateWorker.currency_code(symbol) == code
@@ -71,7 +71,7 @@ class TestHelpers:
 
 class TestPortalDefaults:
     @pytest.mark.parametrize(
-        "worker_class, country",
+        ("worker_class", "country"),
         [(Immoweb, "Belgique"), (ImmoVlan, "Belgique"), (Comparis, "Switzerland")],
     )
     def test_a_search_without_a_country_gets_the_portal_s_own(
@@ -145,9 +145,7 @@ class TestImmoVlanFallbacks:
         monkeypatch.setattr(
             worker, "get_html", lambda url, wait_for=(): "<html></html>"
         )
-        monkeypatch.setattr(
-            worker, "dismiss_banner", lambda selector: dismissed.append(selector)
-        )
+        monkeypatch.setattr(worker, "dismiss_banner", dismissed.append)
 
         worker.fetch_page(RealEstateResearch(postal_code="5000"), 1)
         assert dismissed == ["#didomi-notice-agree-button"]
@@ -155,7 +153,7 @@ class TestImmoVlanFallbacks:
 
 class TestSlugs:
     @pytest.mark.parametrize(
-        "given, expected",
+        ("given", "expected"),
         [
             ("Nivelles", "nivelles"),
             ("Braine-L'Alleud", "braine-l-alleud"),
@@ -198,7 +196,9 @@ class TestComparisFallbacks:
         monkeypatch.setattr(
             worker,
             "get_html",
-            lambda url, wait_for=(): '<script id="__NEXT_DATA__">{"props":{"pageProps":{}}}</script>',
+            lambda url, wait_for=(): (
+                '<script id="__NEXT_DATA__">{"props":{"pageProps":{}}}</script>'
+            ),
         )
         assert worker.fetch_page(RealEstateResearch(postal_code="1618"), 9) == (
             [],
@@ -305,9 +305,7 @@ class TestGrossYield:
         monkeypatch.setattr(
             module,
             "CountryFactory",
-            lambda: type(
-                "F", (), {"generate_country_given_name": lambda self, name: None}
-            )(),
+            type("F", (), {"generate_country_given_name": lambda self, name: None}),
         )
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="not implemented"):
             ImmoScanner().research_real_estate_url("Atlantis", "https://x.test")

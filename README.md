@@ -272,8 +272,9 @@ from ImmoScanner.ImmoScanner import ImmoScanner
 from ImmoScanner.Means.RealEstateResearch import APARTMENT, RENT
 
 scanner = ImmoScanner()
-results = scanner.research_real_estate("Belgium", postal_code="1000",
-                                       type=APARTMENT, rent_or_buy=RENT)
+results = scanner.research_real_estate(
+    "Belgium", postal_code="1000", type=APARTMENT, rent_or_buy=RENT
+)
 listings = scanner.duplicate_finder(results)
 insights = scanner.get_insights(listings)
 ```
@@ -486,12 +487,14 @@ If a portal shows a captcha, the scanner raises a `BotWallError` instead of retu
 
 ## 🧪 Tests
 
-The project is managed with [uv](https://docs.astral.sh/uv/), and its formatting hooks (black, isort, whitespace) run with [prek](https://github.com/j178/prek). `uv sync` installs both prek and the test tools:
+The project is managed with [uv](https://docs.astral.sh/uv/). [Ruff](https://docs.astral.sh/ruff/) formats the code and lints it with every rule it has, minus the few listed, with their reasons, in `pyproject.toml`. The hooks (Ruff, the lockfile check, whitespace) run with [prek](https://github.com/j178/prek). `uv sync` installs all of it:
 
 ```bash
 uv sync
 uv run prek install               # run the hooks on every commit
 uv run prek run --all-files       # what CI checks
+uv run ruff check --fix .         # lint on its own
+uv run ruff format .              # format on its own
 ```
 
 ```bash

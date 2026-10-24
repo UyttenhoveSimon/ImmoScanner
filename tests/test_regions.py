@@ -25,7 +25,7 @@ class TestDeclaring:
         assert "Vaud" in Switzerland.REGIONS
 
     def test_schwyz_keeps_the_spelling_comparis_knows(self):
-        """ "Schwytz", the French form, returns nothing there."""
+        """The French form, "Schwytz", returns nothing there."""
         assert "Schwyz" in Switzerland.REGIONS
         assert "Schwytz" not in Switzerland.REGIONS
 
@@ -60,8 +60,10 @@ class TestSearchUrls:
         assert slug in ImmoVlan().url_builder(RealEstateResearch(region=region), 1)
 
     def test_comparis_asks_for_a_canton_by_name(self):
-        """comparis has one free-text location field; "Canton Vaud" is how
-        its own canton pages fill it."""
+        """Comparis has one free-text location field.
+
+        "Canton Vaud" is how its own canton pages fill it.
+        """
         url = Comparis().url_builder(RealEstateResearch(region="Vaud"), 1)
         assert "Canton Vaud" in urllib.parse.unquote_plus(url)
 
@@ -121,11 +123,11 @@ class TestScanning:
         monkeypatch.setattr(
             module,
             "CountryFactory",
-            lambda: type(
+            type(
                 "F",
                 (),
                 {"generate_country_given_name": lambda self, name: FakeCountry()},
-            )(),
+            ),
         )
         return portal, looked_up
 

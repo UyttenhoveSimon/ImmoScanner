@@ -28,7 +28,7 @@ def renovated(price_per_m2, count=5, postal_code="4000"):
 class TestReference:
     def test_listings_needing_no_work_set_the_after_repair_value(self):
         wreck = listing(100_000, condition=RENOVATE)
-        market = renovated(2_000) + [wreck, listing(50_000, condition=WORKS)]
+        market = [*renovated(2000), wreck, listing(50000, condition=WORKS)]
 
         (opportunity,) = Brrrr.rank([wreck], market)
 
@@ -53,7 +53,7 @@ class TestReference:
 
     def test_a_thin_postal_code_falls_back_to_the_scan(self):
         wreck = listing(100_000, postal_code="4020", condition=RENOVATE)
-        market = renovated(2_400) + [wreck]
+        market = [*renovated(2400), wreck]
 
         (opportunity,) = Brrrr.rank([wreck], market)
 
@@ -75,7 +75,7 @@ class TestEconomics:
         rentals = [listing(1_000) for _ in range(5)]  # 10/m² a month
 
         (opportunity,) = Brrrr.rank(
-            [wreck], renovated(2_000) + [wreck], rentals, works_per_m2=500
+            [wreck], [*renovated(2000), wreck], rentals, works_per_m2=500
         )
 
         assert opportunity.works_budget == 50_000
@@ -104,9 +104,10 @@ class TestEconomics:
 
 class TestAreas:
     def test_one_row_per_postal_code(self):
-        market = renovated(2_000) + [
-            listing(120_000, postal_code="4020", city="Liège", condition=WORKS),
-            listing(130_000, postal_code="4020", city="Liège"),
+        market = [
+            *renovated(2000),
+            listing(120000, postal_code="4020", city="Liège", condition=WORKS),
+            listing(130000, postal_code="4020", city="Liège"),
         ]
         rentals = [listing(1_000), listing(800, postal_code="4020")]
 
