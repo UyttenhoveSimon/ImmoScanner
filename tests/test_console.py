@@ -1,9 +1,11 @@
 """The command line: what it asks for, what it prints, what it writes."""
 
 import json
+from pathlib import Path
 from typing import ClassVar
 
 import pytest
+from cyclopts import CycloptsError
 
 import ImmoScanner.Console as console
 from ImmoScanner.Archives.Store import Report
@@ -73,39 +75,54 @@ def stub(monkeypatch):
     return StubScanner
 
 
+def run(*tokens):
+    """Run the command line as typed, without leaving the test on an error."""
+    return console.app(
+        list(tokens),
+        exit_on_error=False,
+        print_error=False,
+        result_action="return_value",
+    )
+
+
 def call(name):
     return next(kwargs for called, kwargs in StubScanner.calls if called == name)
 
 
 class TestRouting:
     def test_a_postal_code_starts_a_search(self, capsys):
-        console.main("Belgium", postal_code="5000")
+        run("scan", "Belgium", "-p", "5000")
         assert call("research")["postal_code"] == "5000"
         assert "2 listings, 2 unique" in capsys.readouterr().out
 
     def test_a_city_starts_a_search(self):
-        console.main("Belgium", city="Namur")
+        run("scan", "Belgium", "--city", "Namur")
         assert call("research")["city"] == "Namur"
 
     def test_a_url_goes_to_the_url_search(self):
-        console.main("Belgium", url="https://www.immoweb.be/fr/recherche/x")
+        run("scan", "Belgium", "--url", "https://www.immoweb.be/fr/recherche/x")
         assert call("url")["url"] == "https://www.immoweb.be/fr/recherche/x"
 
     def test_the_search_terms_are_passed_on(self):
-        console.main("Belgium", postal_code="5000", type=APARTMENT, rent=True)
+        run("scan", "Belgium", "-p", "5000", "--type", APARTMENT, "--rent")
         asked = call("research")
         assert asked["type"] == APARTMENT and asked["rent_or_buy"] == RENT
 
     def test_buying_is_the_default(self):
-        console.main("Belgium", postal_code="5000")
+        run("scan", "Belgium", "-p", "5000")
         assert call("research")["rent_or_buy"] == BUY
 
     def test_a_search_without_a_place_is_refused(self):
         with pytest.raises(SystemExit):
-            console.main("Belgium")
+            run("scan", "Belgium")
+
+    def test_an_unknown_type_is_refused_before_scanning(self):
+        with pytest.raises(CycloptsError):
+            run("scan", "Belgium", "-p", "5000", "--type", "castle")
+        assert StubScanner.calls == []
 
     def test_the_yield_run_short_circuits_the_rest(self, capsys):
-        console.main("Belgium", postal_code="5000", yield_=True)
+        run("yield", "Belgium", "-p", "5000")
         assert [called for called, _ in StubScanner.calls] == ["yield"]
         assert "gross_yield_percent: 4.50" in capsys.readouterr().out
 
@@ -114,30 +131,30 @@ class TestExplorer:
     def test_serving_browses_an_archive_instead_of_scanning(self, monkeypatch):
         served = []
         monkeypatch.setattr(
-            console, "serve", lambda path, port: served.append((path, port))
+            console.Server, "serve", lambda path, port: served.append((path, port))
         )
 
-        console.main("Belgium", store="a.db", serve_=True, port=9001)
+        run("serve", "a.db", "--port", "9001")
 
-        assert served == [("a.db", 9001)]
+        assert served == [(Path("a.db"), 9001)]
         assert StubScanner.calls == []  # nothing was scanned
 
     def test_serving_needs_to_be_told_which_archive(self):
-        with pytest.raises(SystemExit):
-            console.main("Belgium", serve_=True)
+        with pytest.raises(CycloptsError):
+            run("serve")
 
 
 class TestSourceFilter:
     def test_the_lists_reach_the_scanner(self):
-        console.main("Belgium", postal_code="5000", source="homegate, immoscout24")
+        run("scan", "Belgium", "-p", "5000", "--source", "homegate, immoscout24")
         assert call("filter")["keep"] == ["homegate", "immoscout24"]
 
     def test_exclusions_reach_the_scanner(self):
-        console.main("Belgium", postal_code="5000", exclude_source="Properstar")
+        run("scan", "Belgium", "-p", "5000", "--exclude-source", "Properstar")
         assert call("filter")["drop"] == ["Properstar"]
 
     def test_no_filter_is_still_a_filter_call_with_nothing_in_it(self):
-        console.main("Belgium", postal_code="5000")
+        run("scan", "Belgium", "-p", "5000")
         assert call("filter") == {"keep": [], "drop": []}
 
     def test_what_the_filter_removed_is_reported(self, monkeypatch, capsys):
@@ -146,7 +163,7 @@ class TestSourceFilter:
             "filter_by_source",
             lambda self, results, keep=(), drop=(): [results[0][:1]],
         )
-        console.main("Belgium", postal_code="5000", source="homegate")
+        run("scan", "Belgium", "-p", "5000", "--source", "homegate")
 
         assert (
             "2 listings, 1 from the asked sources, 1 unique" in capsys.readouterr().out
@@ -156,7 +173,7 @@ class TestSourceFilter:
 class TestOutput:
     def test_the_findings_are_written_as_json(self, tmp_path):
         target = tmp_path / "out.json"
-        console.main("Belgium", postal_code="5000", output=str(target))
+        run("scan", "Belgium", "-p", "5000", "-o", str(target))
 
         written = json.loads(target.read_text())
         assert [item["id"] for item in written] == ["1", "2"]
@@ -164,26 +181,26 @@ class TestOutput:
 
     def test_the_file_is_announced(self, tmp_path, capsys):
         target = tmp_path / "out.json"
-        console.main("Belgium", postal_code="5000", output=str(target))
+        run("scan", "Belgium", "-p", "5000", "-o", str(target))
         assert str(target) in capsys.readouterr().out
 
 
 class TestArchive:
     def test_the_run_is_recorded_and_the_difference_printed(self, tmp_path, capsys):
         archive = tmp_path / "a.db"
-        console.main("Belgium", postal_code="5000", store=str(archive))
+        run("scan", "Belgium", "-p", "5000", "-s", str(archive))
         first = capsys.readouterr().out
         assert "2 new" in first
 
-        console.main("Belgium", postal_code="5000", store=str(archive))
+        run("scan", "Belgium", "-p", "5000", "-s", str(archive))
         assert "2 unchanged" in capsys.readouterr().out
 
     def test_the_archive_is_scoped_to_the_search(self, tmp_path, capsys):
         archive = tmp_path / "a.db"
-        console.main("Belgium", postal_code="5000", store=str(archive))
+        run("scan", "Belgium", "-p", "5000", "-s", str(archive))
         capsys.readouterr()
 
-        console.main("Belgium", postal_code="1000", store=str(archive))
+        run("scan", "Belgium", "-p", "1000", "-s", str(archive))
         # a different search must not report the first one's listings as gone
         assert "0 gone" in capsys.readouterr().out
 
@@ -225,11 +242,21 @@ class TestPrinting:
 
 
 class TestEntryPoint:
-    def test_the_console_script_hands_argv_to_plac(self, monkeypatch):
-        called = []
-        monkeypatch.setattr(console.plac, "call", called.append)
-        console.cli()
-        assert called == [console.main]
+    def test_the_console_script_reads_argv(self, monkeypatch, capsys):
+        monkeypatch.setattr(
+            "sys.argv", ["immoscanner", "--debug", "scan", "Belgium", "-p", "5000"]
+        )
+        with pytest.raises(SystemExit) as finished:
+            console.cli()
+        assert finished.value.code == 0
+        assert call("research")["postal_code"] == "5000"
+
+    def test_every_question_is_a_subcommand(self, capsys):
+        with pytest.raises(SystemExit):
+            console.app(["--help"])
+        printed = capsys.readouterr().out
+        for command in ("scan", "brrrr", "yield", "serve"):
+            assert command in printed
 
 
 def needing(condition, listing_id, price, epc="", postal_code="4000"):
@@ -254,9 +281,7 @@ class TestCondition:
 
     def test_only_listings_needing_work_are_shown(self, market, capsys, tmp_path):
         output = tmp_path / "out.json"
-        console.main(
-            "Belgium", postal_code="4000", condition="works", output=str(output)
-        )
+        run("scan", "Belgium", "-p", "4000", "-k", "works", "-o", str(output))
 
         printed = capsys.readouterr().out
         assert "2 of 3 need works" in printed
@@ -265,11 +290,11 @@ class TestCondition:
         assert [row["id"] for row in json.loads(output.read_text())] == ["a", "b"]
 
     def test_the_market_statistics_cover_every_listing(self, market, capsys):
-        console.main("Belgium", postal_code="4000", condition="renovate")
+        run("scan", "Belgium", "-p", "4000", "-k", "renovate")
         assert "listings: 3" in capsys.readouterr().out
 
     def test_no_condition_lists_nothing_extra(self, market, capsys):
-        console.main("Belgium", postal_code="4000")
+        run("scan", "Belgium", "-p", "4000")
         assert "need" not in capsys.readouterr().out
 
 
@@ -289,7 +314,7 @@ class TestBrrrr:
         monkeypatch.setattr(StubScanner, "research_real_estate", research)
 
     def test_both_sides_of_the_market_are_scanned(self, market):
-        console.main("Belgium", postal_code="4000", brrrr=True, rent=True)
+        run("brrrr", "Belgium", "-p", "4000")
         deals = [
             kw["rent_or_buy"] for name, kw in StubScanner.calls if name == "research"
         ]
@@ -297,12 +322,8 @@ class TestBrrrr:
 
     def test_fixer_uppers_are_ranked_by_discount(self, market, capsys, tmp_path):
         output = tmp_path / "brrrr.json"
-        console.main(
-            "Belgium",
-            postal_code="4000",
-            brrrr=True,
-            works_per_m2=300,
-            output=str(output),
+        run(
+            "brrrr", "Belgium", "-p", "4000", "--works-per-m2", "300", "-o", str(output)
         )
 
         printed = capsys.readouterr().out
@@ -319,29 +340,45 @@ class TestBrrrr:
         assert rows[0]["equity"] == pytest.approx(200000 - 100000 - 30000)
 
     def test_renovate_narrows_the_candidates(self, market, capsys):
-        console.main("Belgium", postal_code="4000", brrrr=True, condition="renovate")
+        run("brrrr", "Belgium", "-p", "4000", "-k", "renovate")
         printed = capsys.readouterr().out
         assert "1 listings needing renovate" in printed
         assert "immoweb.be/tired" not in printed
 
-    def test_a_url_is_refused(self):
+    def test_a_url_is_not_an_option(self):
+        with pytest.raises(CycloptsError):
+            run("brrrr", "Belgium", "--url", "https://www.immoweb.be/x")
+
+    def test_a_place_is_needed(self):
         with pytest.raises(SystemExit):
-            console.main("Belgium", url="https://www.immoweb.be/x", brrrr=True)
+            run("brrrr", "Belgium")
+
+    def test_any_condition_still_means_some_work(self, market, capsys):
+        run("brrrr", "Belgium", "-p", "4000", "-k", "any")
+        assert "2 listings needing works" in capsys.readouterr().out
+
+    def test_the_sale_scan_can_be_archived(self, market, tmp_path, capsys):
+        run("brrrr", "Belgium", "-p", "4000", "-s", str(tmp_path / "a.db"))
+        assert "7 new" in capsys.readouterr().out
 
     def test_thin_references_are_called_out(self, stub, monkeypatch, capsys):
         sale = [needing("renovate", "lone", 100000, postal_code="4020")]
         monkeypatch.setattr(
             StubScanner, "research_real_estate", lambda self, **kw: [sale]
         )
-        console.main("Belgium", postal_code="4020", brrrr=True)
+        run("brrrr", "Belgium", "-p", "4020")
         assert "(reference: scan; rent: scan)" in capsys.readouterr().out
 
 
 class TestYieldOptions:
     def test_the_page_limit_and_region_reach_the_yield_scan(self):
-        console.main("Belgium", region="Liège", max_pages=4, yield_=True)
+        run("yield", "Belgium", "--region", "Liège", "-m", "4")
         asked = call("yield")
         assert (asked["region"], asked["max_pages"]) == ("Liège", 4)
+
+    def test_a_place_is_needed(self):
+        with pytest.raises(SystemExit):
+            run("yield", "Belgium")
 
 
 class TestDescribe:

@@ -11,13 +11,13 @@ dependencies = [
     "rustwright>=0.3.0,<0.4",
     "pycountry>=22.3.5",
     "price-parser>=0.3.4",
-    "plac>=1.4.3",
     "beautifulsoup4>=4.12",
     # geonames serves unclosed table rows that html.parser cannot recover from
     "lxml>=5.3",
     "requests>=2.32",
     "tldextract>=5.1",
     "curl-cffi>=0.16.3",
+    "cyclopts>=4.25.3",
 ]
 
 [project.optional-dependencies]
@@ -90,7 +90,6 @@ ignore = [
 ]
 "ImmoScanner/Console.py" = [
     "T201",  # the console prints by definition
-    "FBT",   # boolean flags are plac's interface
 ]
 
 [tool.ruff.lint.pydocstyle]

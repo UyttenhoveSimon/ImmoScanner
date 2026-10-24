@@ -1,19 +1,22 @@
+"""The command line: one subcommand per kind of question asked of the portals."""
+
 from __future__ import annotations
 
 import json
 import logging
 import sys
+from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, TypedDict
+from typing import TYPE_CHECKING, Annotated, Any, Literal, TypedDict
 
-import plac
+from cyclopts import App, Parameter
 
 from .Archives.Store import Store
 from .ImmoScanner import ImmoScanner
 from .Intellectuals import Brrrr
-from .Intellectuals.Renovation import CONDITIONS, WORKS
-from .Means.RealEstateResearch import ANY, BUY, PROPERTY_TYPES, RENT
-from .Showrooms.Server import DEFAULT_PORT, serve
+from .Intellectuals.Renovation import WORKS
+from .Means.RealEstateResearch import ANY, BUY, RENT
+from .Showrooms import Server
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
@@ -26,6 +29,13 @@ if TYPE_CHECKING:
 ROUNDING_THRESHOLD = 100
 
 Row = dict[str, Any]
+PropertyType = Literal["any", "house", "apartment"]
+Condition = Literal["any", "works", "renovate"]
+
+app = App(
+    name="immoscanner",
+    help="Scan real estate portals for a town, a province or a canton.",
+)
 
 
 class Where(TypedDict):
@@ -38,144 +48,217 @@ class Where(TypedDict):
     max_pages: int
 
 
-@plac.pos("country", "Country targeted by the research", type=str)
-@plac.opt("postal_code", "postal code targeted by the research", type=str)
-@plac.opt("city", "city targeted by the research", type=str)
-@plac.opt("region", "province or canton to scan whole", type=str, abbrev="g")
-@plac.opt("url", "url of targeted website", type=str)
-@plac.opt("type", "property type", type=str, choices=PROPERTY_TYPES)
-@plac.opt("output", "write the findings as JSON to this file", type=str)
-@plac.opt("store", "sqlite archive to compare this run against", type=str)
-@plac.opt(
-    "source",
-    "keep only listings from these originating portals, comma separated",
-    type=str,
-    abbrev="f",
-)
-@plac.opt(
-    "exclude_source",
-    "drop listings from these originating portals, comma separated",
-    type=str,
-    abbrev="x",
-)
-@plac.opt("max_pages", "result pages to walk per portal", type=int, abbrev="m")
-@plac.opt("port", "port the explorer listens on", type=int, abbrev="n")
-@plac.flg("serve_", "browse an archive instead of scanning", abbrev="w")
-@plac.flg("rent", "search rentals instead of properties for sale")
-@plac.flg("yield_", "scan for sale and to let, and report the gross rental yield")
-@plac.opt(
-    "condition",
-    "keep listings needing at least this much work: works or renovate",
-    type=str,
-    choices=CONDITIONS,
-    abbrev="k",
-)
-@plac.flg(
-    "brrrr",
-    "scan for sale and to let, and rank fixer-uppers against their postal code",
-    abbrev="b",
-)
-@plac.opt(
-    "works_per_m2", "renovation budget per m2 for --brrrr", type=float, abbrev="e"
-)
-@plac.opt("top", "how many listings to print", type=int, abbrev="l")
-@plac.flg("debug", "Enable debug logging")
-def main(
-    country: str,
-    postal_code: str = "",
-    city: str = "",
-    region: str = "",
-    url: str = "",
-    type: str = ANY,
-    output: str = "",
-    store: str = "",
-    source: str = "",
-    exclude_source: str = "",
-    max_pages: int = 0,
-    port: int = DEFAULT_PORT,
-    serve_: bool = False,
-    rent: bool = False,
-    yield_: bool = False,
-    condition: str = ANY,
-    brrrr: bool = False,
-    works_per_m2: float = 0.0,
-    top: int = 15,
+@Parameter(name="*")
+@dataclass(frozen=True, kw_only=True)
+class Area:
+    """Where to look, and what for.
+
+    Parameters
+    ----------
+    postal_code
+        Postal code to search; several can be given comma separated.
+    city
+        Town to search; its postal code is looked up when not given.
+    region
+        Province or canton to search whole.
+    type
+        Kind of property.
+    max_pages
+        Result pages to read per portal; 0 keeps each portal's default.
+    source
+        Keep only listings first published on these portals, comma separated.
+    exclude_source
+        Drop listings first published on these portals, comma separated.
+    """
+
+    postal_code: Annotated[str, Parameter(alias="-p")] = ""
+    city: Annotated[str, Parameter(alias="-c")] = ""
+    region: Annotated[str, Parameter(alias="-g")] = ""
+    type: Annotated[PropertyType, Parameter(alias="-t")] = "any"
+    max_pages: Annotated[int, Parameter(alias="-m")] = 0
+    source: str = ""
+    exclude_source: str = ""
+
+    @property
+    def place(self) -> str:
+        return self.region or self.postal_code or self.city
+
+    def where(self) -> Where:
+        return {
+            "postal_code": self.postal_code,
+            "city": self.city,
+            "region": self.region,
+            "type": self.type,
+            "max_pages": self.max_pages,
+        }
+
+
+@app.meta.default
+def launcher(
+    *tokens: Annotated[str, Parameter(show=False, allow_leading_hyphen=True)],
     debug: bool = False,
 ) -> None:
-    """Welcome to ImmoScanner.
+    """Set up logging, then run the subcommand.
 
-    Add at least either the postal code or the city; several postal codes can
-    be given comma separated. If url is provided, only the targeted website
-    will be parsed, and country must still be provided.
+    Parameters
+    ----------
+    debug
+        Log every listing as it is read.
     """
     logging.basicConfig(
         level=logging.DEBUG if debug else logging.INFO,
         format="%(levelname)s %(name)s: %(message)s",
     )
+    app(tokens)
 
-    if serve_:
-        if not store:
-            sys.exit("--serve needs --store to say which archive to explore")
-        serve(store, port=port)
-        return
 
-    where: Where = {
-        "postal_code": postal_code,
-        "city": city,
-        "region": region,
-        "type": type,
-        "max_pages": max_pages,
-    }
-    scanner = ImmoScanner()
+@app.command
+def scan(
+    country: str,
+    area: Area | None = None,
+    *,
+    url: Annotated[str, Parameter(alias="-u")] = "",
+    rent: Annotated[bool, Parameter(alias="-r")] = False,
+    condition: Annotated[Condition, Parameter(alias="-k")] = "any",
+    top: Annotated[int, Parameter(alias="-l")] = 15,
+    output: Annotated[Path | None, Parameter(alias="-o")] = None,
+    store: Annotated[Path | None, Parameter(alias="-s")] = None,
+) -> None:
+    """Scan a place, print its price statistics, and what changed since last time.
 
-    if yield_:
-        print_insights(scanner.research_gross_yield(country_name=country, **where))
-        return
-
-    if not (url or city or postal_code or region):
+    Parameters
+    ----------
+    country
+        Belgium or Switzerland.
+    url
+        A search page copied from a portal, scanned instead of a place.
+    rent
+        Look at rentals instead of properties for sale.
+    condition
+        Only show listings needing at least this much work.
+    top
+        How many listings to print.
+    output
+        Write the listings shown to this JSON file.
+    store
+        SQLite archive to record the scan in and compare it against.
+    """
+    area = area or Area()
+    if not (url or area.place):
         sys.exit("provide one of --postal-code, --city, --region or --url")
-    if brrrr and url:
-        sys.exit("--brrrr compares a whole area: give a place rather than --url")
 
-    search = Search(
-        scanner, country, url, where, split_list(source), split_list(exclude_source)
-    )
-    deal = RENT if rent and not brrrr else BUY
-    findings = search.scan(deal)
+    scanner = ImmoScanner()
+    deal = RENT if rent else BUY
+    findings = Search(scanner, country, area, url).scan(deal)
     print_insights(scanner.get_insights(findings))
-
     if store:
-        # the archive follows the whole market, whatever is shown below
-        with Store(store) as archive:
-            key = archive.search_key(country, region or postal_code or city, type, deal)
-            print_report(archive.record(key, findings))
+        record(store, country, area, deal, findings)
 
-    if brrrr:
-        rows = report_brrrr(search, findings, condition, works_per_m2, top)
-    else:
-        rows = report_condition(scanner, findings, condition, top)
-
+    rows = report_condition(scanner, findings, condition, top)
     if output:
         write_json(output, rows)
+
+
+@app.command
+def brrrr(
+    country: str,
+    area: Area | None = None,
+    *,
+    condition: Annotated[Condition, Parameter(alias="-k")] = "works",
+    works_per_m2: Annotated[float, Parameter(alias="-e")] = 0.0,
+    top: Annotated[int, Parameter(alias="-l")] = 15,
+    output: Annotated[Path | None, Parameter(alias="-o")] = None,
+    store: Annotated[Path | None, Parameter(alias="-s")] = None,
+) -> None:
+    """Rank fixer-uppers against the postal code they stand in.
+
+    Scans for sale and to let, then measures every listing that needs work
+    against the median price per m2 of the listings around it needing none.
+
+    Parameters
+    ----------
+    country
+        Belgium or Switzerland.
+    condition
+        The least work a candidate must need; "any" still means some.
+    works_per_m2
+        Renovation budget per m2, off the equity and onto the cost.
+    top
+        How many listings to print.
+    output
+        Write the ranked listings to this JSON file.
+    store
+        SQLite archive to record the sale scan in and compare it against.
+    """
+    area = area or Area()
+    if not area.place:
+        sys.exit("provide one of --postal-code, --city or --region")
+
+    scanner = ImmoScanner()
+    search = Search(scanner, country, area)
+    findings = search.scan(BUY)
+    print_insights(scanner.get_insights(findings))
+    if store:
+        record(store, country, area, BUY, findings)
+
+    rows = report_brrrr(search, findings, condition, works_per_m2, top)
+    if output:
+        write_json(output, rows)
+
+
+@app.command(name="yield")
+def gross_yield(country: str, area: Area | None = None) -> None:
+    """Scan for sale and to let, and report the gross rental yield.
+
+    Parameters
+    ----------
+    country
+        Belgium or Switzerland.
+    """
+    area = area or Area()
+    if not area.place:
+        sys.exit("provide one of --postal-code, --city or --region")
+    scanner = ImmoScanner()
+    print_insights(scanner.research_gross_yield(country_name=country, **area.where()))
+
+
+@app.command
+def serve(
+    store: Path, *, port: Annotated[int, Parameter(alias="-n")] = Server.DEFAULT_PORT
+) -> None:
+    """Browse a scan archive in the web explorer.
+
+    Parameters
+    ----------
+    store
+        SQLite archive written by scan --store.
+    port
+        Port the explorer listens on.
+    """
+    Server.serve(store, port=port)
+
+
+def record(
+    store: Path, country: str, area: Area, deal: str, findings: Listings
+) -> None:
+    # the archive follows the whole market, whatever is shown afterwards
+    with Store(store) as archive:
+        key = archive.search_key(country, area.place, area.type, deal)
+        print_report(archive.record(key, findings))
 
 
 class Search:
     """One place, scanned for sale or to let the same way each time."""
 
     def __init__(
-        self,
-        scanner: ImmoScanner,
-        country: str,
-        url: str,
-        where: Where,
-        keep: list[str],
-        drop: list[str],
+        self, scanner: ImmoScanner, country: str, area: Area, url: str = ""
     ) -> None:
         self.scanner = scanner
         self.country = country
+        self.area = area
         self.url = url
-        self.where = where
-        self.keep, self.drop = keep, drop
+        self.keep = split_list(area.source)
+        self.drop = split_list(area.exclude_source)
 
     def scan(self, rent_or_buy: str, label: str = "") -> Listings:
         if self.url:
@@ -184,7 +267,7 @@ class Search:
             )
         else:
             results = self.scanner.research_real_estate(
-                country_name=self.country, rent_or_buy=rent_or_buy, **self.where
+                country_name=self.country, rent_or_buy=rent_or_buy, **self.area.where()
             )
 
         scanned = sum(len(group) for group in results)
@@ -224,7 +307,7 @@ def report_condition(
     return [item.to_dict() for item in shown]
 
 
-def write_json(output: str, rows: list[Row]) -> None:
+def write_json(output: Path, rows: list[Row]) -> None:
     with Path(output).open("w", encoding="utf-8") as stream:
         json.dump(rows, stream, default=str, ensure_ascii=False, indent=2)
     print(f"written to {output}")
@@ -344,8 +427,8 @@ def print_report(report: Report) -> None:
 
 
 def cli() -> None:
-    """Console-script entry point; plac parses argv for us."""
-    plac.call(main)
+    """Console-script entry point."""
+    app.meta(sys.argv[1:])
 
 
 if __name__ == "__main__":

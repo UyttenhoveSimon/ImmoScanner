@@ -46,7 +46,7 @@
 ```bash
 uv sync
 uv run python -m rustwright install chromium
-uv run immoscanner Belgium --city Namur
+uv run immoscanner scan Belgium --city Namur
 ```
 
 > [!TIP]
@@ -58,56 +58,66 @@ Build a demo archive of made-up listings (seven towns, four weekly scans), then 
 
 ```bash
 uv run python scripts/demo_archive.py
-uv run immoscanner Belgium --serve --store demo.db
+uv run immoscanner serve demo.db
 ```
 
 Then go to **http://127.0.0.1:8765**.
 
 ## 📖 Usage
 
-Start with the **country**, then say where to look: a city, a postal code, a region, or a search URL copied from a portal.
+Pick a **command**, give the **country**, then say where to look: a city, a postal code, a region, or a search URL copied from a portal.
 
 ```bash
-uv run immoscanner Belgium --city Namur
-uv run immoscanner Belgium --region "Brabant wallon" --max-pages 60
-uv run immoscanner Belgium --postal-code 1000 --type apartment --rent
-uv run immoscanner Switzerland --postal-code 1618 --output ch.json
-uv run immoscanner Belgium --postal-code 1000 --type apartment --yield
-uv run immoscanner Belgium --city Namur --store namur.db
-uv run immoscanner Belgium --url "https://www.immoweb.be/fr/recherche/maison/a-vendre/namur/5000?countries=BE"
+uv run immoscanner scan Belgium --city Namur
+uv run immoscanner scan Belgium --region "Brabant wallon" --max-pages 60
+uv run immoscanner scan Belgium --postal-code 1000 --type apartment --rent
+uv run immoscanner scan Switzerland --postal-code 1618 --output ch.json
+uv run immoscanner scan Belgium --city Namur --store namur.db
+uv run immoscanner scan Belgium --url "https://www.immoweb.be/fr/recherche/maison/a-vendre/namur/5000?countries=BE"
+uv run immoscanner yield Belgium --postal-code 1000 --type apartment
+uv run immoscanner brrrr Belgium --postal-code 4000,4020 --works-per-m2 900
+uv run immoscanner serve namur.db
 ```
+
+Every command explains itself with `--help`, for instance `uv run immoscanner brrrr --help`.
+
+### Commands
+
+| Command | What it does |
+| --- | --- |
+| `scan COUNTRY` | Read every portal for a place, print price statistics, and what changed since the last scan |
+| `yield COUNTRY` | Scan for sale and to let, and work out the gross rental yield |
+| `brrrr COUNTRY` | Scan for sale and to let, and rank fixer-uppers against their postal code |
+| `serve ARCHIVE.db` | Open saved scans in your browser |
 
 ### Options
 
-| Flag | What it does |
-| --- | --- |
-| **Where to look** | |
-| `--city NAME` / `--postal-code CODE` | Give either one; the other is looked up for you. Several postal codes can be given comma separated |
-| `--region NAME` | Search a whole province or canton instead of one town |
-| `--url URL` | Scan a search page copied from a portal, following its pages |
-| **What to look for** | |
-| `--type any\|house\|apartment` | Type of property |
-| `--rent` | Look at rentals instead of properties for sale |
-| `--yield` | Look at both, and work out the gross rental yield |
-| `--source NAMES` | Only keep listings that came from these websites (comma separated) |
-| `--exclude-source NAMES` | Leave out listings that came from these websites (comma separated) |
-| `--max-pages N` | How many result pages to read per portal (default `20`) |
-| `--condition works\|renovate` | Only show listings that need at least this much work |
-| **Investing** | |
-| `--brrrr` | Scan for sale and to let, and rank fixer-uppers against their postal code |
-| `--works-per-m2 EUR` | Renovation budget per m², taken off the equity and added to the cost (default `0`) |
-| `--top N` | How many listings to print (default `15`) |
-| **Output** | |
-| `--store FILE.db` | Save the scan, and show what changed since the previous one |
-| `--output FILE.json` | Save the listings to a JSON file |
-| `--serve --store FILE.db` | Open the saved scans in your browser instead of scanning |
-| `--port N` | Port for the browser view (default `8765`) |
-| `--debug` | Log every listing as it is read |
+| Option | Commands | What it does |
+| --- | --- | --- |
+| **Where to look** | | |
+| `-p`, `--postal-code CODE` / `-c`, `--city NAME` | scan, yield, brrrr | Give either one; the other is looked up for you. Several postal codes can be given comma separated |
+| `-g`, `--region NAME` | scan, yield, brrrr | Search a whole province or canton instead of one town |
+| `-u`, `--url URL` | scan | Scan a search page copied from a portal, following its pages |
+| **What to look for** | | |
+| `-t`, `--type any\|house\|apartment` | scan, yield, brrrr | Type of property |
+| `-r`, `--rent` | scan | Look at rentals instead of properties for sale |
+| `--source NAMES` | scan, yield, brrrr | Only keep listings that came from these websites (comma separated) |
+| `--exclude-source NAMES` | scan, yield, brrrr | Leave out listings that came from these websites (comma separated) |
+| `-m`, `--max-pages N` | scan, yield, brrrr | How many result pages to read per portal (default: the portal's own, `20`) |
+| `-k`, `--condition any\|works\|renovate` | scan, brrrr | Only keep listings that need at least this much work |
+| **Investing** | | |
+| `-e`, `--works-per-m2 EUR` | brrrr | Renovation budget per m², taken off the equity and added to the cost (default `0`) |
+| **Output** | | |
+| `-l`, `--top N` | scan, brrrr | How many listings to print (default `15`) |
+| `-s`, `--store FILE.db` | scan, brrrr | Save the scan, and show what changed since the previous one |
+| `-o`, `--output FILE.json` | scan, brrrr | Save the listings to a JSON file |
+| `-n`, `--port N` | serve | Port for the browser view (default `8765`) |
+| `--debug` | all, before the command | Log every listing as it is read: `immoscanner --debug scan ...` |
 
 ### What a scan shows
 
 ```console
-$ uv run immoscanner Belgium --postal-code 5000 --type house --store namur.db
+$ uv run immoscanner scan Belgium --postal-code 5000 --type house --store namur.db
 INFO ImmoScanner.ImmoScanner: searching Namur (5000) in Belgium
 INFO ImmoScanner.Workers.RealEstateWorker: immovlan.be: 30 listings
 INFO ImmoScanner.Workers.RealEstateWorker: immoweb.be: 129 listings
@@ -135,10 +145,10 @@ since the last run: 0 new, 2 repriced, 1 gone, 114 unchanged
   gone    289000.0 Namur https://immovlan.be/fr/detail/...
 ```
 
-**With `--yield`**, the area is scanned twice, once for sale and once for rent:
+**With `yield`**, the area is scanned twice, once for sale and once for rent:
 
 ```console
-$ uv run immoscanner Switzerland --postal-code 1003 --type apartment --yield
+$ uv run immoscanner yield Switzerland --postal-code 1003 --type apartment
 median_price_per_m2: 11,033
 rental_median_price: 2,500
 rental_median_price_per_m2: 33.36
@@ -157,7 +167,7 @@ Every listing keeps the phrases that decided its condition, so a false positive 
 The figures in the two examples below are illustrative.
 
 ```console
-$ uv run immoscanner Belgium --postal-code 4000 --type house --condition renovate
+$ uv run immoscanner scan Belgium --postal-code 4000 --type house --condition renovate
 listings: 212
 ...
 38 of 212 need renovate
@@ -169,7 +179,7 @@ The statistics and the archive still cover every listing; `--condition` only nar
 
 ### BRRRR: ranking fixer-uppers
 
-Buy, Rehab, Rent, Refinance, Repeat works when a property bought under its neighbourhood's price, once brought up to its standard, is worth enough to refinance what went into it. `--brrrr` scans the area for sale and to let, then measures every listing that needs work against its own postal code:
+Buy, Rehab, Rent, Refinance, Repeat works when a property bought under its neighbourhood's price, once brought up to its standard, is worth enough to refinance what went into it. The `brrrr` command scans the area for sale and to let, then measures every listing that needs work against its own postal code:
 
 - **reference price per m²**: the median of the listings in the same postal code that show no sign of needing work, the nearest thing a search page has to an after-repair value. With fewer than five of those, every listing of the postal code stands in, then the whole scan; the line says so.
 - **discount**: how far under that reference the asking price per m² is. Listings are ranked on it.
@@ -177,7 +187,7 @@ Buy, Rehab, Rent, Refinance, Repeat works when a property bought under its neigh
 - **rent and gross yield**: the median rent per m² to let in the postal code, over price plus works.
 
 ```console
-$ uv run immoscanner Belgium --postal-code 4000,4020,4030,4100 --type house --brrrr --works-per-m2 900
+$ uv run immoscanner brrrr Belgium --postal-code 4000,4020,4030,4100 --type house --works-per-m2 900
 by postal code: median price/m², rent/m², gross yield, needing work
   4000 Liège               2,150/m²  10.80/m²   6.0%  61/212
   4100 Seraing             1,480/m²   9.10/m²   7.4%  44/97
@@ -188,7 +198,7 @@ by postal code: median price/m², rent/m², gross yield, needing work
     https://www.immoweb.be/fr/annonce/...
 ```
 
-`--condition renovate` keeps only the heavy renovations; by default `--brrrr` takes everything that needs some work. These are asking prices and a flat works budget: a first sort through a few hundred listings, not a valuation.
+`--condition renovate` keeps only the heavy renovations; by default `brrrr` takes everything that needs some work. These are asking prices and a flat works budget: a first sort through a few hundred listings, not a valuation.
 
 ### Filtering by original website
 
@@ -197,7 +207,7 @@ Some portals, like comparis, collect listings from other websites. Each listing 
 Filtering happens **before** duplicates are removed. So if a flat appears on several websites and you ask for one of them, you get that website's copy.
 
 ```console
-$ uv run immoscanner Switzerland --postal-code 1003 --type apartment --rent --source homegate
+$ uv run immoscanner scan Switzerland --postal-code 1003 --type apartment --rent --source homegate
 102 listings, 13 from the asked sources, 11 unique
 ```
 
@@ -244,10 +254,10 @@ $ uv run immoscanner Switzerland --postal-code 1003 --type apartment --rent --so
 Scan a few places into the same file, then open it in your browser:
 
 ```bash
-uv run immoscanner Belgium --postal-code 1410 --store be.db
-uv run immoscanner Belgium --postal-code 1420 --store be.db
-uv run immoscanner Belgium --postal-code 1400 --store be.db
-uv run immoscanner Belgium --serve --store be.db
+uv run immoscanner scan Belgium --postal-code 1410 --store be.db
+uv run immoscanner scan Belgium --postal-code 1420 --store be.db
+uv run immoscanner scan Belgium --postal-code 1400 --store be.db
+uv run immoscanner serve be.db
 ```
 
 Then go to **http://127.0.0.1:8765**. From there you can:
@@ -286,7 +296,7 @@ By default a scan reads at most **20 pages per portal** and waits **800 ms** bet
 ## 🏗️ Architecture
 
 ```
-Console.py          the command line; prints statistics and what changed
+Console.py          the command line: scan, yield, brrrr and serve subcommands
 ImmoScanner.py      runs a scan: finds the place, asks each portal, removes duplicates
 Countries/          which portals cover each country, and postal code lookups
 Workers/            one class per portal, sharing a common base
