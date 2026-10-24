@@ -262,7 +262,13 @@ class TestGrossYield:
         asked = []
 
         def fake_search(
-            country_name, postal_code="", city="", type=ANY, rent_or_buy=BUY
+            country_name,
+            postal_code="",
+            city="",
+            region="",
+            type=ANY,
+            rent_or_buy=BUY,
+            max_pages=None,
         ):
             asked.append(rent_or_buy)
             price = 300000 if rent_or_buy == BUY else 1000
@@ -278,6 +284,20 @@ class TestGrossYield:
         assert insights["median_price"] == 300000
         assert insights["rental_median_price"] == 1000
         assert insights["gross_yield_percent"] == pytest.approx(4.0)
+
+    def test_a_region_and_a_page_limit_reach_both_scans(self, monkeypatch):
+        # the cli has always passed region=, which this method used to refuse
+        scanner = ImmoScanner()
+        asked = []
+
+        def fake_search(country_name, rent_or_buy=BUY, **where):
+            asked.append((rent_or_buy, where["region"], where["max_pages"]))
+            return [[]]
+
+        monkeypatch.setattr(scanner, "research_real_estate", fake_search)
+        scanner.research_gross_yield("Belgium", region="Liège", max_pages=3)
+
+        assert asked == [(BUY, "Liège", 3), (RENT, "Liège", 3)]
 
     def test_an_unknown_country_is_refused_in_url_mode(self, monkeypatch):
         import ImmoScanner.ImmoScanner as module

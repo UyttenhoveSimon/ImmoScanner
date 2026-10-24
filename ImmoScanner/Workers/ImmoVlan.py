@@ -3,6 +3,7 @@ import re
 
 from price_parser import Price
 
+from ..Intellectuals.Renovation import epc_label
 from ..Means.RealEstateResearch import (
     ANY,
     APARTMENT,
@@ -109,6 +110,16 @@ class ImmoVlan(RealEstateWorker):
             city.get_text(strip=True).title() if city else "",
         )
 
+    def get_epc(self, result):
+        # The certificate is only drawn: a watermark classed "WalloniaD".
+        watermark = result.select_one(".v3-epc-watermark")
+        if watermark is None:
+            return ""
+        for css_class in watermark.get("class", []):
+            if css_class != "v3-epc-watermark":
+                return epc_label(css_class)
+        return ""
+
     def get_result_price(self, result):
         return Price.fromstring(
             self.visible_text(result.select_one("span.v3-search-card-price"))
@@ -132,6 +143,7 @@ class ImmoVlan(RealEstateWorker):
         real_estate_item.bedrooms_number = self.get_bedrooms_number(result)
         real_estate_item.livable_square_meters = self.get_livable_square_meters(result)
         real_estate_item.postal_code, real_estate_item.city = self.get_locality(result)
+        real_estate_item.epc = self.get_epc(result)
 
         logger.debug(f"{self.domain_name}: {real_estate_item}")
         return real_estate_item

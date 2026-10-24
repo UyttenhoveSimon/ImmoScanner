@@ -24,6 +24,14 @@ class RealEstateResearchResult(ResearchResult):
         self.is_project = False
         self.price_min = 0
         self.price_max = 0
+        #: energy certificate label ("A+" to "G"); empty when not published
+        self.epc = ""
+        #: the asking price before the portal's last reduction; 0 if none shown
+        self.previous_price = 0
+        #: "", "works" or "renovate", read off the description and certificate
+        #: (see Intellectuals.Renovation), with the phrases that decided it
+        self.condition = ""
+        self.condition_reasons = []
 
     @property
     def price_per_square_meter(self):

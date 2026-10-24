@@ -4,6 +4,7 @@ import re
 
 from price_parser import Price
 
+from ..Intellectuals.Renovation import epc_label
 from ..Means.RealEstateResearch import (
     ANY,
     APARTMENT,
@@ -153,6 +154,16 @@ class Immoweb(RealEstateWorker):
         real_estate_item.city = (location.get("locality") or "").title()
         real_estate_item.latitude = location.get("latitude")
         real_estate_item.longitude = location.get("longitude")
+
+        # The search card holds no building condition, but it does hold the
+        # energy certificate, a strong hint at how much work a house needs.
+        transaction = classified.get("transaction") or {}
+        real_estate_item.epc = epc_label(transaction.get("certificate"))
+        real_estate_item.previous_price = (
+            price.get("oldValue")
+            or (transaction.get("sale") or {}).get("oldPrice")
+            or 0
+        )
 
         return real_estate_item
 

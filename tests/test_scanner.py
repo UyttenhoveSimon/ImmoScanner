@@ -112,3 +112,40 @@ class TestHelpers:
         assert RealEstateWorker.first_int("129 MAISONS à vendre") == 129
         assert RealEstateWorker.first_int("1 020 000 €") == 1020000
         assert RealEstateWorker.first_int("pas de chiffre") == 0
+
+
+class TestSeveralPostalCodes:
+    def test_each_code_is_searched_and_the_groups_laid_end_to_end(self, monkeypatch):
+        import ImmoScanner.ImmoScanner as module
+
+        searched = []
+
+        class Website:
+            domain_name = "portal.be"
+
+            def get_findings(self, research):
+                searched.append((research.postal_code, research.city, research.type))
+                return [listing(100000, postal=research.postal_code)]
+
+        class Country:
+            def get_real_estate_websites(self):
+                return [Website()]
+
+            def fetch_city_given_postal_code(self, code):
+                return {"4000": "Liège", "4020": "Liège", "4100": "Seraing"}[code]
+
+        class Factory:
+            def generate_country_given_name(self, name):
+                return Country()
+
+        monkeypatch.setattr(module, "CountryFactory", Factory)
+        results = ImmoScanner().research_real_estate(
+            "Belgium", postal_code="4000, 4020,4100", type="house"
+        )
+
+        assert searched == [
+            ("4000", "Liège", "house"),
+            ("4020", "Liège", "house"),
+            ("4100", "Seraing", "house"),
+        ]
+        assert [group[0].postal_code for group in results] == ["4000", "4020", "4100"]

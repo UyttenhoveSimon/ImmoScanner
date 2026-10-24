@@ -5,6 +5,7 @@ from concurrent.futures import ThreadPoolExecutor
 import tldextract
 
 from .Countries.CountryFactory import CountryFactory
+from .Intellectuals import Renovation
 from .Intellectuals.StatisticalInsights import StatisticalInsights
 from .Means.RealEstateResearch import ANY, BUY, RENT, RealEstateResearch
 
@@ -26,6 +27,23 @@ class ImmoScanner:
         rent_or_buy=BUY,
         max_pages=None,
     ):
+        codes = [code.strip() for code in str(postal_code).split(",") if code.strip()]
+        if len(codes) > 1 and not region:
+            # Several towns, e.g. a city and its suburbs: one search each, and
+            # the portals' groups laid end to end.
+            results = []
+            for code in codes:
+                results.extend(
+                    self.research_real_estate(
+                        country_name,
+                        postal_code=code,
+                        type=type,
+                        rent_or_buy=rent_or_buy,
+                        max_pages=max_pages,
+                    )
+                )
+            return results
+
         country = CountryFactory().generate_country_given_name(name=country_name)
         if country is None:
             raise ValueError(f"the country {country_name} is not implemented")
@@ -96,19 +114,34 @@ class ImmoScanner:
 
         return results
 
-    def research_gross_yield(self, country_name, postal_code="", city="", type=ANY):
+    def research_gross_yield(
+        self,
+        country_name,
+        postal_code="",
+        city="",
+        region="",
+        type=ANY,
+        max_pages=None,
+    ):
         """Scan the same area twice, for sale and to let, and compare the two."""
-        selling = self.duplicate_finder(
-            self.research_real_estate(
-                country_name, postal_code, city, type, rent_or_buy=BUY
-            )
-        )
-        renting = self.duplicate_finder(
-            self.research_real_estate(
-                country_name, postal_code, city, type, rent_or_buy=RENT
-            )
+        selling, renting = self.research_both_sides(
+            country_name,
+            postal_code=postal_code,
+            city=city,
+            region=region,
+            type=type,
+            max_pages=max_pages,
         )
         return self.get_insights(selling, renting)
+
+    def research_both_sides(self, country_name, **where):
+        """The de-duplicated listings for sale, then those to let, of one area."""
+        return tuple(
+            self.duplicate_finder(
+                self.research_real_estate(country_name, rent_or_buy=deal, **where)
+            )
+            for deal in (BUY, RENT)
+        )
 
     def filter_by_source(self, results, keep=(), drop=()):
         """Keep or drop listings by the portal they originally came from.
@@ -138,7 +171,9 @@ class ImmoScanner:
         """Flatten per-portal results, dropping the same property seen twice.
 
         Listings are matched on :meth:`RealEstateResearchResult.fingerprint`,
-        which identifies the property rather than the advertisement.
+        which identifies the property rather than the advertisement. Each one
+        is also assessed for the work it needs, and the copy kept learns what
+        the dropped ones knew of the building's condition.
         """
         flat_list = [
             item
@@ -147,16 +182,25 @@ class ImmoScanner:
         ]
 
         unique_items = []
-        seen = set()
+        seen = {}
         for item in flat_list:
+            Renovation.annotate(item)
             keys = [item.fingerprint(), item.geo_fingerprint()]
             keys = [key for key in keys if key is not None]
-            if any(key in seen for key in keys):
+            kept = next((seen[key] for key in keys if key in seen), None)
+            if kept is not None:
+                Renovation.merge(kept, item)
                 continue
-            seen.update(keys)
+            for key in keys:
+                seen[key] = item
             unique_items.append(item)
 
         return unique_items
+
+    @staticmethod
+    def filter_by_condition(findings, condition=ANY):
+        """Keep the listings that need at least ``condition`` of work."""
+        return [item for item in findings if Renovation.meets(item, condition)]
 
     def get_insights(self, selling_results, renting_results=None):
         # A development has a price range over a whole building; averaging it

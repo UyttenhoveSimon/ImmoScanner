@@ -37,6 +37,8 @@
 - 🧹 **No double counting**: a flat listed on three websites counts once
 - 🌐 **Web explorer**: compare places, browse listings and see prices on a map, in four languages
 - 🎯 **Narrowing**: count only listings with enough bedrooms, rooms, living area or land
+- 🔨 **Fixer-uppers**: spot listings that need work, from their description and energy certificate (PEB/EPC)
+- 🏗️ **BRRRR ranking**: rank fixer-uppers by how far under their postal code they sell, with rent and equity after works
 - 🤝 **Polite**: limits how many pages it reads and pauses between them
 
 ## 🚀 Quick start
@@ -80,7 +82,7 @@ uv run immoscanner Belgium --url "https://www.immoweb.be/fr/recherche/maison/a-v
 | Flag | What it does |
 | --- | --- |
 | **Where to look** | |
-| `--city NAME` / `--postal-code CODE` | Give either one; the other is looked up for you |
+| `--city NAME` / `--postal-code CODE` | Give either one; the other is looked up for you. Several postal codes can be given comma separated |
 | `--region NAME` | Search a whole province or canton instead of one town |
 | `--url URL` | Scan a search page copied from a portal, following its pages |
 | **What to look for** | |
@@ -90,6 +92,11 @@ uv run immoscanner Belgium --url "https://www.immoweb.be/fr/recherche/maison/a-v
 | `--source NAMES` | Only keep listings that came from these websites (comma separated) |
 | `--exclude-source NAMES` | Leave out listings that came from these websites (comma separated) |
 | `--max-pages N` | How many result pages to read per portal (default `20`) |
+| `--condition works\|renovate` | Only show listings that need at least this much work |
+| **Investing** | |
+| `--brrrr` | Scan for sale and to let, and rank fixer-uppers against their postal code |
+| `--works-per-m2 EUR` | Renovation budget per m², taken off the equity and added to the cost (default `0`) |
+| `--top N` | How many listings to print (default `15`) |
 | **Output** | |
 | `--store FILE.db` | Save the scan, and show what changed since the previous one |
 | `--output FILE.json` | Save the listings to a JSON file |
@@ -137,6 +144,51 @@ rental_median_price: 2,500
 rental_median_price_per_m2: 33.36
 gross_yield_percent: 2.04
 ```
+
+### Finding fixer-uppers
+
+No portal gives a building's condition on its search pages, so ImmoScanner reads it from what they do give:
+
+- **the description**: "à rénover", "gros travaux", "idéal investisseur", "te renoveren"… mean a renovation; "à rafraîchir", "quelques travaux", "op te frissen"… mean some works. "Aucuns travaux à prévoir" is read as the opposite of what it contains.
+- **the energy certificate**: F or G means a renovation, E means works.
+
+Every listing keeps the phrases that decided its condition, so a false positive shows at a glance. When the same house is on two portals, the copy kept learns what the other one knew (immoweb only shows a title, immovlan the whole description).
+
+The figures in the two examples below are illustrative.
+
+```console
+$ uv run immoscanner Belgium --postal-code 4000 --type house --condition renovate
+listings: 212
+...
+38 of 212 need renovate
+    89,000 EUR  120 m²    742/m² PEB G 4000 Liège [« a renover », PEB G]
+    https://www.immoweb.be/fr/annonce/...
+```
+
+The statistics and the archive still cover every listing; `--condition` only narrows what is printed and written to `--output`.
+
+### BRRRR: ranking fixer-uppers
+
+Buy, Rehab, Rent, Refinance, Repeat works when a property bought under its neighbourhood's price, once brought up to its standard, is worth enough to refinance what went into it. `--brrrr` scans the area for sale and to let, then measures every listing that needs work against its own postal code:
+
+- **reference price per m²**: the median of the listings in the same postal code that show no sign of needing work, the nearest thing a search page has to an after-repair value. With fewer than five of those, every listing of the postal code stands in, then the whole scan; the line says so.
+- **discount**: how far under that reference the asking price per m² is. Listings are ranked on it.
+- **after works / equity**: the reference times the surface, minus the price and `--works-per-m2`.
+- **rent and gross yield**: the median rent per m² to let in the postal code, over price plus works.
+
+```console
+$ uv run immoscanner Belgium --postal-code 4000,4020,4030,4100 --type house --brrrr --works-per-m2 900
+by postal code: median price/m², rent/m², gross yield, needing work
+  4000 Liège               2,150/m²  10.80/m²   6.0%  61/212
+  4100 Seraing             1,480/m²   9.10/m²   7.4%  44/97
+  ...
+71 listings needing works, best discount to their postal code first:
+    +48% vs 2,150/m²     139,000 EUR  125 m²  1,112/m² PEB F 4000 Liège [« a renover », PEB F]
+    after works ~268,750, equity 17,250, rent ~1,350/month, 6.4% gross on all-in cost
+    https://www.immoweb.be/fr/annonce/...
+```
+
+`--condition renovate` keeps only the heavy renovations; by default `--brrrr` takes everything that needs some work. These are asking prices and a flat works budget: a first sort through a few hundred listings, not a valuation.
 
 ### Filtering by original website
 
@@ -433,6 +485,14 @@ If a portal shows a captcha, the scanner raises a `BotWallError` instead of retu
 - **homegate.ch** and **immoscout24.ch** block automated access everywhere, including their APIs, so they aren't scanned directly. Their listings still show up through comparis, which collects both, and each listing names its original website in `source`.
 
 ## 🧪 Tests
+
+The project is managed with [uv](https://docs.astral.sh/uv/), and its formatting hooks (black, isort, whitespace) run with [prek](https://github.com/j178/prek). `uv sync` installs both prek and the test tools:
+
+```bash
+uv sync
+uv run prek install               # run the hooks on every commit
+uv run prek run --all-files       # what CI checks
+```
 
 ```bash
 uv run pytest                     # offline, using saved copies of portal pages

@@ -6,6 +6,7 @@ import pytest
 
 import ImmoScanner.Console as console
 from ImmoScanner.Archives.Store import Report
+from ImmoScanner.ImmoScanner import ImmoScanner
 from ImmoScanner.Means.RealEstateResearch import APARTMENT, BUY, RENT
 from ImmoScanner.Means.RealEstateResearchResult import RealEstateResearchResult
 
@@ -55,6 +56,10 @@ class StubScanner:
 
     def duplicate_finder(self, results):
         return [item for group in results for item in group]
+
+    @staticmethod
+    def filter_by_condition(findings, condition="any"):
+        return ImmoScanner.filter_by_condition(findings, condition)
 
     def get_insights(self, findings, renting=None):
         return {"listings": len(findings), "median_price": 350000.0}
@@ -224,3 +229,115 @@ class TestEntryPoint:
         monkeypatch.setattr(console.plac, "call", called.append)
         console.cli()
         assert called == [console.main]
+
+
+def needing(condition, listing_id, price, epc="", postal_code="4000"):
+    item = listing(listing_id, price, epc=epc, postal_code=postal_code)
+    item.condition = condition
+    item.condition_reasons = [f"PEB {epc}"] if epc else []
+    return item
+
+
+class TestCondition:
+    @pytest.fixture
+    def market(self, stub, monkeypatch):
+        findings = [
+            needing("renovate", "a", 150000, epc="G"),
+            needing("works", "b", 180000),
+            needing("", "c", 250000),
+        ]
+        monkeypatch.setattr(
+            StubScanner, "research_real_estate", lambda self, **kw: [findings]
+        )
+        return findings
+
+    def test_only_listings_needing_work_are_shown(self, market, capsys, tmp_path):
+        output = tmp_path / "out.json"
+        console.main(
+            "Belgium", postal_code="4000", condition="works", output=str(output)
+        )
+
+        printed = capsys.readouterr().out
+        assert "2 of 3 need works" in printed
+        assert "PEB G" in printed and "https://immoweb.be/a" in printed
+        assert "https://immoweb.be/c" not in printed
+        assert [row["id"] for row in json.loads(output.read_text())] == ["a", "b"]
+
+    def test_the_market_statistics_cover_every_listing(self, market, capsys):
+        console.main("Belgium", postal_code="4000", condition="renovate")
+        assert "listings: 3" in capsys.readouterr().out
+
+    def test_no_condition_lists_nothing_extra(self, market, capsys):
+        console.main("Belgium", postal_code="4000")
+        assert "need" not in capsys.readouterr().out
+
+
+class TestBrrrr:
+    @pytest.fixture
+    def market(self, stub, monkeypatch):
+        sale = [needing("", str(n), 200000) for n in range(5)] + [
+            needing("renovate", "wreck", 100000, epc="F"),
+            needing("works", "tired", 160000),
+        ]
+        rentals = [listing(f"r{n}", 900) for n in range(5)]
+
+        def research(self, **kwargs):
+            self._record("research", **kwargs)
+            return [rentals if kwargs["rent_or_buy"] == RENT else sale]
+
+        monkeypatch.setattr(StubScanner, "research_real_estate", research)
+
+    def test_both_sides_of_the_market_are_scanned(self, market):
+        console.main("Belgium", postal_code="4000", brrrr=True, rent=True)
+        deals = [
+            kw["rent_or_buy"] for name, kw in StubScanner.calls if name == "research"
+        ]
+        assert deals == [BUY, RENT]
+
+    def test_fixer_uppers_are_ranked_by_discount(self, market, capsys, tmp_path):
+        output = tmp_path / "brrrr.json"
+        console.main(
+            "Belgium",
+            postal_code="4000",
+            brrrr=True,
+            works_per_m2=300,
+            output=str(output),
+        )
+
+        printed = capsys.readouterr().out
+        assert "to let: 5 listings, 5 unique" in printed
+        assert "by postal code" in printed and "4000" in printed
+        assert "2 listings needing works" in printed
+        assert printed.index("immoweb.be/wreck") < printed.index("immoweb.be/tired")
+        assert "-50% vs 2,000/m²" not in printed  # a discount reads as positive
+        assert "+50% vs 2,000/m²" in printed
+        assert "rent ~900/month" in printed
+
+        rows = json.loads(output.read_text())
+        assert [row["id"] for row in rows] == ["wreck", "tired"]
+        assert rows[0]["equity"] == pytest.approx(200000 - 100000 - 30000)
+
+    def test_renovate_narrows_the_candidates(self, market, capsys):
+        console.main("Belgium", postal_code="4000", brrrr=True, condition="renovate")
+        printed = capsys.readouterr().out
+        assert "1 listings needing renovate" in printed
+        assert "immoweb.be/tired" not in printed
+
+    def test_a_url_is_refused(self):
+        with pytest.raises(SystemExit):
+            console.main("Belgium", url="https://www.immoweb.be/x", brrrr=True)
+
+    def test_thin_references_are_called_out(self, stub, monkeypatch, capsys):
+        sale = [needing("renovate", "lone", 100000, postal_code="4020")]
+        monkeypatch.setattr(
+            StubScanner, "research_real_estate", lambda self, **kw: [sale]
+        )
+        console.main("Belgium", postal_code="4020", brrrr=True)
+        assert "(reference: scan; rent: scan)" in capsys.readouterr().out
+
+
+class TestYieldOptions:
+    def test_the_page_limit_and_region_reach_the_yield_scan(self):
+        console.main("Belgium", region="Liège", max_pages=4, yield_=True)
+        asked = call("yield")
+        assert (asked["region"], asked["max_pages"]) == ("Liège", 4)
