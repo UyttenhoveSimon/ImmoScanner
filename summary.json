@@ -1,0 +1,288 @@
+[
+  {
+    "portal": "bienici.com",
+    "terms": {
+      "postal_code": "69001",
+      "city": "Lyon",
+      "type": "any"
+    },
+    "url": "https://www.bienici.com/realEstateAds.json?filters=%7B%22size%22%3A24%2C%22from%22%3A0%2C%22page%22%3A1%2C%22filterType%22%3A%22buy%22%2C%22propertyType%22%3A%5B%22house%22%2C%22flat%22%5D%2C%22onTheMarket%22%3A%5Btrue%5D%2C%22sortBy%22%3A%22relevance%22%2C%22sortOrder%22%3A%22desc%22%2C%22zoneIdsByTypes%22%3A%7B%22zoneIds%22%3A%5B%22-10690%22%5D%7D%7D",
+    "zones": {
+      "69001": [
+        "-10690"
+      ]
+    },
+    "bytes": 266555,
+    "rung": "requests",
+    "bot_wall": [],
+    "listings": 24,
+    "priced": 24,
+    "measured": 24,
+    "samples": [
+      {
+        "url": "https://www.bienici.com/annonce/netty-pietrapolis-appt-52528",
+        "description": "PASSAGE THIAFFAIT - Appartement T4 100 m² — EXCLUSIVITÉ – LYON 1ER – APPARTEMENT CANUT T4 DE 100 M² AU COEUR DU PASSAGE THIAFFAIT<br>Charme de l'ancien, volumes généreux et calme absolu au coeur des pentes de la Croix-Rousse.<br>Situé au 2? étage d'un immeuble sans ascenseur, au sein du très recherché passage Thiaffait, découvrez ce superbe appartement T4 d'environ 100 m² (dont 94,02 m² Carrez), aménagé dans un ancien atelier de canuts.<br>Ce bien de caractère séduit immédiatement par son authenticité, ses beaux volumes et son atmosphère chaleureuse, témoins du patrimoine architectural lyonnais.<br>Dès l'entrée, vous découvrirez une agréable pièce de vie bénéficiant d'une hauteur sous plafond de plus de 3,60 mètres, offrant une véritable sensation d'espace. Une mezzanine, aménagée en espace couchage supplémentaire, permet d'exploiter intelligemment ces volumes tout en préservant le charme du lieu.<br>La cuisine aménagée et équipée, semi-ouverte sur le séjour, s'intègre harmonieusement à cet espace de vie convivial.<br>L'espace nuit se compose de trois grandes chambres, offrant de belles possibilités d'aménagement selon vos besoins : chambres familiales, bureau ou espace dédié au télétravail. Une salle de bains ainsi que des toilettes indépendantes complètent l'ensemble.<br>Un emplacement privilégié au coeur de Lyon.<br>Niché dans le passage Thiaffait, lieu emblématique des pentes de la Croix-Rousse, cet appartement bénéficie d'un environnement singulier, à proximité immédiate des commerces, restaurants, transports et de l'effervescence du centre-ville.<br>Son véritable atout ? Un calme absolu en plein coeur d'un quartier vivant et chargé d'histoire.<br>Un bien rare, idéal pour les amateurs d'architecture lyonnaise, les familles ou les acquéreurs à la recherche d'un appartement atypique alliant cachet et emplacement central.<br>Informations complémentaires :<br>Surface : environ 100 m², dont 94,02 m² Carrez<br>Configuration : T4, trois chambres et mezzanine<br>Taxe foncière : 600 € / an<br>Charges : 150 € / mois<br>Pour plus de renseignements ou organiser une visite, contactez Sébastien ABEILLON au <span class=\"importDescriptionDecorator\" data-type=\"phone\">07 69 63 63 44</span>.<br>Agent commercial – RSAC n° 513 191 064.<br>Honoraires à la charge du vendeur.  Dans une copropriété de 50 lots. Aucune procédure n'est en cours. Classe énergie D, Classe climat D Montant estimé des dépenses annuelles d'énergie pour un usage standard : entre 2200.00 € et 3040.00 € sur les années 2021, 2022 et 2023 (abonnements compris). Les informations sur les risques auxquels ce bien est exposé sont disponibles sur le site Géorisques : georisques.gouv.fr. <br>Votre conseiller Pietrapolis Lyon 3 Préfecture : Sébastien ABEILLON<br>Agent commercial (Entreprise individuelle)  <br>  RSAC 51319106400031",
+        "price": 375000,
+        "price_text": "375,000 €",
+        "id": "netty-pietrapolis-appt-52528",
+        "currency": "EUR",
+        "platform": "bienici.com",
+        "source": "",
+        "posted_date": "2026-10-16T17:18:09.863Z",
+        "postal_code": "69001",
+        "city": "Lyon 1er",
+        "type": "flat",
+        "livable_square_meters": 100,
+        "land_square_meters": 0,
+        "bedrooms_number": 3,
+        "rooms_number": 4,
+        "latitude": 45.770123,
+        "longitude": 4.833028,
+        "is_project": false,
+        "price_min": 0,
+        "price_max": 0,
+        "epc": "D",
+        "previous_price": 0,
+        "condition": "",
+        "condition_reasons": []
+      },
+      {
+        "url": "https://www.bienici.com/annonce/netty-company34101kmq-appt-2794",
+        "description": "Magnifique appartement bourgeois Boulevard Croix-Rousse — EXCLUSIVITÉ PPV : VISITE VIRTUELLE VIDÉO DISPONIBLE SUR NOTRE SITE WEB ET SUR INSTAGRAM @pourquoi_pas_vous_immo<br>POURQUOI PAS tomber sous le charme de ce superbe appartement bourgeois T4/T5 de 140 m², idéalement situé sur l'emblématique Boulevard de la Croix-Rousse, avec de beaux volumes, le charme de l'ancien et l'accès à un magnifique jardin partagé ?<br>Disposition :<br>1 entrée, 1 vaste séjour, 1 salle à manger, 1 cuisine indépendante, 3 chambres dont 1 avec dressing, 1 salle de douche, 1 WC indépendant, 1 cellier et 1 pièce supplémentaire à aménager selon vos envies.<br>Les +<br>- Emplacement recherché sur le Boulevard de la Croix-Rousse<br>- Appartement traversant Nord/Sud<br>- Beaux volumes et belle luminosité<br>- Charme de l'ancien préservé : parquet en bois massif, moulures et cheminées d'époque<br>- 1 pièce supplémentaire à aménager selon vos besoins : deuxième salle de bain, bureau, dressing, rangement...<br>- Magnifique jardin partagé, véritable écrin de verdure en plein coeur de la Croix-Rousse<br>Local à vélo dans la copropriété<br>Le bien détient également 1 cave et un grand grenier.<br>Un appartement rare de caractère, idéal pour les amoureux de l'ancien.<br>Et si c'était vous ?<br>N'hésitez pas à me contacter au <span class=\"importDescriptionDecorator\" data-type=\"phone\">06 34 69 17 01</span> pour organiser une visite !!<br>Clara Le Normand<br>Honoraires à la charge du vendeur.  Dans une copropriété de 6 lots. Aucune procédure n'est en cours. Classe énergie D, Classe climat D Montant estimé des dépenses annuelles d'énergie pour un usage standard : entre 2710.00 € et 3700.00 € sur les années 2021, 2022 et 2023 (abonnements compris). Les informations sur les risques auxquels ce bien est exposé sont disponibles sur le site Géorisques : georisques.gouv.fr. <br>Votre conseiller Pourquoi Pas Vous Immobilier : Clara LE NORMAND<br>Agent commercial (Entreprise individuelle).<br>Visite virtuelle disponible sur le compte INSTAGRAM @pourquoi_pas_vous_immo",
+        "price": 830000,
+        "price_text": "830,000 €",
+        "id": "netty-company34101kmq-appt-2794",
+        "currency": "EUR",
+        "platform": "bienici.com",
+        "source": "",
+        "posted_date": "2026-09-24T11:37:48.324Z",
+        "postal_code": "69001",
+        "city": "Lyon 1er",
+        "type": "flat",
+        "livable_square_meters": 140,
+        "land_square_meters": 0,
+        "bedrooms_number": 3,
+        "rooms_number": 5,
+        "latitude": 45.773295,
+        "longitude": 4.822908,
+        "is_project": false,
+        "price_min": 0,
+        "price_max": 0,
+        "epc": "D",
+        "previous_price": 0,
+        "condition": "",
+        "condition_reasons": []
+      }
+    ]
+  },
+  {
+    "portal": "leboncoin.fr",
+    "terms": {
+      "postal_code": "69001",
+      "city": "Lyon",
+      "type": "any"
+    },
+    "url": "https://www.leboncoin.fr/recherche?category=9&locations=Lyon_69001&real_estate_type=1%2C2&page=1",
+    "error": "TimeoutError: Failed to launch chromium: Chromium did not expose a CDP endpoint before the launch timeout. Last CDP polling error: timed out after 473 ms.\nChromium stderr:\n[2438:2456:1024/201835.711214:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[2438:2456:1024/201840.213855:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[2438:2456:1024/201840.213877:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[2438:2456:1024/201848.150435:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n\nDevTools listening on ws://127.0.0.1:32773/devtools/browser/c9219ae7-3826-4bb2-860f-063a4fc73f55",
+    "zones": null
+  },
+  {
+    "portal": "seloger.com",
+    "terms": {
+      "url": "https://www.seloger.com/immobilier/achat/immo-lyon-69/"
+    },
+    "url": "https://www.seloger.com/immobilier/achat/immo-lyon-69/?page=1",
+    "zones": null,
+    "bytes": 1533,
+    "rung": "browser",
+    "bot_wall": [
+      "captcha-delivery.com",
+      "geo.captcha"
+    ],
+    "read_error": "BotWallError: seloger.com served an anti-bot challenge (captcha-delivery.com); no listing can be read from this page",
+    "listings": 0,
+    "priced": 0,
+    "measured": 0,
+    "samples": []
+  },
+  {
+    "portal": "pap.fr",
+    "terms": {
+      "url": "https://www.pap.fr/annonce/vente-immobiliere-lyon-69-g43590"
+    },
+    "url": "https://www.pap.fr/annonce/vente-immobiliere-lyon-69-g43590",
+    "zones": null,
+    "bytes": 6255,
+    "rung": "browser",
+    "bot_wall": [
+      "/cdn-cgi/challenge-platform"
+    ],
+    "read_error": "BotWallError: pap.fr served an anti-bot challenge (/cdn-cgi/challenge-platform); no listing can be read from this page",
+    "listings": 0,
+    "priced": 0,
+    "measured": 0,
+    "samples": []
+  },
+  {
+    "portal": "kleinanzeigen.de",
+    "terms": {
+      "postal_code": "10115",
+      "city": "Berlin",
+      "type": "apartment"
+    },
+    "url": "https://www.kleinanzeigen.de/s-suchanfrage.html?categoryId=196&locationStr=10115&radius=0&pageNum=1&action=find",
+    "zones": null,
+    "bytes": 1016809,
+    "rung": "requests",
+    "bot_wall": [],
+    "listings": 27,
+    "priced": 27,
+    "measured": 27,
+    "samples": [
+      {
+        "url": "https://www.kleinanzeigen.de/s-anzeige/kapitalanlage-in-berlin-mitte-ca-87-m-hohe-decken-balkon/3522773911-196-9668",
+        "description": "Kapitalanlage in Berlin-Mitte - ca. 87 m², hohe Decken & Balkon — Diese helle und großzügig geschnittene 2-Zimmer-Eigentumswohnung befindet sich im 4. Obergeschoss...",
+        "price": "399000",
+        "price_text": "399.000 €",
+        "id": "3522773911",
+        "currency": "EUR",
+        "platform": "kleinanzeigen.de",
+        "source": "",
+        "posted_date": "",
+        "postal_code": "10115",
+        "city": "Mitte",
+        "type": "",
+        "livable_square_meters": 87,
+        "land_square_meters": 0,
+        "bedrooms_number": 0,
+        "rooms_number": 2.0,
+        "latitude": null,
+        "longitude": null,
+        "is_project": false,
+        "price_min": 0,
+        "price_max": 0,
+        "epc": "",
+        "previous_price": 0,
+        "condition": "",
+        "condition_reasons": []
+      },
+      {
+        "url": "https://www.kleinanzeigen.de/s-anzeige/bezugsfrei-ab-sofort-helle-2-zimmer-wohnung-im-herzen-von-berlin-mitte-ideal-fuer-singles-paare/3493406946-196-9668",
+        "description": "Bezugsfrei ab sofort! Helle 2-Zimmer-Wohnung im Herzen von Berlin-Mitte – Ideal für Singles & Paare — Willkommen in Ihrem neuen Zuhause im Herzen von Berlin-Mitte! Diese wunderschöne und gepflegte...",
+        "price": "449000",
+        "price_text": "449.000 €",
+        "id": "3493406946",
+        "currency": "EUR",
+        "platform": "kleinanzeigen.de",
+        "source": "",
+        "posted_date": "",
+        "postal_code": "10115",
+        "city": "Mitte",
+        "type": "",
+        "livable_square_meters": 64,
+        "land_square_meters": 0,
+        "bedrooms_number": 0,
+        "rooms_number": 2.0,
+        "latitude": null,
+        "longitude": null,
+        "is_project": false,
+        "price_min": 0,
+        "price_max": 0,
+        "epc": "",
+        "previous_price": 0,
+        "condition": "",
+        "condition_reasons": []
+      }
+    ]
+  },
+  {
+    "portal": "immobilienscout24.de",
+    "terms": {
+      "url": "https://www.immobilienscout24.de/Suche/de/berlin/berlin/wohnung-kaufen"
+    },
+    "url": "https://www.immobilienscout24.de/Suche/de/berlin/berlin/wohnung-kaufen?pagenumber=1",
+    "zones": null,
+    "bytes": 3365,
+    "rung": "browser",
+    "bot_wall": [
+      "Ich bin kein Roboter"
+    ],
+    "read_error": "BotWallError: immobilienscout24.de served an anti-bot challenge (Ich bin kein Roboter); no listing can be read from this page",
+    "listings": 0,
+    "priced": 0,
+    "measured": 0,
+    "samples": []
+  },
+  {
+    "portal": "immowelt.de",
+    "terms": {
+      "postal_code": "10115",
+      "city": "Berlin",
+      "type": "any"
+    },
+    "url": "https://www.immowelt.de/suche/berlin/immobilien/kaufen",
+    "zones": null,
+    "bytes": 1099643,
+    "rung": "requests",
+    "bot_wall": [],
+    "listings": 32,
+    "priced": 32,
+    "measured": 32,
+    "samples": [
+      {
+        "url": "https://www.immowelt.de/expose/1215b46c-9e03-4081-bc72-67209544ff9f",
+        "description": "Wohnung zum Kauf - Berlin - 170.000 € - 2 Zimmer, 45 m² — Diese charmante und gepflegte Etagenwohnung bietet eine ideale Gelegenheit für Immobilieninvestoren oder Eigennutzer. Mit einer Wohnfläche von 45 m² präsentiert sich diese Immobilie in einem hervorra...",
+        "price": "170000",
+        "price_text": "170.000 €",
+        "id": "256Q14GY2JL7",
+        "currency": "EUR",
+        "platform": "immowelt.de",
+        "source": "",
+        "posted_date": "",
+        "postal_code": "12557",
+        "city": "Berlin",
+        "type": "Wohnung zum Kauf",
+        "livable_square_meters": 45,
+        "land_square_meters": 0,
+        "bedrooms_number": 0,
+        "rooms_number": 2.0,
+        "latitude": null,
+        "longitude": null,
+        "is_project": false,
+        "price_min": 0,
+        "price_max": 0,
+        "epc": "D",
+        "previous_price": 0,
+        "condition": "",
+        "condition_reasons": []
+      },
+      {
+        "url": "https://www.immowelt.de/expose/87fd300c-f849-4752-bcf3-964460cd72de",
+        "description": "Wohnung zum Kauf - Berlin - 319.000 € - 3 Zimmer, 79 m², Geschoss 4/4, frei ab sofort — Diese außergewöhnliche und bezugsfreie Dachgeschosswohnung begeistert mit ihrem unverwechselbaren Loftcharakter, einem besonderen Raumgefühl und viel Tageslicht. Die offene Architektur, hohe Decken, ...",
+        "price": "319000",
+        "price_text": "319.000 €",
+        "id": "26QZHEHKV3Q4",
+        "currency": "EUR",
+        "platform": "immowelt.de",
+        "source": "",
+        "posted_date": "",
+        "postal_code": "13407",
+        "city": "Berlin",
+        "type": "Wohnung zum Kauf",
+        "livable_square_meters": 79,
+        "land_square_meters": 0,
+        "bedrooms_number": 0,
+        "rooms_number": 3.0,
+        "latitude": null,
+        "longitude": null,
+        "is_project": false,
+        "price_min": 0,
+        "price_max": 0,
+        "epc": "D",
+        "previous_price": 0,
+        "condition": "",
+        "condition_reasons": []
+      }
+    ]
+  }
+]
