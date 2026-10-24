@@ -1,0 +1,82 @@
+name: area scan
+
+# Ranks every listing of an area by how far under its postal code it is
+# priced, from GitHub, where the portals can be reached. Run it from the
+# Actions tab (or the GitHub mobile app), or push a scan-request.json to the
+# scan-requests branch:
+#   {"country": "Switzerland", "postal_codes": "1618,1630", "type": "apartment"}
+# The ranking is published on the scan-results branch, as results.md and
+# results.json. This repository is public: so are the requests and results.
+on:
+  workflow_dispatch:
+    inputs:
+      country:
+        description: Belgium, France, Germany or Switzerland
+        required: true
+        default: Switzerland
+      postal_codes:
+        description: Postal codes, comma separated
+        required: true
+      type:
+        description: any, house or apartment
+        required: true
+        default: apartment
+      max_pages:
+        description: Result pages per portal and postal code
+        required: true
+        default: "5"
+  push:
+    branches: [scan-requests]
+    paths: [scan-request.json]
+
+permissions:
+  contents: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+      - run: uv sync --locked --dev
+      - run: uv run python -m rustwright install chromium
+      - name: Read the request
+        id: request
+        env:
+          COUNTRY: ${{ inputs.country }}
+          CODES: ${{ inputs.postal_codes }}
+          KIND: ${{ inputs.type }}
+          PAGES: ${{ inputs.max_pages }}
+        run: |
+          if [ -f scan-request.json ] && [ -z "$CODES" ]; then
+            COUNTRY=$(jq -r '.country // "Switzerland"' scan-request.json)
+            CODES=$(jq -r '.postal_codes' scan-request.json)
+            KIND=$(jq -r '.type // "any"' scan-request.json)
+            PAGES=$(jq -r '.max_pages // 5' scan-request.json)
+          fi
+          {
+            echo "country=$COUNTRY"
+            echo "codes=$CODES"
+            echo "kind=$KIND"
+            echo "pages=$PAGES"
+          } >> "$GITHUB_OUTPUT"
+      - name: Scan
+        env:
+          COUNTRY: ${{ steps.request.outputs.country }}
+          CODES: ${{ steps.request.outputs.codes }}
+          KIND: ${{ steps.request.outputs.kind }}
+          PAGES: ${{ steps.request.outputs.pages }}
+        run: >-
+          uv run python scripts/discount_scan.py "$COUNTRY" "$CODES"
+          --type "$KIND" --max-pages "$PAGES" --out results
+      - name: Publish on the scan-results branch
+        working-directory: results
+        run: |
+          git init -q -b scan-results
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Scan from run ${{ github.run_id }}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" scan-results
