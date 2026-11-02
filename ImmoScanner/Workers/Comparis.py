@@ -26,6 +26,9 @@ ROOT_PROPERTY_TYPES = {ANY: [], HOUSE: [4], APARTMENT: [1]}
 # comparis.ch is a Next.js app: the result list is server-rendered into
 # __NEXT_DATA__, so the listings are read from JSON instead of from the markup.
 NEXT_DATA_SELECTOR = "script#__NEXT_DATA__"
+# The result list is one of the react-query responses dehydrated into the page,
+# keyed by the API route it was fetched from.
+RESULT_QUERY_ROUTE = "/resultpage"
 
 
 class Comparis(RealEstateWorker):
@@ -44,7 +47,7 @@ class Comparis(RealEstateWorker):
 
     def fetch_page(self, real_estate_research, page):
         data = self.get_result_data(self.url_builder(real_estate_research, page))
-        return data.get("resultItems") or [], data.get("numberOfResults")
+        return data.get("ResultItems") or [], data.get("NumberOfResults")
 
     def get_result_data(self, url):
         return self.parse_result_data(self.get_soup(url, wait_for=self.WAIT_FOR), url)
@@ -54,8 +57,13 @@ class Comparis(RealEstateWorker):
         if script is None:
             raise ValueError(f"{self.domain_name}: no __NEXT_DATA__ payload at {url}")
         page_props = json.loads(script.string)["props"]["pageProps"]
+        queries = (page_props.get("dehydratedState") or {}).get("queries") or []
+        for query in queries:
+            key = query.get("queryKey") or []
+            if len(key) > 1 and key[1] == RESULT_QUERY_ROUTE:
+                return (query.get("state") or {}).get("data") or {}
         # Past the last page comparis renders the route without a result list.
-        return page_props.get("initialResultData") or {}
+        return {}
 
     def get_result_link(self, result):
         return f"{DETAIL_URL}/{result['AdId']}"

@@ -131,9 +131,9 @@ class TestComparis:
     def test_extracts_items_from_next_data(self, comparis, soup_of):
         soup = soup_of("comparis_search.html")
         data = comparis.parse_result_data(soup, "fixture")
-        assert data["numberOfResults"] == 72
+        assert data["NumberOfResults"] == 70
 
-        for item in data["resultItems"]:
+        for item in data["ResultItems"]:
             result = comparis.extract_findings(item)
             assert result.id.isdigit()
             assert result.url.startswith(
@@ -146,7 +146,7 @@ class TestComparis:
 
     def test_reads_rooms_and_position(self, comparis, soup_of):
         soup = soup_of("comparis_search.html")
-        item = comparis.parse_result_data(soup, "fixture")["resultItems"][0]
+        item = comparis.parse_result_data(soup, "fixture")["ResultItems"][0]
         result = comparis.extract_findings(item)
         assert result.rooms_number == 4.5
         assert result.latitude and result.longitude

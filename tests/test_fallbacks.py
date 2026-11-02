@@ -210,11 +210,12 @@ class TestComparisFallbacks:
     def test_the_result_payload_is_read_through_the_fetch_ladder(self, monkeypatch):
         worker = Comparis()
         payload = (
-            '<script id="__NEXT_DATA__">{"props":{"pageProps":{"initialResultData":'
-            '{"numberOfResults":2,"resultItems":[]}}}}</script>'
+            '<script id="__NEXT_DATA__">{"props":{"pageProps":{"dehydratedState":'
+            '{"queries":[{"queryKey":["get","/resultpage"],'
+            '"state":{"data":{"NumberOfResults":2,"ResultItems":[]}}}]}}}}</script>'
         )
         monkeypatch.setattr(worker, "get_html", lambda url, wait_for=(): payload)
-        assert worker.get_result_data("https://x.test")["numberOfResults"] == 2
+        assert worker.get_result_data("https://x.test")["NumberOfResults"] == 2
 
     def test_an_address_that_does_not_start_with_a_postal_code(self):
         postal, city = Comparis().get_locality({"Address": ["Quelque part"]})

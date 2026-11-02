@@ -136,7 +136,7 @@ class TestParsing:
     def test_comparis_reads_the_coordinate_object(self, soup_of):
         worker = Comparis()
         data = worker.parse_result_data(soup_of("comparis_search.html"), "fixture")
-        results = [worker.extract_findings(item) for item in data["resultItems"]]
+        results = [worker.extract_findings(item) for item in data["ResultItems"]]
 
         assert all(result.latitude and result.longitude for result in results)
         assert all(within(result, SWITZERLAND) for result in results)
