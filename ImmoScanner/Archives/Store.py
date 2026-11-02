@@ -1,7 +1,7 @@
 import logging
 import sqlite3
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 logger = logging.getLogger(__name__)
 
@@ -117,7 +117,7 @@ class Store:
     def record(self, search_key, results, seen_at=None):
         # Microseconds, not seconds: two runs in the same second would share a
         # timestamp, collapsing their price history and hiding every withdrawal.
-        seen_at = seen_at or datetime.now(timezone.utc).isoformat()
+        seen_at = seen_at or datetime.now(UTC).isoformat()
         report = Report()
 
         for result in results:

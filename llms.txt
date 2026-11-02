@@ -1,6 +1,6 @@
 # ImmoScanner
 
-> Scan real estate portals in Belgium, Switzerland, France and Germany for a town, a postal code or a region: de-duplicated listings, price statistics, gross rental yields, a BRRRR ranking of fixer-uppers, an archive of every scan and a web explorer. Python 3.10+, uv, cyclopts CLI (`immoscanner scan | yield | brrrr | serve`).
+> Scan real estate portals in Belgium, Switzerland, France and Germany for a town, a postal code or a region: de-duplicated listings, price statistics, gross rental yields, a BRRRR ranking of fixer-uppers, an archive of every scan and a web explorer. Python 3.11+, uv, cyclopts CLI (`immoscanner scan | yield | brrrr | serve`).
 
 Portals: immoweb.be and immovlan.be (Belgium), comparis.ch (Switzerland), bienici.com (France), kleinanzeigen.de and immowelt.de (Germany) are verified on captured pages; leboncoin.fr, seloger.com, pap.fr and immobilienscout24.de answer with anti-bot walls, which ImmoScanner reports as `BotWallError` and never bypasses.
 

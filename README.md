@@ -7,7 +7,7 @@
 [![Tests](https://github.com/UyttenhoveSimon/ImmoScanner/actions/workflows/tests.yml/badge.svg)](https://github.com/UyttenhoveSimon/ImmoScanner/actions/workflows/tests.yml)
 [![Live canary](https://github.com/UyttenhoveSimon/ImmoScanner/actions/workflows/canary.yml/badge.svg)](https://github.com/UyttenhoveSimon/ImmoScanner/actions/workflows/canary.yml)
 ![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen)
-![Python](https://img.shields.io/badge/python-3.10%E2%80%933.15-blue?logo=python&logoColor=white)
+![Python](https://img.shields.io/badge/python-3.11%E2%80%933.15-blue?logo=python&logoColor=white)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
 <br>
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)

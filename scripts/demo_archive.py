@@ -10,7 +10,7 @@ show up the way they would after a month of real use.
 
 import random
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from ImmoScanner.Archives.Store import Store
@@ -34,7 +34,7 @@ SCANS = 4
 #: share of the listings that sell, and that get cheaper, from one week to the next
 SOLD = 0.08
 REPRICED = 0.07
-FIRST_SCAN = datetime(2026, 9, 9, 9, 0, tzinfo=timezone.utc)
+FIRST_SCAN = datetime(2026, 9, 9, 9, 0, tzinfo=UTC)
 
 
 def listing(rng, number, place, deal):

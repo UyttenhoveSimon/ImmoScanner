@@ -10,7 +10,7 @@ France or Germany, de-duplicates the listings across portals, computes price
 statistics, rental yields and a BRRRR ranking of fixer-uppers, keeps every scan
 in a SQLite archive, and serves a web explorer over that archive.
 
-Python 3.10+, managed with **uv**. The CLI is **cyclopts**; pages are fetched
+Python 3.11+, managed with **uv**. The CLI is **cyclopts**; pages are fetched
 over plain HTTP, then `curl_cffi`, then a headless browser (**rustwright**).
 
 ## Commands
