@@ -151,4 +151,4 @@ include = ["tests/**"]
 
 [tool.ty.overrides.rules]
 invalid-assignment = "ignore"
-unresolved-attribute = "ignore"
+missing-attribute = "ignore"
