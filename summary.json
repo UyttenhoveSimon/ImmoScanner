@@ -1,0 +1,298 @@
+[
+  {
+    "portal": "bienici.com",
+    "terms": {
+      "postal_code": "69001",
+      "city": "Lyon",
+      "type": "any"
+    },
+    "url": "https://www.bienici.com/realEstateAds.json?filters=%7B%22size%22%3A24%2C%22from%22%3A0%2C%22page%22%3A1%2C%22filterType%22%3A%22buy%22%2C%22propertyType%22%3A%5B%22house%22%2C%22flat%22%5D%2C%22onTheMarket%22%3A%5Btrue%5D%2C%22sortBy%22%3A%22relevance%22%2C%22sortOrder%22%3A%22desc%22%2C%22zoneIdsByTypes%22%3A%7B%22zoneIds%22%3A%5B%22-10690%22%5D%7D%7D",
+    "zones": {
+      "69001": [
+        "-10690"
+      ]
+    },
+    "bytes": 298315,
+    "rung": "requests",
+    "bot_wall": [],
+    "listings": 26,
+    "priced": 26,
+    "measured": 26,
+    "samples": [
+      {
+        "url": "https://www.bienici.com/annonce/netty-pietrapolis-appt-52740",
+        "description": "Croix-Paquet - Bijou de 127 m² - Dernier étage - 3 chambres — Lyon 1er - Croix-Paquet | Dernier étage | 127 m2 Carrez | 3 chambres<br>&gt;&gt; Exclusivité Pietrapolis Immobilier<br>Idéalement situé entre Croix-Paquet et les Quais du Rhône, découvrez cet appartement traversant de 127 m2 Carrez (146m2 au sol) qui conjugue à la perfection caractère de l'ancien, rénovation contemporaine et emplacement central.<br>Installé au 5ème et dernier étage d'un immeuble du XVIIIe siècle type Soufflot et rénové en 2021, l'appartement profite de volumes généreux, de belles lumières tout au long de la journée, d'une organisation agréable de ses espaces, de vues ouvertes sur les toits et le parc de Croix Paquet et d'un calme rare en centre-ville.<br>La vaste pièce de vie d'environ 55 m2 réunit séjour, cuisine avec îlot et espace dînatoire. Un lieu conçu pour recevoir, partager et profiter de soirées plus douces autour de la cheminée d'époque grâce à une installation bio-éthanol intégrée.<br>L'espace nuit comprend trois grandes chambres de 28, 21 et 13 m2, avec dressing et rangements intégrés. Une mezzanine fermée de 13 m2 complète l'ensemble pou y installer bureau, salon TV, espace famille ou chambre d'appoint selon les besoins.<br>Les atouts de cet appartement<br>- Dernier étage, traversant Est/Ouest ;<br>- Calme, lumière et vues ouvertes en plein coeur de Lyon ;<br>- Matériaux anciens préservés et finitions soignées ;<br>- Rénovation complète, aucun travaux à prévoir ;<br>- DPE C / GES A ;<br>- Cave de 7 m2 et local vélos sécurisé ;<br>- Faibles charges : 970€ / an.<br>Au pied des pentes de la Croix-Rousse, accès immédiat aux commerces, écoles, transports, quais du Rhône et Presqu'île. Appartement situé au 5e et dernier étage, sans ascenseur, au sein d'une copropriété de 13 lots d'habitation. Taxe foncière : 911€. Honoraires à la charge du vendeur.<br>Pour plus d'informations ou organiser une visite, contactez Cédric Lecerf au <span class=\"importDescriptionDecorator\" data-type=\"phone\">06 23 18 93 18</span> ou par email à <span class=\"importDescriptionDecorator\" data-type=\"email\">c.lecerf@pietrapolis.fr</span><br>Honoraires à la charge du vendeur.  Dans une copropriété de 13 lots. Aucune procédure n'est en cours. Classe énergie C, Classe climat A Montant estimé des dépenses annuelles d'énergie pour un usage standard : entre 1480.00 € et 2050.00 € sur les années 2021, 2022 et 2023 (abonnements compris). Les informations sur les risques auxquels ce bien est exposé sont disponibles sur le site Géorisques : georisques.gouv.fr. <br>Votre conseiller Pietrapolis Lyon 7 : Cédric LECERF<br>Agent commercial (Entreprise individuelle)  <br>  RSAC 523 080 547",
+        "price": 675000,
+        "price_text": "675,000 €",
+        "id": "netty-pietrapolis-appt-52740",
+        "currency": "EUR",
+        "platform": "bienici.com",
+        "source": "",
+        "posted_date": "2026-11-08T22:51:12.397Z",
+        "postal_code": "69001",
+        "city": "Lyon 1er",
+        "type": "flat",
+        "livable_square_meters": 127,
+        "land_square_meters": 0,
+        "bedrooms_number": 3,
+        "rooms_number": 4,
+        "latitude": 45.77109,
+        "longitude": 4.836779,
+        "is_project": false,
+        "price_min": 0,
+        "price_max": 0,
+        "epc": "C",
+        "previous_price": 0,
+        "condition": "",
+        "condition_reasons": []
+      },
+      {
+        "url": "https://www.bienici.com/annonce/ag340369-560657357",
+        "description": "Maison à vendre 6 pièces LYON 1ER ARRONDISSEMENT (69) jardin Quai St Vincent — Il est des lieux qui ont une âme et dont on se souvient avec émotion.\nComment peut-on imaginer un vrai jardin de 130 m², incroyable ilot de verdure avec de beaux arbres, complété d'un kiosque habillé d'une tonnelle verte, sans vis à vis, en terrasse sur les balmes de la Croix Rousse, en retrait du quai St Vincent, derrière lequel se dévoile discrètement une charmante maison ancienne de 144 m2.\nAu fond d'une petite impasse presque piétonne, quelle surprise rare de concilier le cœur d'un quartier parmi les plus recherchés de Lyon (patrimoine de l'Unesco) avec ses commodités ultra proches (bus, pistes cyclables et rives de Saône au bout de l'impasse, commerces, écoles, collèges et lycées à 2 pas) et une sérénité en retrait, au dessus de l'agitation, au plein calme et dans la verdure !\n\nA l'intérieur, depuis votre salon de 41 m², vous profitez toujours du jardin, de la belle lumière de l'Ouest et d'une grande terrasse (35 m2) grâce à une immense verrière toute récente et isolée. L'effet dedans-dehors est saisissant.\nUn 2ème salon plus cosi, une cuisine ouverte toute récente et une petite chambre avec salle de douche et WC occupent le RDC de cette bâtisse du 19ème siècle.\n\nA l'étage, vous disposez d'une suite parentale avec salle d'eau, WC et dressing et d'une autre chambre avec salle d'eau indépendante. Ces dernières bénéficient d'une vue sur le jardin et la colline de Fourvière.\nEntre le RDC et l'étage, on trouve la buanderie-chaufferie et un WC indépendant.\nLes combles sont un espace potentiel à étudier et le toit terrasse avec vue sur la Saône et le Vieux Lyon, un beau potentiel à exploiter.\n\nLa cave (18 m2) est bien utile pour tout ranger.\nBien entretenue et confortable, elle est équipée d'un poêle à bois, d'une climatisation et elle est chauffée par une pompe à chaleur toute  récente (2026).\n\nEn contre-bas, dans l'impasse, vous pourrez reprendre la location d'une place de parking pour 80€/mois.\nC'est son alliance exceptionnelle du coeur historique de Lyon et d'un espace intime, vert et calme qui en fait son caractère unique. On la découvre ensemble ? Les honoraires sont à la charge du vendeur.\nLes informations sur les risques auxquels ce bien est exposé sont disponibles sur le site Géorisques : www.georisques.gouv.fr.\n\nRéseau Immobilier CAPIFRANCE - Votre agent commercial (RSAC N°830 776 522 - Greffe de LYON) Pascale GRIVOT-BRUNHES Entrepreneur Individuel à Responsabilité Limitée <span class=\"importDescriptionDecorator\" data-type=\"phone\">06 22 18 74 32</span> - Réf.978444",
+        "price": 1100000,
+        "price_text": "1,100,000 €",
+        "id": "ag340369-560657357",
+        "currency": "EUR",
+        "platform": "bienici.com",
+        "source": "",
+        "posted_date": "2026-11-17T10:34:33.735Z",
+        "postal_code": "69001",
+        "city": "Lyon 1er",
+        "type": "house",
+        "livable_square_meters": 144,
+        "land_square_meters": 0,
+        "bedrooms_number": 3,
+        "rooms_number": 6,
+        "latitude": 45.768259,
+        "longitude": 4.819019,
+        "is_project": false,
+        "price_min": 0,
+        "price_max": 0,
+        "epc": "C",
+        "previous_price": 0,
+        "condition": "",
+        "condition_reasons": []
+      }
+    ]
+  },
+  {
+    "portal": "leboncoin.fr",
+    "terms": {
+      "postal_code": "69001",
+      "city": "Lyon",
+      "type": "any"
+    },
+    "url": "https://www.leboncoin.fr/recherche?category=9&locations=Lyon_69001&real_estate_type=1%2C2&page=1",
+    "zones": null,
+    "bytes": 1571,
+    "rung": "browser",
+    "bot_wall": [
+      "captcha-delivery.com",
+      "geo.captcha"
+    ],
+    "read_error": "BotWallError: leboncoin.fr served an anti-bot challenge (captcha-delivery.com); no listing can be read from this page",
+    "listings": 0,
+    "priced": 0,
+    "measured": 0,
+    "samples": []
+  },
+  {
+    "portal": "seloger.com",
+    "terms": {
+      "url": "https://www.seloger.com/immobilier/achat/immo-lyon-69/"
+    },
+    "url": "https://www.seloger.com/immobilier/achat/immo-lyon-69/?page=1",
+    "zones": null,
+    "bytes": 1533,
+    "rung": "browser",
+    "bot_wall": [
+      "captcha-delivery.com",
+      "geo.captcha"
+    ],
+    "read_error": "BotWallError: seloger.com served an anti-bot challenge (captcha-delivery.com); no listing can be read from this page",
+    "listings": 0,
+    "priced": 0,
+    "measured": 0,
+    "samples": []
+  },
+  {
+    "portal": "pap.fr",
+    "terms": {
+      "url": "https://www.pap.fr/annonce/vente-immobiliere-lyon-69-g43590"
+    },
+    "url": "https://www.pap.fr/annonce/vente-immobiliere-lyon-69-g43590",
+    "zones": null,
+    "bytes": 6276,
+    "rung": "browser",
+    "bot_wall": [
+      "/cdn-cgi/challenge-platform"
+    ],
+    "read_error": "BotWallError: pap.fr served an anti-bot challenge (/cdn-cgi/challenge-platform); no listing can be read from this page",
+    "listings": 0,
+    "priced": 0,
+    "measured": 0,
+    "samples": []
+  },
+  {
+    "portal": "kleinanzeigen.de",
+    "terms": {
+      "postal_code": "10115",
+      "city": "Berlin",
+      "type": "apartment"
+    },
+    "url": "https://www.kleinanzeigen.de/s-suchanfrage.html?categoryId=196&locationStr=10115&radius=0&pageNum=1&action=find",
+    "zones": null,
+    "bytes": 1027156,
+    "rung": "curl_cffi",
+    "bot_wall": [],
+    "listings": 27,
+    "priced": 22,
+    "measured": 27,
+    "samples": [
+      {
+        "url": "https://www.kleinanzeigen.de/s-anzeige/zwei-zimmer-mitten-im-kiez-vermieteter-altbau-am-arkonaplatz/3576257509-196-9668",
+        "description": "Zwei Zimmer, mitten im Kiez | Vermieteter Altbau am Arkonaplatz — Nahe dem Arkonaplatz befindet sich diese vermietete 1-Zimmer-Wohnung im ersten Obergeschoss eines...",
+        "price": "329000",
+        "price_text": "329.000 €",
+        "id": "3576257509",
+        "currency": "EUR",
+        "platform": "kleinanzeigen.de",
+        "source": "",
+        "posted_date": "",
+        "postal_code": "10115",
+        "city": "Mitte",
+        "type": "",
+        "livable_square_meters": 45,
+        "land_square_meters": 0,
+        "bedrooms_number": 0,
+        "rooms_number": 1.0,
+        "latitude": null,
+        "longitude": null,
+        "is_project": false,
+        "price_min": 0,
+        "price_max": 0,
+        "epc": "",
+        "previous_price": 0,
+        "condition": "",
+        "condition_reasons": []
+      },
+      {
+        "url": "https://www.kleinanzeigen.de/s-anzeige/kapitalanlage-in-berlin-mitte-2-zimmer-wohnung-im-gruenderzeit-altbau/3555440788-196-9668",
+        "description": "Kapitalanlage in Berlin-Mitte: 2-Zimmer-Wohnung im Gründerzeit-Altbau — • EG • 2 Zimmer, ca. 39 m² • Keller • Vermietet • Provisionsfrei Willkommen im LeNeuf, dem...",
+        "price": "219900",
+        "price_text": "219.900 €",
+        "id": "3555440788",
+        "currency": "EUR",
+        "platform": "kleinanzeigen.de",
+        "source": "",
+        "posted_date": "",
+        "postal_code": "10115",
+        "city": "Mitte",
+        "type": "",
+        "livable_square_meters": 39,
+        "land_square_meters": 0,
+        "bedrooms_number": 0,
+        "rooms_number": 2.0,
+        "latitude": null,
+        "longitude": null,
+        "is_project": false,
+        "price_min": 0,
+        "price_max": 0,
+        "epc": "",
+        "previous_price": 0,
+        "condition": "",
+        "condition_reasons": []
+      }
+    ]
+  },
+  {
+    "portal": "immobilienscout24.de",
+    "terms": {
+      "url": "https://www.immobilienscout24.de/Suche/de/berlin/berlin/wohnung-kaufen"
+    },
+    "url": "https://www.immobilienscout24.de/Suche/de/berlin/berlin/wohnung-kaufen?pagenumber=1",
+    "zones": null,
+    "bytes": 3365,
+    "rung": "browser",
+    "bot_wall": [
+      "Ich bin kein Roboter"
+    ],
+    "read_error": "BotWallError: immobilienscout24.de served an anti-bot challenge (Ich bin kein Roboter); no listing can be read from this page",
+    "listings": 0,
+    "priced": 0,
+    "measured": 0,
+    "samples": []
+  },
+  {
+    "portal": "immowelt.de",
+    "terms": {
+      "postal_code": "10115",
+      "city": "Berlin",
+      "type": "any"
+    },
+    "url": "https://www.immowelt.de/suche/berlin/immobilien/kaufen",
+    "zones": null,
+    "bytes": 1173814,
+    "rung": "requests",
+    "bot_wall": [],
+    "listings": 32,
+    "priced": 32,
+    "measured": 32,
+    "samples": [
+      {
+        "url": "https://www.immowelt.de/expose/1215b46c-9e03-4081-bc72-67209544ff9f",
+        "description": "Wohnung zum Kauf - Berlin - 170.000 € - 2 Zimmer, 45 m², 3 Geschosse, frei ab 01.02.2027 — Diese charmante und gepflegte Etagenwohnung bietet eine ideale Gelegenheit für Immobilieninvestoren oder Eigennutzer. Mit einer Wohnfläche von 45 m² präsentiert sich diese Immobilie in einem hervorra...",
+        "price": "170000",
+        "price_text": "170.000 €",
+        "id": "256Q14GY2JL7",
+        "currency": "EUR",
+        "platform": "immowelt.de",
+        "source": "",
+        "posted_date": "",
+        "postal_code": "12557",
+        "city": "Berlin",
+        "type": "Wohnung zum Kauf",
+        "livable_square_meters": 45,
+        "land_square_meters": 0,
+        "bedrooms_number": 0,
+        "rooms_number": 2.0,
+        "latitude": null,
+        "longitude": null,
+        "is_project": false,
+        "price_min": 0,
+        "price_max": 0,
+        "epc": "D",
+        "previous_price": 0,
+        "condition": "",
+        "condition_reasons": []
+      },
+      {
+        "url": "https://www.immowelt.de/expose/502bda86-b714-47f7-a831-dcd9627858a3",
+        "description": "Wohnung zum Kauf - Berlin - 595.000 € - 2 Zimmer, 69 m², Geschoss 2/2, frei ab sofort — Beschreibung Diese außergewöhnliche Altbauwohnung verbindet Berliner Geschichte mit modernem Wohnkomfort und einer der begehrtesten Adressen der Hauptstadt. Direkt am Hackeschen Markt gelegen, befind...",
+        "price": "595000",
+        "price_text": "595.000 €",
+        "id": "26HYSF1IXGKD",
+        "currency": "EUR",
+        "platform": "immowelt.de",
+        "source": "",
+        "posted_date": "",
+        "postal_code": "10178",
+        "city": "Berlin",
+        "type": "Wohnung zum Kauf",
+        "livable_square_meters": 69,
+        "land_square_meters": 0,
+        "bedrooms_number": 0,
+        "rooms_number": 2.0,
+        "latitude": null,
+        "longitude": null,
+        "is_project": false,
+        "price_min": 0,
+        "price_max": 0,
+        "epc": "",
+        "previous_price": 0,
+        "condition": "",
+        "condition_reasons": []
+      }
+    ]
+  }
+]
