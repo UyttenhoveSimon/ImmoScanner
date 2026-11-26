@@ -152,3 +152,7 @@ include = ["tests/**"]
 [tool.ty.overrides.rules]
 invalid-assignment = "ignore"
 missing-attribute = "ignore"
+
+[tool.uv]
+# skip releases younger than two weeks, like the Dependabot cooldown
+exclude-newer = "14 days"
