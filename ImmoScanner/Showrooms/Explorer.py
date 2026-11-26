@@ -52,7 +52,7 @@ class Explorer:
         for name, clause in NARROWINGS.items():
             try:
                 value = float(narrowing.get(name, ""))
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 continue
             if value > 0:
                 clauses.append(clause.replace("land_square_meters", self.land))
@@ -284,7 +284,7 @@ class Explorer:
 def bounded(limit):
     try:
         limit = int(limit)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return DEFAULT_LIMIT
     return max(1, min(limit, MAX_LIMIT))
 
